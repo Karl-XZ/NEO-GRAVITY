@@ -21,6 +21,7 @@ import {
   VitalTile,
   TrendChart,
   CoachCard,
+  HealthCompanion,
 } from "@/components/dashboard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -284,31 +285,32 @@ export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientPro
         : "Within 30 days";
 
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-8">
-      <section className="animate-in flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-3xl">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <Badge className="rounded-full border-0 bg-primary/10 px-2.5 py-1 text-primary">
-              Concerned Preventer experience
-            </Badge>
-            <StatusBadge status={features.cardioRisk.status} />
+    <div className="flex gap-6">
+      <div className="mx-auto flex min-w-0 max-w-[1400px] flex-1 flex-col gap-8">
+        <section className="animate-in flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <Badge className="rounded-full border-0 bg-primary/10 px-2.5 py-1 text-primary">
+                Concerned Preventer experience
+              </Badge>
+              <StatusBadge status={features.cardioRisk.status} />
+            </div>
+            <h1 className="font-heading text-fluid-3xl leading-none text-foreground">
+              Plain-language prevention with a trust-first clinic tone.
+            </h1>
+            <p className="mt-3 max-w-2xl text-fluid-base leading-relaxed text-muted-foreground">
+              This dashboard is tuned for the Concerned Preventer persona: fewer numbers, clearer signals, one weekly action, and a direct path back to trusted care.
+            </p>
           </div>
-          <h1 className="font-heading text-fluid-3xl leading-none text-foreground">
-            Plain-language prevention with a trust-first clinic tone.
-          </h1>
-          <p className="mt-3 max-w-2xl text-fluid-base leading-relaxed text-muted-foreground">
-            This dashboard is tuned for the Concerned Preventer persona: fewer numbers, clearer signals, one weekly action, and a direct path back to trusted care.
-          </p>
-        </div>
-        <Button
-          variant={plainLanguageMode ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPlainLanguageMode((current) => !current)}
-        >
-          <BookOpenText />
-          Plain-language mode {plainLanguageMode ? "On" : "Off"}
-        </Button>
-      </section>
+          <Button
+            variant={plainLanguageMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPlainLanguageMode((current) => !current)}
+          >
+            <BookOpenText />
+            Plain-language mode {plainLanguageMode ? "On" : "Off"}
+          </Button>
+        </section>
 
       <section className="animate-in grid grid-cols-1 gap-4 lg:grid-cols-3">
         <BioAgeCard data={features.bioAge} chronologicalAge={ehr.age} />
@@ -714,6 +716,13 @@ export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientPro
           </SheetFooter>
         </SheetContent>
       </Sheet>
+      </div>
+
+      <aside className="hidden w-[380px] shrink-0 xl:block">
+        <div className="sticky top-0">
+          <HealthCompanion />
+        </div>
+      </aside>
     </div>
   );
 }
