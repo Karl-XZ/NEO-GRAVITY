@@ -1,4 +1,10 @@
-import type { PersonaHint, UserProfile } from "./types";
+import type { AlertMode, PersonaHint, UserProfile } from "./types";
+
+export const ALERT_MODE_STORAGE_KEY = "longeviq-alert-mode";
+
+export function isAlertMode(value: string): value is AlertMode {
+  return value === "simple" || value === "detailed" || value === "notification";
+}
 
 export const PERSONA_LABELS: Record<PersonaHint, string> = {
   "preventive-performer": "Preventive Performer",

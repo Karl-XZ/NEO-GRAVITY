@@ -27,6 +27,7 @@ export const mockUserProfile: UserProfile = {
   city: "Berlin",
   country_code: "DE",
   timezone: "Europe/Berlin",
+  alert_mode: "simple",
   primary_goal: "Mehr Energie im Alltag und bessere Erholung nach intensiven Wochen.",
   focus_areas: [
     "Schlafoptimierung",
