@@ -1,5 +1,6 @@
 import { getUserProfile } from "@/lib/data";
 import { AppShell } from "@/components/layout/app-shell";
+import { AppProvider } from "@/components/AppState";
 
 export default async function AppLayout({
   children,
@@ -8,5 +9,9 @@ export default async function AppLayout({
 }) {
   const profile = await getUserProfile();
 
-  return <AppShell profile={profile}>{children}</AppShell>;
+  return (
+    <AppProvider>
+      <AppShell profile={profile}>{children}</AppShell>
+    </AppProvider>
+  );
 }

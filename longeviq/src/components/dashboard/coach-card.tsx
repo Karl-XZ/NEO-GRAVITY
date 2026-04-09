@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import type { CoachSuggestion } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,7 @@ interface CoachCardProps {
   suggestion: CoachSuggestion;
   isActive?: boolean;
   isDimmed?: boolean;
+  actionHref?: string;
   onActivate?: () => void;
   onDeactivate?: () => void;
 }
@@ -64,9 +67,11 @@ export function CoachCard({
   suggestion,
   isActive = false,
   isDimmed = false,
+  actionHref,
   onActivate,
   onDeactivate,
 }: CoachCardProps) {
+  const router = useRouter();
   const bodyText = getCardBodyText(suggestion);
 
   return (
@@ -158,6 +163,12 @@ export function CoachCard({
           <Button
             variant="ghost"
             size="sm"
+            type="button"
+            onClick={() => {
+              if (actionHref) {
+                router.push(actionHref);
+              }
+            }}
             className="h-auto rounded-full bg-white/80 px-3 text-fluid-xs text-primary shadow-none hover:bg-transparent hover:text-primary/80"
           >
             Aktionsplan anzeigen
