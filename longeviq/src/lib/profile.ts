@@ -1,10 +1,16 @@
-import type { PersonaHint, UserProfile } from "./types";
+import type { PersonaHint, UiMode, UserProfile } from "./types";
 
 export const PERSONA_LABELS: Record<PersonaHint, string> = {
-  "preventive-performer": "Preventive Performer",
-  "concerned-preventer": "Concerned Preventer",
-  "digital-optimizer": "Digital Optimizer",
-  "clinic-anchored-loyalist": "Clinic-Anchored Loyalist",
+  "preventive-performer": "Aktive Vorsorge",
+  "concerned-preventer": "Einfach & Sicher",
+  "digital-optimizer": "Daten & Trends",
+  "clinic-anchored-loyalist": "Klinikbegleitung",
+};
+
+export const UI_MODE_LABELS: Record<UiMode, string> = {
+  simple: "Kompakt",
+  standard: "Standard",
+  expert: "Detailliert",
 };
 
 export function getProfileInitials(displayName: UserProfile["display_name"]) {
@@ -29,4 +35,8 @@ export function getPersonaLabel(personaHint: UserProfile["persona_hint"]) {
   }
 
   return PERSONA_LABELS[personaHint];
+}
+
+export function getUiModeLabel(uiMode: UserProfile["ui_mode"]) {
+  return UI_MODE_LABELS[uiMode] ?? "Standard";
 }

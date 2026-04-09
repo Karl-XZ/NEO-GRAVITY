@@ -12,25 +12,28 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { getPersonaLabel, getProfileInitials } from "@/lib/profile";
-import type { UserProfile } from "@/lib/types";
+import { getPersonaLabel, getProfileInitials, getUiModeLabel } from "@/lib/profile";
+import { useProfilePreferences } from "@/components/profile/profile-preferences-provider";
 import { NAV_ITEMS } from "./sidebar";
 import { cn } from "@/lib/utils";
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/biomarkers": "Biomarker",
-  "/journey": "Journey",
+  "/journey": "Verlauf",
   "/coach": "Gesundheitscoach",
   "/settings": "Einstellungen",
+  "/insights": "Hinweise",
 };
 
-export function Topbar({ profile }: { profile: UserProfile }) {
+export function Topbar() {
+  const { profile } = useProfilePreferences();
   const pathname = usePathname();
   const title = PAGE_TITLES[pathname] ?? "LongevIQ";
   const [sheetOpen, setSheetOpen] = useState(false);
   const initials = getProfileInitials(profile.display_name);
   const personaLabel = getPersonaLabel(profile.persona_hint);
+  const uiModeLabel = getUiModeLabel(profile.ui_mode);
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface-0 px-4 lg:px-6">
@@ -39,7 +42,7 @@ export function Topbar({ profile }: { profile: UserProfile }) {
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground lg:hidden">
             <Menu className="size-5" />
-            <span className="sr-only">Open navigation</span>
+            <span className="sr-only">Navigation öffnen</span>
           </SheetTrigger>
 
           <SheetContent
@@ -49,7 +52,6 @@ export function Topbar({ profile }: { profile: UserProfile }) {
           >
             <SheetTitle className="sr-only">Navigation</SheetTitle>
 
-            {/* Logo */}
             <div className="flex h-14 items-center gap-2.5 border-b border-border px-4">
               <Activity className="size-5 shrink-0 text-primary" />
               <span className="text-[15px] font-semibold tracking-tight font-heading">
@@ -57,7 +59,6 @@ export function Topbar({ profile }: { profile: UserProfile }) {
               </span>
             </div>
 
-            {/* Nav items */}
             <nav className="flex-1 space-y-0.5 px-2 pt-4">
               {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
                 const isActive =
@@ -94,6 +95,9 @@ export function Topbar({ profile }: { profile: UserProfile }) {
         <Badge variant="secondary" className="text-[10px] font-medium uppercase tracking-wider">
           Beta
         </Badge>
+        <Badge variant="outline" className="hidden text-[10px] font-medium uppercase tracking-wider md:inline-flex">
+          {uiModeLabel}
+        </Badge>
       </div>
 
       <Link
@@ -105,7 +109,7 @@ export function Topbar({ profile }: { profile: UserProfile }) {
             {profile.display_name ?? "Unbekannter Nutzer"}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {profile.role_label} | {personaLabel}
+            {profile.role_label} | {personaLabel} | {uiModeLabel}
           </p>
         </div>
         <Avatar className="size-8">
