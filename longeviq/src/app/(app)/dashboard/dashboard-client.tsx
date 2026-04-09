@@ -1,8 +1,15 @@
 "use client";
 
+import { useState } from "react";
+
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
 import { computeAllFeatures, recoveryScoreDaily } from "@/lib/features";
-import type { EhrRecord, WearableTelemetry, LifestyleSurvey } from "@/lib/types";
+import type {
+  CoachSuggestion,
+  EhrRecord,
+  WearableTelemetry,
+  LifestyleSurvey,
+} from "@/lib/types";
 import {
   BioAgeCard,
   CoachCard,
@@ -11,6 +18,39 @@ import {
   VitalTile,
   HealthCompanion,
 } from "@/components/dashboard";
+
+const coachPreviewFallbacks: CoachSuggestion[] = [
+  {
+    severity: "red",
+    title: "Regeneration diese Woche priorisieren",
+    rationale:
+      "Mehrere Belastungssignale deuten darauf hin, dass Ihr System aktuell mehr Erholung als zusatzliche Intensitat braucht.",
+    action:
+      "Belastung fur 48 Stunden reduzieren, Schlaf priorisieren und nur lockere Bewegung einplanen.",
+  },
+  {
+    severity: "yellow",
+    title: "Abendroutine fur besseren Schlaf scharfen",
+    rationale:
+      "Eine etwas fruhere digitale Auszeit und konstantere Schlafzeiten konnten Ihre nachtliche Erholung direkt verbessern.",
+    action:
+      "90 Minuten vor dem Schlafen Displays reduzieren und eine feste Wind-down-Routine etablieren.",
+  },
+  {
+    severity: "yellow",
+    title: "Zone-2-Einheit als sanften Reset nutzen",
+    rationale:
+      "Ein ruhiger Ausdauerreiz wurde Ihre Aktivitat stutzen, ohne die aktuelle Erholung unnotig zu belasten.",
+    action:
+      "30 bis 40 Minuten lockeres Cardio mit niedriger Intensitat fur morgen einplanen.",
+  },
+];
+
+const severityOrder: Record<CoachSuggestion["severity"], number> = {
+  red: 0,
+  yellow: 1,
+  green: 2,
+};
 
 function HeartIcon() {
   return (
@@ -65,9 +105,23 @@ export function DashboardClient({
   wearable,
   lifestyle,
 }: DashboardClientProps) {
+  const [activeCoachSuggestion, setActiveCoachSuggestion] = useState<string | null>(null);
   const features = computeAllFeatures(ehr, wearable, lifestyle);
-  const priorityCoachSuggestions = generateCoachSuggestions(features, ehr)
-    .filter((suggestion) => suggestion.severity !== "green")
+  const generatedPriorityCoachSuggestions = generateCoachSuggestions(features, ehr).filter(
+    (suggestion) => suggestion.severity !== "green"
+  );
+  const priorityCoachSuggestions = [
+    ...generatedPriorityCoachSuggestions,
+    ...coachPreviewFallbacks.filter(
+      (fallback) =>
+        !generatedPriorityCoachSuggestions.some(
+          (suggestion) => suggestion.title === fallback.title
+        )
+    ),
+  ]
+    .sort(
+      (a, b) => severityOrder[a.severity] - severityOrder[b.severity]
+    )
     .slice(0, 3);
 
   const latest = wearable[wearable.length - 1];
@@ -101,9 +155,23 @@ export function DashboardClient({
         {priorityCoachSuggestions.length > 0 && (
           <section className="animate-in flex flex-col gap-4">
             <h3 className="text-fluid-lg text-foreground">Coach-Empfehlungen</h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="flex flex-col gap-3 lg:flex-row">
               {priorityCoachSuggestions.map((suggestion) => (
-                <CoachCard key={suggestion.title} suggestion={suggestion} />
+                <CoachCard
+                  key={suggestion.title}
+                  suggestion={suggestion}
+                  isActive={activeCoachSuggestion === suggestion.title}
+                  isDimmed={
+                    activeCoachSuggestion !== null &&
+                    activeCoachSuggestion !== suggestion.title
+                  }
+                  onActivate={() => setActiveCoachSuggestion(suggestion.title)}
+                  onDeactivate={() =>
+                    setActiveCoachSuggestion((current) =>
+                      current === suggestion.title ? null : current
+                    )
+                  }
+                />
               ))}
             </div>
           </section>
