@@ -22,6 +22,18 @@ export interface Profile {
   created_at: string;
 }
 
+/** Extended profile shape used by the current UI */
+export interface UserProfile extends Profile {
+  email: string;
+  role_label: string;
+  plan_label: string;
+  city: string;
+  country_code: string;
+  timezone: string;
+  primary_goal: string;
+  focus_areas: string[];
+}
+
 /** EHR record — one row per patient (clinical baseline) */
 export interface EhrRecord {
   patient_id: string;

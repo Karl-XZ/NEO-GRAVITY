@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Menu } from "lucide-react";
+import { Activity, Menu, Settings2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,6 +12,8 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { getPersonaLabel, getProfileInitials } from "@/lib/profile";
+import type { UserProfile } from "@/lib/types";
 import { NAV_ITEMS } from "./sidebar";
 import { cn } from "@/lib/utils";
 
@@ -23,10 +25,12 @@ const PAGE_TITLES: Record<string, string> = {
   "/settings": "Einstellungen",
 };
 
-export function Topbar() {
+export function Topbar({ profile }: { profile: UserProfile }) {
   const pathname = usePathname();
   const title = PAGE_TITLES[pathname] ?? "LongevIQ";
   const [sheetOpen, setSheetOpen] = useState(false);
+  const initials = getProfileInitials(profile.display_name);
+  const personaLabel = getPersonaLabel(profile.persona_hint);
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface-0 px-4 lg:px-6">
@@ -92,17 +96,25 @@ export function Topbar() {
         </Badge>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="text-right">
-          <p className="text-sm font-medium leading-none">Thomas M.</p>
-          <p className="text-xs text-muted-foreground">Patient</p>
+      <Link
+        href="/settings"
+        className="group flex items-center gap-3 rounded-xl border border-border bg-surface-1 px-3 py-2 transition-colors hover:bg-surface-2"
+      >
+        <div className="hidden text-right sm:block">
+          <p className="text-sm font-medium leading-none">
+            {profile.display_name ?? "Unbekannter Nutzer"}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {profile.role_label} | {personaLabel}
+          </p>
         </div>
         <Avatar className="size-8">
           <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-            TM
+            {initials}
           </AvatarFallback>
         </Avatar>
-      </div>
+        <Settings2 className="hidden size-4 text-muted-foreground transition-colors group-hover:text-foreground sm:block" />
+      </Link>
     </header>
   );
 }
