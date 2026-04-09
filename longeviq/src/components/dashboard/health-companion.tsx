@@ -135,15 +135,27 @@ export function HealthCompanion() {
         };
         reader.readAsDataURL(file);
       } else if (file.type === "application/pdf") {
-        // PDF: extract text content via basic text extraction
         const reader = new FileReader();
-        reader.onload = () => {
-          const text = reader.result as string;
-          // Filter out binary noise, keep readable text
-          const cleaned = text.replace(/[^\x20-\x7E\xA0-\xFF\n\r\t]/g, " ").replace(/ {3,}/g, " ").trim();
-          setAttachedFiles((prev) => [...prev, { name: file.name, content: cleaned.slice(0, 15000), type: "document" }]);
+        reader.onload = async () => {
+          const dataUrl = reader.result as string;
+          const base64 = dataUrl.split(",")[1];
+          try {
+            const res = await fetch("/api/parse-pdf", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ base64 }),
+            });
+            if (res.ok) {
+              const { text } = await res.json();
+              setAttachedFiles((prev) => [...prev, { name: file.name, content: text, type: "document" }]);
+            } else {
+              setAttachedFiles((prev) => [...prev, { name: file.name, content: "[PDF could not be read]", type: "document" }]);
+            }
+          } catch {
+            setAttachedFiles((prev) => [...prev, { name: file.name, content: "[PDF could not be read]", type: "document" }]);
+          }
         };
-        reader.readAsText(file);
+        reader.readAsDataURL(file);
       } else {
         // Text-based files
         const reader = new FileReader();
