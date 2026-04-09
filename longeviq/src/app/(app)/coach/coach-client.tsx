@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
 import { computeAllFeatures } from "@/lib/features";
-import { THRESHOLDS } from "@/lib/thresholds";
 import type {
   CoachSuggestion,
   EhrRecord,
@@ -23,7 +22,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
 const severityConfig: Record<
   string,
@@ -176,45 +174,6 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
             ? "Sleep stability is the cleanest lever to improve recovery."
             : "The current focus is maintaining consistency rather than adding complexity.";
 
-  function ldlStatus(): "green" | "yellow" | "red" {
-    if (ehr.ldl_mmol >= THRESHOLDS.ldl.high) return "red";
-    if (ehr.ldl_mmol >= THRESHOLDS.ldl.moderate_risk_target) return "yellow";
-    return "green";
-  }
-
-  function crpStatus(): "green" | "yellow" | "red" {
-    if (ehr.crp_mg_l >= THRESHOLDS.crp.moderate_risk) return "red";
-    if (ehr.crp_mg_l >= THRESHOLDS.crp.low_risk) return "yellow";
-    return "green";
-  }
-
-  const keyMetrics = [
-    {
-      label: "LDL-Cholesterin",
-      value: `${ehr.ldl_mmol} mmol/L`,
-      target: `< ${THRESHOLDS.ldl.moderate_risk_target} mmol/L`,
-      status: ldlStatus(),
-    },
-    {
-      label: "Blutdruck (sys/dia)",
-      value: `${features.bpControl.sbp}/${features.bpControl.dbp} mmHg`,
-      target: `< ${THRESHOLDS.bp.optimal_sbp}/${THRESHOLDS.bp.optimal_dbp} mmHg`,
-      status: features.bpControl.status,
-    },
-    {
-      label: "HbA1c",
-      value: `${ehr.hba1c_pct} %`,
-      target: `< ${THRESHOLDS.hba1c.normal} %`,
-      status: features.prediabetes.status,
-    },
-    {
-      label: "CRP",
-      value: `${ehr.crp_mg_l} mg/L`,
-      target: `< ${THRESHOLDS.crp.low_risk} mg/L`,
-      status: crpStatus(),
-    },
-  ];
-
   const labExperiments = [
     {
       title: "VO2max Goal Sprint",
@@ -242,29 +201,6 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
       success: "ApoB/Lp(a), VO2max Lab und CGM in einen Zyklus bringen",
     },
   ] as const;
-
-  const performanceMetrics = [
-    {
-      label: "Bio-Age",
-      value: `${features.bioAge.bioAge}`,
-      note: `${features.bioAge.delta > 0 ? "+" : ""}${features.bioAge.delta} vs. ${ehr.age}`,
-    },
-    {
-      label: "VO2max",
-      value: `${features.vo2max.vo2max}`,
-      note: features.vo2max.percentile,
-    },
-    {
-      label: "Readiness",
-      value: `${features.recoveryScore.score}/100`,
-      note: features.strainRecovery.interpretation,
-    },
-    {
-      label: "Longevity Percentile",
-      value: `${features.longevityPercentile}`,
-      note: "Peer-basiertes Composite Ranking",
-    },
-  ];
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -393,121 +329,20 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
         ))}
       </section>
 
-      <div className="animate-in stagger-3 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_0.75fr]">
-        <div>
-          <div className="mb-5">
-            <h2 className="mb-1 text-lg font-semibold tracking-tight">
-              Current coaching priorities
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Reduced to the few recommendations with the clearest next-step value.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {primarySuggestions.map((suggestion, index) => (
-              <SuggestionCard key={`${suggestion.title}-${index}`} suggestion={suggestion} />
-            ))}
-          </div>
+      <div className="animate-in stagger-3">
+        <div className="mb-5">
+          <h2 className="mb-1 text-lg font-semibold tracking-tight">
+            Current coaching priorities
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Reduced to the few recommendations with the clearest next-step value.
+          </p>
         </div>
 
-        <div className="flex flex-col gap-6">
-          <Card className="border-0 bg-surface-1">
-            <CardHeader>
-              <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">
-                Performance Profil
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="grid gap-3 sm:grid-cols-2">
-                {performanceMetrics.map((metric) => (
-                  <div key={metric.label} className="rounded-2xl bg-surface-2/60 p-4">
-                    <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">
-                      {metric.label}
-                    </p>
-                    <p className="mt-2 font-data text-2xl text-foreground">
-                      {metric.value}
-                    </p>
-                    <p className="mt-1 text-fluid-xs text-muted-foreground">
-                      {metric.note}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <div>
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Klinische Marker
-                  </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Focus on the few markers that most affect training and diagnostics.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                {keyMetrics.map((metric) => {
-                  const statusColor =
-                    metric.status === "red"
-                      ? "text-status-critical"
-                      : metric.status === "yellow"
-                        ? "text-status-warning"
-                        : "text-status-normal";
-                  const dotColor =
-                    metric.status === "red"
-                      ? "bg-status-critical"
-                      : metric.status === "yellow"
-                        ? "bg-status-warning"
-                        : "bg-status-normal";
-
-                  return (
-                    <div key={metric.label} className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <span className={cn("size-1.5 rounded-full", dotColor)} />
-                        <span className="text-sm text-foreground/80">{metric.label}</span>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className={cn("font-data text-sm font-medium", statusColor)}>
-                          {metric.value}
-                        </span>
-                        <span className="hidden text-xs text-muted-foreground sm:inline">
-                          Ziel: {metric.target}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <Separator />
-              <div className="space-y-3">
-                <div>
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    What to run next
-                  </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Keep the page focused on testing decisions instead of duplicating chat.
-                  </p>
-                </div>
-                <div className="grid gap-3">
-                  {labExperiments.slice(0, 2).map((experiment) => (
-                    <div key={experiment.title} className="rounded-2xl bg-surface-2/60 p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium text-foreground">{experiment.title}</p>
-                        <Badge variant="outline" className={labStatusTone(experiment.status)}>
-                          {experiment.status}
-                        </Badge>
-                      </div>
-                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                        {experiment.hypothesis}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex flex-col gap-4">
+          {primarySuggestions.map((suggestion, index) => (
+            <SuggestionCard key={`${suggestion.title}-${index}`} suggestion={suggestion} />
+          ))}
         </div>
       </div>
     </div>
