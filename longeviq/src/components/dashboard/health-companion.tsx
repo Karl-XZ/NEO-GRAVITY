@@ -34,7 +34,7 @@ export function HealthCompanion() {
     {
       role: "assistant",
       content:
-        "Hallo! Ich bin dein AI Health Companion. Ich habe Zugriff auf deine Gesundheitsdaten und kann dir helfen, sie zu verstehen. Was möchtest du wissen?",
+        "Hello! I'm your AI Health Companion. I have access to your health data and can help you understand it. What would you like to know?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -136,7 +136,7 @@ export function HealthCompanion() {
           const copy = [...prev];
           copy[copy.length - 1] = {
             role: "assistant",
-            content: `Fehler: ${err.error ?? "Unbekannter Fehler"}`,
+            content: `Error: ${err.error ?? "Unknown error"}`,
           };
           return copy;
         });
@@ -183,7 +183,7 @@ export function HealthCompanion() {
         const copy = [...prev];
         copy[copy.length - 1] = {
           role: "assistant",
-          content: "Verbindungsfehler. Bitte versuche es erneut.",
+          content: "Connection error. Please try again.",
         };
         return copy;
       });
@@ -210,13 +210,13 @@ export function HealthCompanion() {
             <div>
               <p className="text-sm font-semibold leading-none">AI Health Companion</p>
               <p className="text-[11px] text-muted-foreground">
-                {expanded ? "Erweiterte Ansicht" : "Live health assistant"}
+                {expanded ? "Expanded view" : "Live health assistant"}
               </p>
             </div>
           </div>
           <button
             type="button"
-            aria-label={expanded ? "Chat verkleinern" : "Chat erweitern"}
+            aria-label={expanded ? "Minimize chat" : "Expand chat"}
             aria-expanded={expanded}
             onClick={() => setIsExpanded((prev) => !prev)}
             className={cn(
@@ -289,7 +289,7 @@ export function HealthCompanion() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Frag mich etwas..."
+              placeholder="Ask me something..."
               disabled={isStreaming}
               className="flex-1 rounded-xl border border-input/80 bg-white/85 px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
             />
@@ -304,7 +304,7 @@ export function HealthCompanion() {
                     ? "animate-pulse bg-destructive text-destructive-foreground"
                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80",
                 )}
-                title={isListening ? "Aufnahme stoppen" : "Spracheingabe"}
+                title={isListening ? "Stop recording" : "Voice input"}
               >
                 {isListening ? <MicOff className="size-4" /> : <Mic className="size-4" />}
               </button>
@@ -334,7 +334,7 @@ export function HealthCompanion() {
             <>
               <button
                 type="button"
-                aria-label="Chat schließen"
+                aria-label="Close chat"
                 className="fixed inset-0 z-[110] bg-background/72 backdrop-blur-sm"
                 onClick={() => setIsExpanded(false)}
               />
