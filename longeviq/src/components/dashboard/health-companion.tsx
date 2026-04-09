@@ -2,9 +2,27 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Send, Bot, User, Loader2, Maximize2, Minimize2 } from "lucide-react";
+import { Send, Bot, User, Loader2, Maximize2, Minimize2, Mic, MicOff } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+
+type SpeechRecognitionType = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+function getSpeechRecognitionConstructor(): (new () => SpeechRecognitionType) | null {
+  if (typeof window === "undefined") return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const w = window as any;
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+}
 
 interface Message {
   role: "user" | "assistant";
@@ -21,9 +39,11 @@ export function HealthCompanion() {
   ]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -55,6 +75,36 @@ export function HealthCompanion() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isExpanded]);
+
+  const supportsSTT = getSpeechRecognitionConstructor() !== null;
+
+  function toggleListening() {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const Ctor = getSpeechRecognitionConstructor();
+    if (!Ctor) return;
+
+    const recognition = new Ctor();
+    recognition.lang = "en";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput((prev) => (prev ? prev + " " + transcript : transcript));
+      inputRef.current?.focus();
+    };
+
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }
 
   async function handleSend() {
     const text = input.trim();
@@ -243,6 +293,22 @@ export function HealthCompanion() {
               disabled={isStreaming}
               className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
             />
+            {supportsSTT && (
+              <button
+                type="button"
+                onClick={toggleListening}
+                disabled={isStreaming}
+                className={cn(
+                  "flex size-8 items-center justify-center rounded-md transition-colors disabled:opacity-40",
+                  isListening
+                    ? "animate-pulse bg-destructive text-destructive-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+                )}
+                title={isListening ? "Aufnahme stoppen" : "Spracheingabe"}
+              >
+                {isListening ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+              </button>
+            )}
             <button
               type="submit"
               disabled={!input.trim() || isStreaming}
