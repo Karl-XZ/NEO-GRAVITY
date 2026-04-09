@@ -11,14 +11,6 @@ import {
   VitalTile,
   HealthCompanion,
 } from "@/components/dashboard";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 function HeartIcon() {
   return (
@@ -52,10 +44,6 @@ function MoonIcon() {
   );
 }
 
-function signed(value: number, digits = 1) {
-  return `${value > 0 ? "+" : ""}${value.toFixed(digits)}`;
-}
-
 function avg(values: number[]) {
   if (values.length === 0) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -64,34 +52,6 @@ function avg(values: number[]) {
 function trendPct(current: number, baseline: number) {
   if (baseline === 0) return 0;
   return ((current - baseline) / baseline) * 100;
-}
-
-function readinessMode(score: number, overreaching: boolean) {
-  if (score >= 80 && !overreaching) {
-    return {
-      label: "Push day",
-      description: "Sie sind bereit fur intensive Intervalle oder einen Benchmark-Test.",
-    };
-  }
-
-  if (score >= 65) {
-    return {
-      label: "Build day",
-      description: "Heute ist ein guter Tag fur Zone-2-Training und saubere Volumenarbeit.",
-    };
-  }
-
-  return {
-    label: "Recovery day",
-    description: "Erholung priorisieren, Schlaf konsistent halten und Trainingsintensitat reduzieren.",
-  };
-}
-
-function nextVo2Target(current: number) {
-  if (current < 38) return 40;
-  if (current < 42) return 45;
-  if (current < 47) return 50;
-  return Math.ceil((current + 2) / 2) * 2;
 }
 
 interface DashboardClientProps {
@@ -106,15 +66,12 @@ export function DashboardClient({
   lifestyle,
 }: DashboardClientProps) {
   const features = computeAllFeatures(ehr, wearable, lifestyle);
-  const coachSuggestions = generateCoachSuggestions(features, ehr);
+  const priorityCoachSuggestions = generateCoachSuggestions(features, ehr)
+    .filter((suggestion) => suggestion.severity !== "green")
+    .slice(0, 3);
 
   const latest = wearable[wearable.length - 1];
   const previousWeek = wearable.slice(-8, -1);
-  const currentReadiness = features.recoveryScore;
-  const readinessDecision = readinessMode(
-    currentReadiness.score,
-    features.strainRecovery.flag,
-  );
 
   const hrAvg7 = avg(previousWeek.map((day) => day.resting_hr_bpm));
   const hrvAvg7 = avg(previousWeek.map((day) => day.hrv_rmssd_ms));
@@ -136,35 +93,23 @@ export function DashboardClient({
     hrv: day.hrv_rmssd_ms,
   }));
 
-  const vo2Target = nextVo2Target(features.vo2max.vo2max);
-  const diagnostics = [
-    {
-      title: "Advanced lipid panel",
-      priority: ehr.ldl_mmol >= 2.6 ? "Hoch" : "Mittel",
-      description:
-        ehr.ldl_mmol >= 2.6
-          ? "ApoB und Lp(a) helfen, das Residualrisiko hinter dem LDL-Wert sauber zu trennen."
-          : "Ein erweiterter Lipidcheck schafft eine starke Baseline fur langfristige Prevention.",
-    },
-    {
-      title: "Formal VO2max test",
-      priority: features.vo2max.vo2max < 45 ? "Hoch" : "Mittel",
-      description:
-        "Ein Labortest kalibriert Trainingszonen, validiert den Proxy und macht den Goal Planner belastbarer.",
-    },
-    {
-      title: "Body composition scan",
-      priority: ehr.bmi >= 25 ? "Mittel" : "Basis",
-      description:
-        "DEXA oder eine hochwertige Korperanalyse zeigen Lean Mass, Fettverteilung und Fortschritt der Interventionen.",
-    },
-  ];
-
   return (
     <div className="flex gap-6">
       {/* ── Dashboard Content (left) ──────────────────────── */}
       <div className="min-w-0 flex-1 flex flex-col gap-10">
-        {/* ── Section 1: Hero Row ───────────────────────────── */}
+        {/* ── Section 1: Critical Coach Alerts ─────────────── */}
+        {priorityCoachSuggestions.length > 0 && (
+          <section className="animate-in flex flex-col gap-4">
+            <h3 className="text-fluid-lg text-foreground">Coach-Empfehlungen</h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {priorityCoachSuggestions.map((suggestion) => (
+                <CoachCard key={suggestion.title} suggestion={suggestion} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Section 2: Hero Row ───────────────────────────── */}
         <section className="animate-in grid grid-cols-1 gap-4 lg:grid-cols-3">
           <BioAgeCard data={features.bioAge} chronologicalAge={ehr.age} />
           <ScoreCard
@@ -181,7 +126,7 @@ export function DashboardClient({
           />
         </section>
 
-        {/* ── Section 2: Vitals Strip ──────────────────────── */}
+        {/* ── Section 3: Vitals Strip ──────────────────────── */}
         <section className="animate-in stagger-1 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <VitalTile
             label="Ruhe-HF"
@@ -213,7 +158,7 @@ export function DashboardClient({
           />
         </section>
 
-        {/* ── Section 3: Trend Charts ──────────────────────── */}
+        {/* ── Section 4: Trend Charts ──────────────────────── */}
         <section className="animate-in stagger-2 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <TrendChart
             title="Bereitschaft & Erholung — 30 Tage"
@@ -234,15 +179,7 @@ export function DashboardClient({
           />
         </section>
 
-        {/* ── Section 4: Coach Insights ────────────────────── */}
-        <section className="animate-in stagger-3 flex flex-col gap-4 pb-8">
-          <h3 className="text-fluid-lg text-foreground">Coach-Empfehlungen</h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {coachSuggestions.map((suggestion) => (
-              <CoachCard key={suggestion.title} suggestion={suggestion} />
-            ))}
-          </div>
-        </section>
+        <div className="pb-8" />
       </div>
 
       {/* ── AI Health Companion (right panel) ─────────────── */}
