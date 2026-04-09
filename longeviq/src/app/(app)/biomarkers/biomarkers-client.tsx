@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   Tabs,
   TabsContent,
@@ -283,8 +282,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           Biomarker und Biological Age Breakdown
         </h1>
         <p className="mt-2 max-w-3xl text-fluid-base text-muted-foreground">
-          Diese Seite zeigt nicht nur Laborwerte, sondern ordnet sie direkt in
-          Ihre Prevention- und Performance-Journey ein.
+          Ein kompakter Ueberblick zuerst, die Detailwerte direkt darunter nach Kategorie sortiert.
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -310,7 +308,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
         <Card className="border-0 bg-surface-1">
           <CardHeader>
             <CardTitle className="text-fluid-sm font-normal uppercase tracking-wide text-muted-foreground">
-              Biological Age Breakdown
+              Age & Fitness Snapshot
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -347,10 +345,13 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
         <Card className="border-0 bg-surface-1">
           <CardHeader>
             <CardTitle className="text-fluid-sm font-normal uppercase tracking-wide text-muted-foreground">
-              Diagnostics Concierge
+              Priorisierte Diagnostik
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-fluid-sm leading-relaxed text-muted-foreground">
+              Nur die naechsten Tests mit dem groessten Zusatznutzen fuer Risiko, Kalibrierung und Training.
+            </p>
             {diagnostics.map((item) => (
               <div
                 key={item.title}
@@ -377,8 +378,6 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           </CardContent>
         </Card>
       </section>
-
-      <Separator className="mb-8" />
 
       <Tabs defaultValue="cardiovascular" className="animate-in stagger-2">
         <TabsList variant="line" className="mb-8 w-full flex-wrap gap-1">
@@ -451,10 +450,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
 
       <div className="mt-12 border-t border-border pt-6">
         <p className="text-fluid-xs leading-relaxed text-muted-foreground">
-          Die angezeigten Referenzwerte dienen der Orientierung und ersetzen
-          keine arztliche Beratung. Die neuen Concierge-Module helfen vor allem
-          dabei, den nachsten Premium-Test und die nachste Intervention
-          sinnvoll zu priorisieren.
+          Referenzwerte dienen der Orientierung. Fuer die tatsaechliche Priorisierung sollten auffaellige Marker und empfohlene Zusatzdiagnostik zusammen betrachtet werden.
         </p>
       </div>
     </div>

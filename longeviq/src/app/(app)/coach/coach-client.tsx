@@ -3,10 +3,7 @@
 import {
   Activity,
   AlertTriangle,
-  Bot,
   CheckCircle2,
-  Send,
-  User,
   XCircle,
 } from "lucide-react";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
@@ -20,14 +17,12 @@ import type {
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
 const severityConfig: Record<
@@ -56,25 +51,6 @@ const severityConfig: Record<
     icon: CheckCircle2,
   },
 };
-
-const mockMessages = [
-  {
-    role: "user" as const,
-    text: "Welcher Test bringt mich am schnellsten zu einem besseren VO2max Plan?",
-  },
-  {
-    role: "coach" as const,
-    text: "Ein formaler VO2max Test ist der starkste Kalibrierungspunkt. Damit lassen sich Trainingszonen und Ihr Goal Planner deutlich praziser steuern.",
-  },
-  {
-    role: "user" as const,
-    text: "Soll ich trotz niedriger HRV Intervalle machen?",
-  },
-  {
-    role: "coach" as const,
-    text: "Nicht heute. Nutzen Sie niedrige HRV plus erhohten Ruhepuls als Signal fur einen Build- oder Recovery-Tag statt fur einen High-Intensity-Block.",
-  },
-];
 
 function SuggestionCard({ suggestion }: { suggestion: CoachSuggestion }) {
   const config = severityConfig[suggestion.severity] ?? severityConfig.green;
@@ -114,35 +90,6 @@ function SuggestionCard({ suggestion }: { suggestion: CoachSuggestion }) {
   );
 }
 
-function ChatMessage({ role, text }: { role: "user" | "coach"; text: string }) {
-  const isUser = role === "user";
-
-  return (
-    <div className={cn("flex gap-2.5", isUser ? "justify-end" : "justify-start")}>
-      {!isUser && (
-        <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
-          <Bot className="size-3.5 text-primary" />
-        </div>
-      )}
-      <div
-        className={cn(
-          "max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm leading-relaxed",
-          isUser
-            ? "bg-surface-2 text-foreground/90"
-            : "bg-surface-1 text-foreground/80 ring-1 ring-border",
-        )}
-      >
-        {text}
-      </div>
-      {isUser && (
-        <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-2">
-          <User className="size-3.5 text-muted-foreground" />
-        </div>
-      )}
-    </div>
-  );
-}
-
 function nextVo2Target(current: number) {
   if (current < 38) return 40;
   if (current < 42) return 45;
@@ -156,6 +103,51 @@ function labStatusTone(status: "Priority" | "Run" | "Monitor") {
   return "border-status-warning/30 text-status-warning";
 }
 
+function getWeeklyAction(input: {
+  movementPct: number;
+  sleepFlagged: boolean;
+  boneLoadScore: number;
+  wellbeingFlagged: boolean;
+}) {
+  if (input.wellbeingFlagged) {
+    return {
+      title: "Schedule a 10-minute mood check-in",
+      body: "Your wellbeing signal is the clearest place to start. A short check-in helps decide whether follow-up support is needed.",
+      reason: "Mood and resilience look more fragile than your other prevention signals.",
+    };
+  }
+
+  if (input.sleepFlagged) {
+    return {
+      title: "Protect 3 steadier nights this week",
+      body: "Reduce late-evening stimulation and keep bedtime stable for a few nights in a row.",
+      reason: "Sleep fragmentation is showing up in your recent pattern.",
+    };
+  }
+
+  if (input.movementPct < 70) {
+    return {
+      title: "Add 4 brisk walks this week",
+      body: "A simple walking routine is likely to create the best benefit-to-effort ratio right now.",
+      reason: "Movement consistency is below the target range.",
+    };
+  }
+
+  if (input.boneLoadScore < 80) {
+    return {
+      title: "Build one bone-strength session into your week",
+      body: "Use one weight-bearing or light strength session to support resilience without overcomplicating the plan.",
+      reason: "Bone-supporting activity is present, but not yet strong enough.",
+    };
+  }
+
+  return {
+    title: "Keep the current routine steady",
+    body: "No major change is needed this week. Keep the routine simple and consistent.",
+    reason: "No single signal is dominating right now.",
+  };
+}
+
 interface CoachClientProps {
   ehr: EhrRecord;
   wearable: WearableTelemetry[];
@@ -165,7 +157,24 @@ interface CoachClientProps {
 export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
   const features = computeAllFeatures(ehr, wearable, lifestyle);
   const sortedSuggestions = generateCoachSuggestions(features, ehr);
+  const primarySuggestions = sortedSuggestions.slice(0, 4);
   const vo2Target = nextVo2Target(features.vo2max.vo2max);
+  const weeklyAction = getWeeklyAction({
+    movementPct: features.movementConsistency.pct,
+    sleepFlagged: features.sleepFragmentation.flagged,
+    boneLoadScore: features.boneLoad.score,
+    wellbeingFlagged: features.wellbeing.depressionFlag,
+  });
+  const currentFocus =
+    features.wellbeing.depressionFlag
+      ? "Mood and resilience need attention first."
+      : features.cardioRisk.status === "red"
+        ? "Cardiovascular signals need clinician-backed follow-up."
+        : features.cardioRisk.status === "yellow"
+          ? "Cardiovascular signals deserve attention, but this is not an emergency."
+          : features.sleepFragmentation.flagged
+            ? "Sleep stability is the cleanest lever to improve recovery."
+            : "The current focus is maintaining consistency rather than adding complexity.";
 
   function ldlStatus(): "green" | "yellow" | "red" {
     if (ehr.ldl_mmol >= THRESHOLDS.ldl.high) return "red";
@@ -276,7 +285,79 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
         </p>
       </div>
 
-      <section className="animate-in stagger-1 mb-8 grid gap-4 xl:grid-cols-3">
+      <section className="animate-in stagger-1 mb-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="border-0 bg-surface-1">
+          <CardHeader>
+            <CardTitle className="text-fluid-base text-foreground">
+              Current focus
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-2xl bg-surface-2/60 p-4">
+              <p className="text-sm leading-relaxed text-foreground/85">
+                {currentFocus}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl bg-surface-2/60 p-4">
+                <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">
+                  Blood pressure
+                </p>
+                <p className="mt-2 font-data text-xl text-foreground">
+                  {features.bpControl.sbp}/{features.bpControl.dbp}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-surface-2/60 p-4">
+                <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">
+                  Wellbeing
+                </p>
+                <p className="mt-2 font-data text-xl text-foreground">
+                  {features.wellbeing.who5}/100
+                </p>
+              </div>
+              <div className="rounded-2xl bg-surface-2/60 p-4">
+                <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">
+                  Clinical note
+                </p>
+                <p className="mt-2 text-sm text-foreground/85">
+                  {features.bpControl.label}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-surface-1">
+          <CardHeader>
+            <CardTitle className="text-fluid-base text-foreground">
+              This week
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-2xl bg-primary/8 p-4">
+              <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">
+                Main action
+              </p>
+              <p className="mt-2 text-fluid-base font-medium text-foreground">
+                {weeklyAction.title}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {weeklyAction.body}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-surface-2/60 p-4">
+              <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">
+                Why this one
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-foreground/85">
+                {weeklyAction.reason}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="animate-in stagger-2 mb-8 grid gap-4 xl:grid-cols-3">
         {labExperiments.map((experiment) => (
           <Card key={experiment.title} className="border-0 bg-surface-1">
             <CardHeader className="space-y-3">
@@ -312,19 +393,19 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
         ))}
       </section>
 
-      <div className="animate-in stagger-2 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_0.7fr]">
+      <div className="animate-in stagger-3 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_0.75fr]">
         <div>
           <div className="mb-5">
             <h2 className="mb-1 text-lg font-semibold tracking-tight">
-              Aktuelle Empfehlungen
+              Current coaching priorities
             </h2>
             <p className="text-sm text-muted-foreground">
-              Priorisiert nach Risiko, Interventionseffekt und Re-Test-Potenzial.
+              Reduced to the few recommendations with the clearest next-step value.
             </p>
           </div>
 
           <div className="flex flex-col gap-4">
-            {sortedSuggestions.map((suggestion, index) => (
+            {primarySuggestions.map((suggestion, index) => (
               <SuggestionCard key={`${suggestion.title}-${index}`} suggestion={suggestion} />
             ))}
           </div>
@@ -356,9 +437,16 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
 
               <Separator />
 
-              <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Klinische Marker
-              </h3>
+              <div className="space-y-3">
+                <div>
+                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Klinische Marker
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Focus on the few markers that most affect training and diagnostics.
+                  </p>
+                </div>
+              </div>
               <div className="flex flex-col gap-3">
                 {keyMetrics.map((metric) => {
                   const statusColor =
@@ -392,37 +480,33 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
                   );
                 })}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 bg-surface-1">
-            <CardHeader>
-              <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">
-                Gesundheitscoach Chat
-              </CardTitle>
-            </CardHeader>
-
-            <ScrollArea className="max-h-[360px] flex-1 px-5 py-3">
-              <div className="flex flex-col gap-3">
-                {mockMessages.map((message, index) => (
-                  <ChatMessage key={index} role={message.role} text={message.text} />
-                ))}
+              <Separator />
+              <div className="space-y-3">
+                <div>
+                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    What to run next
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Keep the page focused on testing decisions instead of duplicating chat.
+                  </p>
+                </div>
+                <div className="grid gap-3">
+                  {labExperiments.slice(0, 2).map((experiment) => (
+                    <div key={experiment.title} className="rounded-2xl bg-surface-2/60 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-foreground">{experiment.title}</p>
+                        <Badge variant="outline" className={labStatusTone(experiment.status)}>
+                          {experiment.status}
+                        </Badge>
+                      </div>
+                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                        {experiment.hypothesis}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </ScrollArea>
-
-            <Separator />
-
-            <div className="flex items-center gap-2 px-4 py-3">
-              <input
-                type="text"
-                disabled
-                placeholder="Frage nach Training, Diagnostics oder Bio-Age..."
-                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none disabled:cursor-not-allowed disabled:opacity-60"
-              />
-              <Button variant="default" size="icon-sm" disabled>
-                <Send className="size-3.5" />
-              </Button>
-            </div>
+            </CardContent>
           </Card>
         </div>
       </div>

@@ -196,21 +196,21 @@ export function HealthCompanion() {
     return (
       <div
         className={cn(
-          "flex flex-col border border-border bg-card transition-all duration-300",
+          "flex flex-col border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,248,250,0.95)_100%)] transition-all duration-300",
           expanded
-            ? "h-full overflow-hidden rounded-2xl border-border/80 shadow-2xl"
-            : "h-[calc(100vh-theme(spacing.14)-theme(spacing.12))] rounded-xl",
+            ? "h-full overflow-hidden rounded-[1.9rem] border-border/40 shadow-[0_36px_90px_-42px_rgba(15,23,42,0.32)]"
+            : "h-[calc(100vh-theme(spacing.14)-theme(spacing.12))] rounded-[1.65rem] shadow-[0_26px_70px_-44px_rgba(15,23,42,0.3)]",
         )}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="relative flex items-center justify-between gap-3 border-b border-border/70 bg-[radial-gradient(circle_at_top_left,rgba(5,150,105,0.12),transparent_42%)] px-4 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex size-7 items-center justify-center rounded-full bg-primary/10">
+            <div className="flex size-8 items-center justify-center rounded-2xl border border-primary/15 bg-primary/10">
               <Bot className="size-4 text-primary" />
             </div>
             <div>
               <p className="text-sm font-semibold leading-none">AI Health Companion</p>
               <p className="text-[11px] text-muted-foreground">
-                {expanded ? "Erweiterte Ansicht" : "Dein Gesundheitsassistent"}
+                {expanded ? "Erweiterte Ansicht" : "Live health assistant"}
               </p>
             </div>
           </div>
@@ -220,7 +220,7 @@ export function HealthCompanion() {
             aria-expanded={expanded}
             onClick={() => setIsExpanded((prev) => !prev)}
             className={cn(
-              "flex shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+              "flex shrink-0 items-center justify-center rounded-xl border border-border/80 bg-background/85 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
               expanded ? "size-9" : "size-8",
             )}
           >
@@ -236,7 +236,7 @@ export function HealthCompanion() {
         <div
           ref={scrollRef}
           className={cn(
-            "flex-1 space-y-3 overflow-y-auto px-4 py-3",
+            "flex-1 space-y-3 overflow-y-auto px-4 py-4",
             expanded && "px-5 py-4 sm:px-6",
           )}
         >
@@ -260,10 +260,10 @@ export function HealthCompanion() {
               </div>
               <div
                 className={cn(
-                  "rounded-lg px-3 py-2 leading-relaxed",
+                  "rounded-2xl px-3.5 py-2.5 leading-relaxed shadow-[0_12px_30px_-22px_rgba(15,23,42,0.22)]",
                   expanded ? "max-w-[80%] text-sm sm:max-w-[75%]" : "max-w-[85%] text-[13px]",
                   msg.role === "assistant"
-                    ? "bg-surface-2 text-foreground"
+                    ? "border border-white/70 bg-white/90 text-foreground"
                     : "bg-primary text-primary-foreground",
                 )}
               >
@@ -276,7 +276,7 @@ export function HealthCompanion() {
           ))}
         </div>
 
-        <div className={cn("border-t border-border px-3 py-2.5", expanded && "px-4 py-3 sm:px-6")}>
+        <div className={cn("border-t border-border/70 bg-background/55 px-3 py-3", expanded && "px-4 py-3 sm:px-6")}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -291,7 +291,7 @@ export function HealthCompanion() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Frag mich etwas..."
               disabled={isStreaming}
-              className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              className="flex-1 rounded-xl border border-input/80 bg-white/85 px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
             />
             {supportsSTT && (
               <button
@@ -312,7 +312,7 @@ export function HealthCompanion() {
             <button
               type="submit"
               disabled={!input.trim() || isStreaming}
-              className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
+              className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
             >
               {isStreaming ? (
                 <Loader2 className="size-4 animate-spin" />

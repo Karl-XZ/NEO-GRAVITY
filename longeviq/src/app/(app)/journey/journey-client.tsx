@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { computeAllFeatures } from "@/lib/features";
-import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
 import { mean } from "@/lib/features/helpers";
 import type {
   ComputedFeatures,
@@ -134,37 +133,6 @@ function StatusBadge({ status }: { status: TrafficLight }) {
       <span className={`h-1.5 w-1.5 rounded-full ${trafficDot[status]}`} />
       {trafficLabel[status]}
     </span>
-  );
-}
-
-function ScoreBar({
-  label,
-  value,
-  max = 100,
-  color = "bg-primary",
-}: {
-  label: string;
-  value: number;
-  max?: number;
-  color?: string;
-}) {
-  const pct = Math.min((value / max) * 100, 100);
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between">
-        <span className="text-fluid-xs text-muted-foreground">{label}</span>
-        <span className="font-data text-fluid-sm text-foreground">
-          {Math.round(value)}
-          <span className="text-muted-foreground">/{max}</span>
-        </span>
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${color}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
   );
 }
 
@@ -311,7 +279,6 @@ interface JourneyClientProps {
 
 export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) {
   const features = computeAllFeatures(ehr, wearable, lifestyle);
-  const suggestions = generateCoachSuggestions(features, ehr);
   const bioAge = features.bioAge;
   const chronoAge = ehr.age;
 
@@ -372,14 +339,6 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
   const avgRhr = mean(wearable.map((d) => d.resting_hr_bpm));
   const avgRecovery = Math.round(mean(recoveryData.map((d) => d.value)));
   const avgActiveMinutes = Math.round(mean(wearable.map((d) => d.active_minutes)));
-
-  // EHR parsed data
-  const conditions = ehr.chronic_conditions
-    ? ehr.chronic_conditions.split("|").filter(Boolean)
-    : [];
-  const medications = ehr.medications
-    ? ehr.medications.split("|").filter(Boolean)
-    : [];
 
   // Program phases
   const vo2Target = nextVo2Target(features.vo2max.vo2max);
@@ -467,227 +426,97 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
         ))}
       </section>
 
-      {/* ── 2. Gesundheitswerte Overview ── */}
-      <section className="animate-in stagger-2 mb-12">
-        <h2 className="text-fluid-xs uppercase tracking-widest text-muted-foreground">
-          Gesundheitswerte
-        </h2>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Cardio Risk */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Kardio-Risiko</h3>
-              <StatusBadge status={features.cardioRisk.status} />
+      <section className="animate-in stagger-2 mb-12 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <Card className="border-0 bg-surface-1">
+          <CardHeader>
+            <CardTitle className="text-fluid-sm font-normal uppercase tracking-wide text-muted-foreground">
+              Aktuelles Bild
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl bg-surface-2/60 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-fluid-sm font-medium text-foreground">Kardio-Risiko</p>
+                <StatusBadge status={features.cardioRisk.status} />
+              </div>
+              <p className="mt-3 text-fluid-xs leading-relaxed text-muted-foreground">
+                {features.cardioRisk.reasons[0] ?? "Aktuell ohne dominante Auffalligkeit."}
+              </p>
             </div>
-            <ul className="mt-3 space-y-1">
-              {features.cardioRisk.reasons.map((r) => (
-                <li key={r} className="text-fluid-xs text-muted-foreground">• {r}</li>
-              ))}
-              {features.cardioRisk.reasons.length === 0 && (
-                <li className="text-fluid-xs text-muted-foreground">Keine Auffalligkeiten</li>
-              )}
-            </ul>
-          </div>
-
-          {/* Metabolic Health */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Stoffwechsel</h3>
-              <span className="font-data text-fluid-lg text-foreground">
-                {Math.round(features.metabolicHealth.score)}
-                <span className="text-fluid-xs text-muted-foreground">/100</span>
-              </span>
+            <div className="rounded-xl bg-surface-2/60 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-fluid-sm font-medium text-foreground">Schlaf</p>
+                <span className="font-data text-fluid-lg text-foreground">
+                  {Math.round(features.sleepComposite.score)}/100
+                </span>
+              </div>
+              <p className="mt-3 text-fluid-xs leading-relaxed text-muted-foreground">
+                Konsistenz {Math.round(features.circadianConsistency.score)}% und Schnitt von {avgSleep.toFixed(1)} Std.
+              </p>
             </div>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">
-              {features.metabolicHealth.criteriaCount}/5 MetS-Kriterien erfullt
-            </p>
-            {features.metabolicHealth.criteria.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {features.metabolicHealth.criteria.map((c) => (
-                  <li key={c} className="text-fluid-xs text-status-warning">• {c}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Stress-Inflammation */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Stress & Entzundung</h3>
-              <StatusBadge status={features.stressInflammation.level} />
+            <div className="rounded-xl bg-surface-2/60 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-fluid-sm font-medium text-foreground">Stress & Erholung</p>
+                <StatusBadge status={features.stressInflammation.level} />
+              </div>
+              <p className="mt-3 text-fluid-xs leading-relaxed text-muted-foreground">
+                Recovery {Math.round(features.recoveryScore.score)}/100 bei Belastungsquote {features.strainRecovery.ratio.toFixed(2)}.
+              </p>
             </div>
-            <div className="mt-3">
-              <ScoreBar
-                label="Stress-Entzundungs-Index"
-                value={features.stressInflammation.score}
-                color={
-                  features.stressInflammation.level === "green"
-                    ? "bg-status-normal"
-                    : features.stressInflammation.level === "yellow"
-                      ? "bg-status-warning"
-                      : "bg-status-critical"
-                }
-              />
+            <div className="rounded-xl bg-surface-2/60 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-fluid-sm font-medium text-foreground">Wohlbefinden</p>
+                <StatusBadge status={features.wellbeing.level} />
+              </div>
+              <p className="mt-3 text-fluid-xs leading-relaxed text-muted-foreground">
+                WHO-5 {features.wellbeing.who5}/100, kognitive Reserve {Math.round(features.cognitiveReserve.score)}/100.
+              </p>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Sleep Composite */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Schlaf-Score</h3>
-              <span className="font-data text-fluid-lg text-foreground">
-                {Math.round(features.sleepComposite.score)}
-                <span className="text-fluid-xs text-muted-foreground">/100</span>
-              </span>
+        <Card className="border-0 bg-surface-1">
+          <CardHeader>
+            <CardTitle className="text-fluid-sm font-normal uppercase tracking-wide text-muted-foreground">
+              Program focus
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-2xl bg-surface-2/60 p-4">
+              <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">VO2max next target</p>
+              <p className="mt-2 font-data text-3xl text-primary">{vo2Target}</p>
+              <p className="mt-1 text-fluid-xs text-muted-foreground">
+                Current {features.vo2max.vo2max} with {features.vo2max.percentile}.
+              </p>
             </div>
-            <div className="mt-3 space-y-2">
-              <ScoreBar label="Dauer" value={features.sleepComposite.durationScore} color="bg-chart-2" />
-              <ScoreBar label="Qualitat" value={features.sleepComposite.qualityScore} color="bg-chart-2" />
-              <ScoreBar label="Tiefschlaf" value={features.sleepComposite.deepSleepScore} color="bg-chart-2" />
+            <div className="rounded-2xl bg-surface-2/60 p-4">
+              <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">Current anchors</p>
+              <div className="mt-3 space-y-2 text-fluid-sm text-foreground/85">
+                <p>Average readiness {readinessAverage}/100</p>
+                <p>Average HRV {avgHrv.toFixed(1)} ms</p>
+                <p>Average resting HR {avgRhr.toFixed(1)} bpm</p>
+                <p>Average active minutes {avgActiveMinutes}/day</p>
+              </div>
             </div>
-          </div>
-
-          {/* Activity & Walk Streak */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Bewegung</h3>
-              <span className="font-data text-fluid-lg text-foreground">
-                {Math.round(features.activityAdherence)}
-                <span className="text-fluid-xs text-muted-foreground">%</span>
-              </span>
-            </div>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">Tage mit ≥5.000 Schritten</p>
-            <div className="mt-3 space-y-2">
-              <ScoreBar label="Adharenz" value={features.activityAdherence} color="bg-chart-1" />
-              <ScoreBar label="Walk-Streak" value={features.walkStreak.days} max={30} color="bg-chart-1" />
-            </div>
-          </div>
-
-          {/* Blood Pressure */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Blutdruck</h3>
-              <StatusBadge status={features.bpControl.status} />
-            </div>
-            <p className="mt-3 font-data text-fluid-lg text-foreground">
-              {features.bpControl.sbp}/{features.bpControl.dbp}
-              <span className="text-fluid-xs text-muted-foreground"> mmHg</span>
-            </p>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">{features.bpControl.label}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 3. Detaillierte Analyse (Persona Features) ── */}
-      <section className="animate-in stagger-3 mb-12">
-        <h2 className="text-fluid-xs uppercase tracking-widest text-muted-foreground">
-          Detaillierte Analyse
-        </h2>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-foreground/5">
-            <p className="text-fluid-xs text-muted-foreground">VO2max</p>
-            <p className="mt-1 font-data text-fluid-xl text-foreground">
-              {features.vo2max.vo2max.toFixed(1)}
-              <span className="text-fluid-xs text-muted-foreground"> ml/kg/min</span>
-            </p>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">{features.vo2max.percentile}</p>
-          </div>
-
-          <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-foreground/5">
-            <p className="text-fluid-xs text-muted-foreground">HRV 30-Tage Trend</p>
-            <p className="mt-1 font-data text-fluid-xl text-foreground">
-              {features.hrv30dTrend.slope > 0 ? "+" : ""}
-              {(features.hrv30dTrend.slope * 30).toFixed(1)}
-              <span className="text-fluid-xs text-muted-foreground"> ms</span>
-            </p>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">{features.hrv30dTrend.interpretation}</p>
-          </div>
-
-          <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-foreground/5">
-            <p className="text-fluid-xs text-muted-foreground">Erholungs-Score</p>
-            <p className="mt-1 font-data text-fluid-xl text-foreground">
-              {Math.round(features.recoveryScore.score)}
-              <span className="text-fluid-xs text-muted-foreground">/100</span>
-            </p>
-            <div className="mt-2 flex gap-2 text-fluid-xs text-muted-foreground">
-              <span>HRV: {Math.round(features.recoveryScore.hrvComponent)}</span>
-              <span>RHR: {Math.round(features.recoveryScore.rhrComponent)}</span>
-              <span>Schlaf: {Math.round(features.recoveryScore.deepComponent)}</span>
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-foreground/5">
-            <p className="text-fluid-xs text-muted-foreground">Belastung/Erholung</p>
-            <p className={`mt-1 font-data text-fluid-xl ${features.strainRecovery.flag ? "text-status-warning" : "text-foreground"}`}>
-              {features.strainRecovery.ratio.toFixed(2)}
-            </p>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">{features.strainRecovery.interpretation}</p>
-          </div>
-
-          <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-foreground/5">
-            <p className="text-fluid-xs text-muted-foreground">Zirkadiane Konsistenz</p>
-            <p className="mt-1 font-data text-fluid-xl text-foreground">
-              {Math.round(features.circadianConsistency.score)}
-              <span className="text-fluid-xs text-muted-foreground">%</span>
-            </p>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">{features.circadianConsistency.interpretation}</p>
-          </div>
-
-          <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-foreground/5">
-            <div className="flex items-center justify-between">
-              <p className="text-fluid-xs text-muted-foreground">Kognitive Reserve</p>
-              <StatusBadge status={features.cognitiveReserve.level} />
-            </div>
-            <p className="mt-1 font-data text-fluid-xl text-foreground">
-              {Math.round(features.cognitiveReserve.score)}
-              <span className="text-fluid-xs text-muted-foreground">/100</span>
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-foreground/5">
-            <div className="flex items-center justify-between">
-              <p className="text-fluid-xs text-muted-foreground">Wohlbefinden (WHO-5)</p>
-              <StatusBadge status={features.wellbeing.level} />
-            </div>
-            <p className="mt-1 font-data text-fluid-xl text-foreground">
-              {features.wellbeing.who5}
-              <span className="text-fluid-xs text-muted-foreground">/100</span>
-            </p>
-            {features.wellbeing.depressionFlag && (
-              <p className="mt-1 text-fluid-xs text-status-warning">{features.wellbeing.recommendation}</p>
-            )}
-          </div>
-
-          <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-foreground/5">
-            <p className="text-fluid-xs text-muted-foreground">Longevity-Perzentile</p>
-            <p className="mt-1 font-data text-fluid-xl text-foreground">
-              P{Math.round(features.longevityPercentile)}
-            </p>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">
-              Besser als {Math.round(features.longevityPercentile)}% der Altersgruppe
-            </p>
-          </div>
-        </div>
-
-        {features.biomarkerDrift.drifting && (
-          <div className="mt-4 rounded-xl border border-status-warning/30 bg-status-warning/5 p-4">
-            <h3 className="text-fluid-sm font-medium text-status-warning">Biomarker-Drift erkannt</h3>
-            <div className="mt-2 flex flex-wrap gap-3">
-              {features.biomarkerDrift.metrics
-                .filter((m) => m.flagged)
-                .map((m) => (
-                  <span
-                    key={m.name}
-                    className="rounded-full border border-status-warning/30 bg-surface-1 px-2.5 py-0.5 text-fluid-xs text-status-warning"
-                  >
-                    {m.name}: {m.drift > 0 ? "+" : ""}{m.drift.toFixed(2)}
-                  </span>
-                ))}
-            </div>
-          </div>
-        )}
+            {features.biomarkerDrift.drifting ? (
+              <div className="rounded-xl border border-status-warning/30 bg-status-warning/5 p-4">
+                <p className="text-fluid-sm font-medium text-status-warning">Biomarker-Drift erkannt</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {features.biomarkerDrift.metrics
+                    .filter((m) => m.flagged)
+                    .map((m) => (
+                      <span
+                        key={m.name}
+                        className="rounded-full border border-status-warning/30 bg-surface-1 px-2.5 py-0.5 text-fluid-xs text-status-warning"
+                      >
+                        {m.name}: {m.drift > 0 ? "+" : ""}{m.drift.toFixed(2)}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
       </section>
 
       {/* ── 4. Bio-Age Chart + VO2max Planner ── */}
@@ -1089,225 +918,6 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
         </div>
       </section>
 
-      {/* ── 9. Lifestyle & Klinische Daten ── */}
-      <section className="animate-in stagger-9 mb-12">
-        <h2 className="text-fluid-xs uppercase tracking-widest text-muted-foreground">
-          Lifestyle & Klinische Daten
-        </h2>
-
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Lifestyle */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <h3 className="text-fluid-sm font-medium text-foreground">Lifestyle-Profil</h3>
-            <p className="mt-1 text-fluid-xs text-muted-foreground">
-              Erhebung vom{" "}
-              {new Date(lifestyle.survey_date).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })}
-            </p>
-            <div className="mt-4 space-y-3">
-              <ScoreBar label="Ernahrung" value={lifestyle.diet_quality_score} color="bg-chart-1" />
-              <ScoreBar label="Wohlbefinden (WHO-5)" value={lifestyle.mental_wellbeing_who5} color="bg-chart-2" />
-              <ScoreBar label="Schlafzufriedenheit" value={lifestyle.sleep_satisfaction} color="bg-chart-5" />
-              <ScoreBar label="Selbsteinschatzung" value={lifestyle.self_rated_health} color="bg-primary" />
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Stress-Level</span>
-                <span className="font-data text-foreground">{lifestyle.stress_level}/10</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Bewegung</span>
-                <span className="font-data text-foreground">{lifestyle.exercise_sessions_weekly}x/Woche</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Obst & Gemuse</span>
-                <span className="font-data text-foreground">{lifestyle.fruit_veg_servings_daily} Portionen/Tag</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Wasser</span>
-                <span className="font-data text-foreground">{lifestyle.water_glasses_daily} Glaser/Tag</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Sitzzeit</span>
-                <span className="font-data text-foreground">{lifestyle.sedentary_hrs_day} Std./Tag</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Alkohol</span>
-                <span className="font-data text-foreground">{lifestyle.alcohol_units_weekly} Einheiten/Woche</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Mahlzeiten</span>
-                <span className="font-data text-foreground">{lifestyle.meal_frequency_daily}x/Tag</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Clinical Profile */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <h3 className="text-fluid-sm font-medium text-foreground">Klinisches Profil</h3>
-            <div className="mt-4 space-y-3">
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Alter / Geschlecht</span>
-                <span className="font-data text-foreground">{ehr.age} / {ehr.sex === "M" ? "Mannlich" : "Weiblich"}</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Land</span>
-                <span className="font-data text-foreground">{ehr.country}</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Grosse / Gewicht</span>
-                <span className="font-data text-foreground">{ehr.height_cm} cm / {ehr.weight_kg} kg</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">BMI</span>
-                <span className="font-data text-foreground">{ehr.bmi.toFixed(1)} kg/m2</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Rauchstatus</span>
-                <span className="font-data text-foreground">{ehr.smoking_status}</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">HbA1c</span>
-                <span className="font-data text-foreground">{ehr.hba1c_pct}%</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Nuchtern-Glukose</span>
-                <span className="font-data text-foreground">{ehr.fasting_glucose_mmol} mmol/L</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">CRP</span>
-                <span className="font-data text-foreground">{ehr.crp_mg_l} mg/L</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">eGFR</span>
-                <span className="font-data text-foreground">{ehr.egfr_ml_min} ml/min</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Cholesterin (gesamt)</span>
-                <span className="font-data text-foreground">{ehr.total_cholesterol_mmol} mmol/L</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">LDL / HDL</span>
-                <span className="font-data text-foreground">{ehr.ldl_mmol} / {ehr.hdl_mmol} mmol/L</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Triglyceride</span>
-                <span className="font-data text-foreground">{ehr.triglycerides_mmol} mmol/L</span>
-              </div>
-              <div className="flex items-baseline justify-between text-fluid-xs">
-                <span className="text-muted-foreground">Arztbesuche (2 J.)</span>
-                <span className="font-data text-foreground">{ehr.n_visits_2yr}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Conditions & Medications */}
-          <div className="rounded-xl bg-surface-1 p-5 ring-1 ring-foreground/5">
-            <h3 className="text-fluid-sm font-medium text-foreground">Diagnosen & Medikation</h3>
-
-            {conditions.length > 0 && (
-              <div className="mt-4">
-                <p className="text-fluid-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Chronische Erkrankungen ({ehr.n_chronic_conditions})
-                </p>
-                <ul className="mt-2 space-y-1">
-                  {conditions.map((c) => (
-                    <li key={c} className="text-fluid-xs text-foreground">• {c.replace(/_/g, " ")}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {ehr.icd_codes && (
-              <div className="mt-3">
-                <p className="text-fluid-xs font-medium uppercase tracking-wider text-muted-foreground">ICD-Codes</p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {ehr.icd_codes.split("|").filter(Boolean).map((code) => (
-                    <span key={code} className="rounded border border-foreground/10 bg-surface-2 px-2 py-0.5 font-data text-fluid-xs text-foreground">
-                      {code}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {medications.length > 0 && (
-              <div className="mt-4">
-                <p className="text-fluid-xs font-medium uppercase tracking-wider text-muted-foreground">Medikation</p>
-                <ul className="mt-2 space-y-1">
-                  {medications.map((m) => (
-                    <li key={m} className="text-fluid-xs text-foreground">• {m}</li>
-                  ))}
-                </ul>
-                <p className="mt-2 text-fluid-xs text-muted-foreground">
-                  Medikamentenlast-Score: {Math.round(features.medicationBurden.score)}/100 — {features.medicationBurden.interpretation}
-                </p>
-              </div>
-            )}
-
-            {/* Prediabetes */}
-            <div className="mt-4">
-              <p className="text-fluid-xs font-medium uppercase tracking-wider text-muted-foreground">Pradiabetes-Status</p>
-              <div className="mt-2 flex items-center gap-2">
-                <StatusBadge status={features.prediabetes.status} />
-                <span className="text-fluid-xs text-muted-foreground">HbA1c {features.prediabetes.hba1c}%</span>
-              </div>
-              <p className="mt-1 text-fluid-xs text-muted-foreground">{features.prediabetes.recommendation}</p>
-            </div>
-
-            {/* Fall Risk & Clinic Engagement */}
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-fluid-xs font-medium uppercase tracking-wider text-muted-foreground">Sturzrisiko</p>
-                <div className="mt-1">
-                  <StatusBadge status={features.fallRisk.level} />
-                </div>
-              </div>
-              <div>
-                <p className="text-fluid-xs font-medium uppercase tracking-wider text-muted-foreground">Praxis-Engagement</p>
-                <p className="mt-1 font-data text-fluid-sm text-foreground">
-                  {Math.round(features.clinicEngagement.score)}/100
-                </p>
-                <p className="text-fluid-xs text-muted-foreground">{features.clinicEngagement.visitsPerYear.toFixed(1)} Besuche/J.</p>
-              </div>
-            </div>
-
-            {conditions.length === 0 && medications.length === 0 && (
-              <p className="mt-4 text-fluid-xs text-muted-foreground">
-                Keine chronischen Erkrankungen oder Medikation dokumentiert.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 10. Coach-Empfehlungen ── */}
-      {suggestions.length > 0 && (
-        <section className="animate-in stagger-10">
-          <h2 className="text-fluid-xs uppercase tracking-widest text-muted-foreground">
-            Coach-Empfehlungen
-          </h2>
-
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {suggestions.map((s) => (
-              <div
-                key={s.title}
-                className="relative flex overflow-hidden rounded-xl bg-surface-1 ring-1 ring-foreground/5"
-              >
-                <div className={`w-1 shrink-0 rounded-l-xl ${
-                  s.severity === "red" ? "bg-status-critical" : s.severity === "yellow" ? "bg-status-warning" : "bg-status-normal"
-                }`} />
-                <div className="flex flex-col gap-1.5 px-4 py-3">
-                  <h4 className={`text-fluid-sm font-medium ${
-                    s.severity === "red" ? "text-status-critical" : s.severity === "yellow" ? "text-status-warning" : "text-status-normal"
-                  }`}>
-                    {s.title}
-                  </h4>
-                  <p className="text-fluid-xs leading-relaxed text-muted-foreground">{s.rationale}</p>
-                  <p className="text-fluid-xs text-foreground">{s.action}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
