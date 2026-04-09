@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { computeAllFeatures } from "@/lib/features";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
 import { mean } from "@/lib/features/helpers";
@@ -178,6 +179,30 @@ function nextVo2Target(current: number) {
   if (current < 42) return 45;
   if (current < 47) return 50;
   return Math.ceil((current + 2) / 2) * 2;
+}
+
+const trendTabs = [
+  { value: "readiness", label: "Bereitschaft" },
+  { value: "recovery", label: "Erholung" },
+  { value: "hrv", label: "HRV" },
+  { value: "steps", label: "Schritte" },
+  { value: "sleep", label: "Schlaf" },
+  { value: "activity", label: "Aktive Minuten" },
+] as const;
+
+function TrendKpi({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl bg-surface-2/60 px-4 py-3 ring-1 ring-foreground/5">
+      <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 font-data text-fluid-lg text-foreground">{value}</p>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -345,6 +370,8 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
   const avgSteps = mean(wearable.map((d) => d.steps));
   const avgSleep = mean(wearable.map((d) => d.sleep_duration_hrs));
   const avgRhr = mean(wearable.map((d) => d.resting_hr_bpm));
+  const avgRecovery = Math.round(mean(recoveryData.map((d) => d.value)));
+  const avgActiveMinutes = Math.round(mean(wearable.map((d) => d.active_minutes)));
 
   // EHR parsed data
   const conditions = ehr.chronic_conditions
@@ -820,146 +847,221 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
 
       {/* ── 7. 30-Tage Trend-Charts ── */}
       <section className="animate-in stagger-7 mb-12">
-        <h2 className="text-fluid-xs uppercase tracking-widest text-muted-foreground">
-          30-Tage Trends
-        </h2>
+        <div className="mt-6">
+          <Tabs defaultValue="readiness" className="gap-4">
+            <TabsList
+              className="h-auto w-full flex-wrap justify-start gap-2 rounded-2xl bg-surface-1 p-2"
+              aria-label="Trend-Auswahl"
+            >
+              {trendTabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="h-auto flex-none rounded-xl border border-transparent px-3 py-2 text-fluid-xs data-active:border-primary/20 data-active:bg-primary/10 data-active:text-primary"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-        <div className="mt-6 grid gap-8 md:grid-cols-2">
-          {/* Readiness */}
-          <div>
-            <div className="mb-4 flex items-baseline justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Bereitschafts-Score</h3>
-              <span className="font-data text-fluid-xs text-muted-foreground">ø {readinessAverage}</span>
-            </div>
-            <div className="h-[180px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={readinessData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                  <defs>
-                    <linearGradient id="readinessGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#059669" stopOpacity={0.12} />
-                      <stop offset="100%" stopColor="#059669" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={6} />
-                  <YAxis domain={[40, 100]} tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<SimpleTooltip unit="/ 100" />} />
-                  <Area type="monotone" dataKey="value" stroke="#059669" strokeWidth={1.5} fill="url(#readinessGrad)" dot={false} activeDot={{ r: 3, fill: "#059669", stroke: "#FFFFFF", strokeWidth: 2 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+            <Card className="border-0 bg-surface-1">
+              <CardContent className="p-5 sm:p-6">
+                <TabsContent value="readiness" className="mt-0 space-y-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-2xl">
+                      <h3 className="text-fluid-lg font-medium text-foreground">Bereitschafts-Score</h3>
+                      <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
+                        Kombiniert HRV, Schlafqualitat, Ruhepuls und Tiefschlaf zu einem
+                        Tageswert fur Trainings- und Belastungssteuerung.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+                      <TrendKpi label="30-Tage-Schnitt" value={`${readinessAverage}/100`} />
+                      <TrendKpi label="Zielbereich" value="75+/100" />
+                    </div>
+                  </div>
+                  <div className="h-[320px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={readinessData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                        <defs>
+                          <linearGradient id="readinessGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#059669" stopOpacity={0.14} />
+                            <stop offset="100%" stopColor="#059669" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={4} />
+                        <YAxis domain={[40, 100]} tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} />
+                        <Tooltip content={<SimpleTooltip unit="/ 100" />} />
+                        <Area type="monotone" dataKey="value" stroke="#059669" strokeWidth={2} fill="url(#readinessGrad)" dot={false} activeDot={{ r: 4, fill: "#059669", stroke: "#FFFFFF", strokeWidth: 2 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
 
-          {/* Recovery */}
-          <div>
-            <div className="mb-4 flex items-baseline justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Erholungs-Score</h3>
-              <span className="font-data text-fluid-xs text-muted-foreground">ø {Math.round(mean(recoveryData.map((d) => d.value)))}</span>
-            </div>
-            <div className="h-[180px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={recoveryData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                  <defs>
-                    <linearGradient id="recoveryGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#2563EB" stopOpacity={0.12} />
-                      <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={6} />
-                  <YAxis domain={[40, 100]} tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<SimpleTooltip unit="/ 100" />} />
-                  <Area type="monotone" dataKey="value" stroke="#2563EB" strokeWidth={1.5} fill="url(#recoveryGrad)" dot={false} activeDot={{ r: 3, fill: "#2563EB", stroke: "#FFFFFF", strokeWidth: 2 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+                <TabsContent value="recovery" className="mt-0 space-y-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-2xl">
+                      <h3 className="text-fluid-lg font-medium text-foreground">Erholungs-Score</h3>
+                      <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
+                        Zeigt, wie gut sich Ihr System uber Nacht regeneriert hat. Ein stabiler
+                        Verlauf hilft bei der Planung von Intensitat und Pausen.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+                      <TrendKpi label="30-Tage-Schnitt" value={`${avgRecovery}/100`} />
+                      <TrendKpi label="Orientierung" value="Hoher ist besser" />
+                    </div>
+                  </div>
+                  <div className="h-[320px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={recoveryData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                        <defs>
+                          <linearGradient id="recoveryGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#2563EB" stopOpacity={0.14} />
+                            <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={4} />
+                        <YAxis domain={[40, 100]} tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} />
+                        <Tooltip content={<SimpleTooltip unit="/ 100" />} />
+                        <Area type="monotone" dataKey="value" stroke="#2563EB" strokeWidth={2} fill="url(#recoveryGrad)" dot={false} activeDot={{ r: 4, fill: "#2563EB", stroke: "#FFFFFF", strokeWidth: 2 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
 
-          {/* HRV */}
-          <div>
-            <div className="mb-4 flex items-baseline justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">HRV (RMSSD)</h3>
-              <span className="font-data text-fluid-xs text-muted-foreground">ø {avgHrv.toFixed(1)} ms</span>
-            </div>
-            <div className="h-[180px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={hrvTrend} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                  <defs>
-                    <linearGradient id="hrvGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.12} />
-                      <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={6} />
-                  <YAxis tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<SimpleTooltip unit="ms" />} />
-                  <Area type="monotone" dataKey="value" stroke="#8B5CF6" strokeWidth={1.5} fill="url(#hrvGrad)" dot={false} activeDot={{ r: 3, fill: "#8B5CF6", stroke: "#FFFFFF", strokeWidth: 2 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+                <TabsContent value="hrv" className="mt-0 space-y-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-2xl">
+                      <h3 className="text-fluid-lg font-medium text-foreground">HRV (RMSSD)</h3>
+                      <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
+                        HRV bildet die autonome Regulationsfahigkeit ab. Ein positiver Trend ist
+                        oft ein gutes Zeichen fur Anpassung und Belastungsvertraglichkeit.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+                      <TrendKpi label="30-Tage-Schnitt" value={`${avgHrv.toFixed(1)} ms`} />
+                      <TrendKpi label="Trend" value={features.hrv30dTrend.interpretation} />
+                    </div>
+                  </div>
+                  <div className="h-[320px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={hrvTrend} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                        <defs>
+                          <linearGradient id="hrvGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.14} />
+                            <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={4} />
+                        <YAxis tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} />
+                        <Tooltip content={<SimpleTooltip unit="ms" />} />
+                        <Area type="monotone" dataKey="value" stroke="#8B5CF6" strokeWidth={2} fill="url(#hrvGrad)" dot={false} activeDot={{ r: 4, fill: "#8B5CF6", stroke: "#FFFFFF", strokeWidth: 2 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
 
-          {/* Steps */}
-          <div>
-            <div className="mb-4 flex items-baseline justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Schritte</h3>
-              <span className="font-data text-fluid-xs text-muted-foreground">ø {Math.round(avgSteps).toLocaleString("de")}</span>
-            </div>
-            <div className="h-[180px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stepsTrend} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                  <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={6} />
-                  <YAxis tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<SimpleTooltip unit="Schritte" />} />
-                  <ReferenceLine y={5000} stroke="#059669" strokeDasharray="4 4" strokeWidth={1} />
-                  <Bar dataKey="value" fill="#059669" opacity={0.6} radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+                <TabsContent value="steps" className="mt-0 space-y-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-2xl">
+                      <h3 className="text-fluid-lg font-medium text-foreground">Schritte</h3>
+                      <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
+                        Ihr Alltagsvolumen auf einen Blick. Die Referenzlinie zeigt die
+                        Mindestschwelle fur eine robuste Bewegungsroutine.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+                      <TrendKpi label="30-Tage-Schnitt" value={Math.round(avgSteps).toLocaleString("de")} />
+                      <TrendKpi label="Referenz" value="5.000 Schritte" />
+                    </div>
+                  </div>
+                  <div className="h-[320px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={stepsTrend} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                        <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={4} />
+                        <YAxis tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} />
+                        <Tooltip content={<SimpleTooltip unit="Schritte" />} />
+                        <ReferenceLine y={5000} stroke="#059669" strokeDasharray="4 4" strokeWidth={1} />
+                        <Bar dataKey="value" fill="#059669" opacity={0.7} radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
 
-          {/* Sleep */}
-          <div>
-            <div className="mb-4 flex items-baseline justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Schlaf</h3>
-              <span className="font-data text-fluid-xs text-muted-foreground">ø {avgSleep.toFixed(1)} Std.</span>
-            </div>
-            <div className="h-[180px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={sleepTrend} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                  <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={6} />
-                  <YAxis yAxisId="duration" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} domain={[5, 10]} />
-                  <YAxis yAxisId="quality" orientation="right" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} domain={[40, 100]} />
-                  <Tooltip content={<SimpleTooltip unit="" />} />
-                  <ReferenceLine yAxisId="duration" y={7} stroke="#9CA3AF" strokeDasharray="4 4" strokeWidth={1} />
-                  <Line yAxisId="duration" type="monotone" dataKey="duration" stroke="#2563EB" strokeWidth={1.5} dot={false} activeDot={{ r: 3 }} name="Dauer (Std.)" />
-                  <Line yAxisId="quality" type="monotone" dataKey="quality" stroke="#8B5CF6" strokeWidth={1.5} dot={false} activeDot={{ r: 3 }} name="Qualitat" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+                <TabsContent value="sleep" className="mt-0 space-y-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-2xl">
+                      <h3 className="text-fluid-lg font-medium text-foreground">Schlaf</h3>
+                      <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
+                        Kombiniert Schlafdauer und Schlafqualitat. So sehen Sie schnell, ob genug
+                        Zeit im Bett auch wirklich in erholsamen Schlaf ubersetzt wird.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+                      <TrendKpi label="Durchschnittsdauer" value={`${avgSleep.toFixed(1)} Std.`} />
+                      <TrendKpi label="Referenz" value="7+ Std. pro Nacht" />
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-fluid-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-surface-2/60 px-3 py-1.5">
+                      <span className="h-2 w-2 rounded-full bg-[#2563EB]" />
+                      Dauer (Std.)
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-surface-2/60 px-3 py-1.5">
+                      <span className="h-2 w-2 rounded-full bg-[#8B5CF6]" />
+                      Qualitat
+                    </span>
+                  </div>
+                  <div className="h-[320px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={sleepTrend} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                        <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={4} />
+                        <YAxis yAxisId="duration" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} domain={[5, 10]} />
+                        <YAxis yAxisId="quality" orientation="right" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} domain={[40, 100]} />
+                        <Tooltip content={<SimpleTooltip unit="" />} />
+                        <ReferenceLine yAxisId="duration" y={7} stroke="#9CA3AF" strokeDasharray="4 4" strokeWidth={1} />
+                        <Line yAxisId="duration" type="monotone" dataKey="duration" stroke="#2563EB" strokeWidth={2} dot={false} activeDot={{ r: 4 }} name="Dauer (Std.)" />
+                        <Line yAxisId="quality" type="monotone" dataKey="quality" stroke="#8B5CF6" strokeWidth={2} dot={false} activeDot={{ r: 4 }} name="Qualitat" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
 
-          {/* Active Minutes */}
-          <div>
-            <div className="mb-4 flex items-baseline justify-between">
-              <h3 className="text-fluid-sm font-medium text-foreground">Aktive Minuten</h3>
-              <span className="font-data text-fluid-xs text-muted-foreground">ø {Math.round(mean(wearable.map((d) => d.active_minutes)))} min</span>
-            </div>
-            <div className="h-[180px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={activityTrend} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                  <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={6} />
-                  <YAxis tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<SimpleTooltip unit="min" />} />
-                  <Bar dataKey="minutes" fill="#F59E0B" opacity={0.6} radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+                <TabsContent value="activity" className="mt-0 space-y-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-2xl">
+                      <h3 className="text-fluid-lg font-medium text-foreground">Aktive Minuten</h3>
+                      <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
+                        Macht sichtbar, wie viel bewusste Aktivitat Sie taglich sammeln. Besonders
+                        hilfreich, um Trainings- und Alltagsbewegung gemeinsam zu bewerten.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+                      <TrendKpi label="30-Tage-Schnitt" value={`${avgActiveMinutes} min`} />
+                      <TrendKpi label="Fokus" value="Konstanz uber Peaks" />
+                    </div>
+                  </div>
+                  <div className="h-[320px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={activityTrend} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                        <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={4} />
+                        <YAxis tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} />
+                        <Tooltip content={<SimpleTooltip unit="min" />} />
+                        <Bar dataKey="minutes" fill="#F59E0B" opacity={0.7} radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
+              </CardContent>
+            </Card>
+          </Tabs>
         </div>
       </section>
 
