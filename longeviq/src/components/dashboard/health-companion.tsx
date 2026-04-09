@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Send, Bot, User, Loader2, Maximize2, Minimize2, Mic, MicOff } from "lucide-react";
+import { Send, Bot, User, Loader2, Maximize2, Minimize2, Mic, MicOff, Paperclip, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -24,9 +24,15 @@ function getSpeechRecognitionConstructor(): (new () => SpeechRecognitionType) | 
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
+interface UploadedFile {
+  name: string;
+  content: string;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
+  files?: UploadedFile[];
 }
 
 export function HealthCompanion() {
@@ -41,8 +47,10 @@ export function HealthCompanion() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<UploadedFile[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -106,14 +114,36 @@ export function HealthCompanion() {
     setIsListening(true);
   }
 
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const content = reader.result as string;
+        setAttachedFiles((prev) => [...prev, { name: file.name, content }]);
+      };
+      reader.readAsText(file);
+    });
+
+    // Reset so the same file can be re-selected
+    e.target.value = "";
+  }
+
+  function removeFile(index: number) {
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSend() {
     const text = input.trim();
     if (!text || isStreaming) return;
 
-    const userMessage: Message = { role: "user", content: text };
+    const userMessage: Message = { role: "user", content: text, files: attachedFiles.length > 0 ? attachedFiles : undefined };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
+    setAttachedFiles([]);
     setIsStreaming(true);
 
     setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
@@ -123,10 +153,16 @@ export function HealthCompanion() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: updatedMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          messages: updatedMessages.map((m) => {
+            let content = m.content;
+            if (m.files && m.files.length > 0) {
+              const fileContext = m.files
+                .map((f) => `[File: ${f.name}]\n${f.content}`)
+                .join("\n\n");
+              content = `${content}\n\n--- Attached Files ---\n${fileContext}`;
+            }
+            return { role: m.role, content };
+          }),
         }),
       });
 
@@ -267,6 +303,19 @@ export function HealthCompanion() {
                     : "bg-primary text-primary-foreground",
                 )}
               >
+                {msg.files && msg.files.length > 0 && (
+                  <div className="mb-1.5 flex flex-wrap gap-1">
+                    {msg.files.map((f, fi) => (
+                      <span
+                        key={fi}
+                        className="inline-flex items-center gap-1 rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-medium"
+                      >
+                        <Paperclip className="size-3" />
+                        {f.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {msg.content ||
                   (isStreaming && i === messages.length - 1 ? (
                     <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -277,6 +326,26 @@ export function HealthCompanion() {
         </div>
 
         <div className={cn("border-t border-border/70 bg-background/55 px-3 py-3", expanded && "px-4 py-3 sm:px-6")}>
+          {attachedFiles.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {attachedFiles.map((file, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1 rounded-lg border border-border/80 bg-white/80 px-2 py-1 text-[11px] font-medium text-foreground"
+                >
+                  <Paperclip className="size-3 text-muted-foreground" />
+                  {file.name}
+                  <button
+                    type="button"
+                    onClick={() => removeFile(i)}
+                    className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -284,6 +353,23 @@ export function HealthCompanion() {
             }}
             className="flex items-center gap-2"
           >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".txt,.csv,.json,.md,.xml,.html,.log,.tsv,.yml,.yaml"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isStreaming}
+              className="flex size-8 shrink-0 items-center justify-center rounded-md bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/80 disabled:opacity-40"
+              title="Attach file"
+            >
+              <Paperclip className="size-4" />
+            </button>
             <input
               ref={inputRef}
               type="text"
