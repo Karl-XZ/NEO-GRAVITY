@@ -22,27 +22,27 @@ import {
 const coachPreviewFallbacks: CoachSuggestion[] = [
   {
     severity: "red",
-    title: "Regeneration diese Woche priorisieren",
+    title: "Regeneration priorisieren",
     rationale:
-      "Mehrere Belastungssignale deuten darauf hin, dass Ihr System aktuell mehr Erholung als zusatzliche Intensitat braucht.",
+      "Ihr System reagiert aktuell besser auf Erholung als auf zusatzliche Intensitat.",
     action:
-      "Belastung fur 48 Stunden reduzieren, Schlaf priorisieren und nur lockere Bewegung einplanen.",
+      "Belastung fur 48 Stunden senken und Schlaf priorisieren.",
   },
   {
     severity: "yellow",
-    title: "Abendroutine fur besseren Schlaf scharfen",
+    title: "Abendroutine verbessern",
     rationale:
-      "Eine etwas fruhere digitale Auszeit und konstantere Schlafzeiten konnten Ihre nachtliche Erholung direkt verbessern.",
+      "Konstantere Schlafzeiten konnten Ihre nachtliche Erholung spurbar verbessern.",
     action:
-      "90 Minuten vor dem Schlafen Displays reduzieren und eine feste Wind-down-Routine etablieren.",
+      "90 Minuten vor dem Schlafen Displays reduzieren.",
   },
   {
     severity: "yellow",
-    title: "Zone-2-Einheit als sanften Reset nutzen",
+    title: "Zone-2 als Reset nutzen",
     rationale:
-      "Ein ruhiger Ausdauerreiz wurde Ihre Aktivitat stutzen, ohne die aktuelle Erholung unnotig zu belasten.",
+      "Ein ruhiger Ausdauerreiz stutzt Ihre Aktivitat, ohne die Erholung zu storen.",
     action:
-      "30 bis 40 Minuten lockeres Cardio mit niedriger Intensitat fur morgen einplanen.",
+      "30 bis 40 Minuten lockeres Cardio einplanen.",
   },
 ];
 
