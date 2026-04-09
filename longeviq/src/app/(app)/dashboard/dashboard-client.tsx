@@ -1,20 +1,24 @@
 "use client";
 
-import { computeAllFeatures, recoveryScoreDaily } from "@/lib/features";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
+import { computeAllFeatures, recoveryScoreDaily } from "@/lib/features";
 import type { EhrRecord, WearableTelemetry, LifestyleSurvey } from "@/lib/types";
 import {
   BioAgeCard,
+  CoachCard,
   ScoreCard,
-  VitalTile,
   TrendChart,
   CoachCard,
   HealthCompanion,
 } from "@/components/dashboard";
-
-// ---------------------------------------------------------------------------
-// Icons (inline SVGs for clinical feel)
-// ---------------------------------------------------------------------------
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 function HeartIcon() {
   return (
@@ -48,9 +52,47 @@ function MoonIcon() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+function signed(value: number, digits = 1) {
+  return `${value > 0 ? "+" : ""}${value.toFixed(digits)}`;
+}
+
+function avg(values: number[]) {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function trendPct(current: number, baseline: number) {
+  if (baseline === 0) return 0;
+  return ((current - baseline) / baseline) * 100;
+}
+
+function readinessMode(score: number, overreaching: boolean) {
+  if (score >= 80 && !overreaching) {
+    return {
+      label: "Push day",
+      description: "Sie sind bereit fur intensive Intervalle oder einen Benchmark-Test.",
+    };
+  }
+
+  if (score >= 65) {
+    return {
+      label: "Build day",
+      description: "Heute ist ein guter Tag fur Zone-2-Training und saubere Volumenarbeit.",
+    };
+  }
+
+  return {
+    label: "Recovery day",
+    description: "Erholung priorisieren, Schlaf konsistent halten und Trainingsintensitat reduzieren.",
+  };
+}
+
+function nextVo2Target(current: number) {
+  if (current < 38) return 40;
+  if (current < 42) return 45;
+  if (current < 47) return 50;
+  return Math.ceil((current + 2) / 2) * 2;
+}
 
 interface DashboardClientProps {
   ehr: EhrRecord;
@@ -58,38 +100,65 @@ interface DashboardClientProps {
   lifestyle: LifestyleSurvey;
 }
 
-export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientProps) {
+export function DashboardClient({
+  ehr,
+  wearable,
+  lifestyle,
+}: DashboardClientProps) {
   const features = computeAllFeatures(ehr, wearable, lifestyle);
   const coachSuggestions = generateCoachSuggestions(features, ehr);
 
   const latest = wearable[wearable.length - 1];
-  const prev7 = wearable.slice(-8, -1);
-  const avg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
+  const previousWeek = wearable.slice(-8, -1);
+  const currentReadiness = features.recoveryScore;
+  const readinessDecision = readinessMode(
+    currentReadiness.score,
+    features.strainRecovery.flag,
+  );
 
-  function trendPct(current: number, avgVal: number) {
-    if (avgVal === 0) return 0;
-    return ((current - avgVal) / avgVal) * 100;
-  }
+  const hrAvg7 = avg(previousWeek.map((day) => day.resting_hr_bpm));
+  const hrvAvg7 = avg(previousWeek.map((day) => day.hrv_rmssd_ms));
+  const stepsAvg7 = avg(previousWeek.map((day) => day.steps));
+  const sleepAvg7 = avg(previousWeek.map((day) => day.sleep_duration_hrs));
 
-  const hrAvg7 = avg(prev7.map((d) => d.resting_hr_bpm));
-  const hrvAvg7 = avg(prev7.map((d) => d.hrv_rmssd_ms));
-  const stepsAvg7 = avg(prev7.map((d) => d.steps));
-  const sleepAvg7 = avg(prev7.map((d) => d.sleep_duration_hrs));
-
-  const dailyScoreData = wearable.map((_, i) => {
-    const recovery = recoveryScoreDaily(wearable, i);
+  const dailyScoreData = wearable.map((_, index) => {
+    const recovery = recoveryScoreDaily(wearable, index);
     return {
-      date: wearable[i].date,
+      date: wearable[index].date,
       readiness: recovery.score,
       recovery: recovery.score,
     };
   });
 
-  const vitalChartData = wearable.map((d) => ({
-    date: d.date,
-    resting_hr: d.resting_hr_bpm,
-    hrv: d.hrv_rmssd_ms,
+  const vitalChartData = wearable.map((day) => ({
+    date: day.date,
+    resting_hr: day.resting_hr_bpm,
+    hrv: day.hrv_rmssd_ms,
   }));
+
+  const vo2Target = nextVo2Target(features.vo2max.vo2max);
+  const diagnostics = [
+    {
+      title: "Advanced lipid panel",
+      priority: ehr.ldl_mmol >= 2.6 ? "Hoch" : "Mittel",
+      description:
+        ehr.ldl_mmol >= 2.6
+          ? "ApoB und Lp(a) helfen, das Residualrisiko hinter dem LDL-Wert sauber zu trennen."
+          : "Ein erweiterter Lipidcheck schafft eine starke Baseline fur langfristige Prevention.",
+    },
+    {
+      title: "Formal VO2max test",
+      priority: features.vo2max.vo2max < 45 ? "Hoch" : "Mittel",
+      description:
+        "Ein Labortest kalibriert Trainingszonen, validiert den Proxy und macht den Goal Planner belastbarer.",
+    },
+    {
+      title: "Body composition scan",
+      priority: ehr.bmi >= 25 ? "Mittel" : "Basis",
+      description:
+        "DEXA oder eine hochwertige Korperanalyse zeigen Lean Mass, Fettverteilung und Fortschritt der Interventionen.",
+    },
+  ];
 
   return (
     <div className="flex gap-6">
