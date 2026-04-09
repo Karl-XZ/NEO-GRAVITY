@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { computeAllFeatures } from "@/lib/features";
 import {
@@ -9,10 +9,8 @@ import {
   inferSuggestionPriorityDomain,
 } from "@/lib/coach/decision-engine";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
-import { ALERT_MODE_STORAGE_KEY, isAlertMode } from "@/lib/profile";
+import { getStoredAlertMode } from "@/lib/profile";
 import type {
-  AlertMode,
-  CoachSuggestion,
   EhrRecord,
   LifestyleSurvey,
   WearableTelemetry,
@@ -137,20 +135,21 @@ interface DashboardClientProps {
   lifestyle: LifestyleSurvey;
 }
 
+function subscribeToAlertMode() {
+  return () => {};
+}
+
 export function DashboardClient({
   ehr,
   wearable,
   lifestyle,
 }: DashboardClientProps) {
   const [activeCoachSuggestion, setActiveCoachSuggestion] = useState<string | null>(null);
-  const [alertMode] = useState<AlertMode>(() => {
-    if (typeof window === "undefined") {
-      return "simple";
-    }
-
-    const storedMode = window.localStorage.getItem(ALERT_MODE_STORAGE_KEY);
-    return storedMode && isAlertMode(storedMode) ? storedMode : "simple";
-  });
+  const alertMode = useSyncExternalStore(
+    subscribeToAlertMode,
+    () => getStoredAlertMode("simple"),
+    () => "simple",
+  );
   const features = computeAllFeatures(ehr, wearable, lifestyle);
   const dailyPriority = buildDailyPriority(features, ehr);
   const mainSuggestion = generateCoachSuggestions(features, ehr, { limit: 1 })[0] ?? null;
