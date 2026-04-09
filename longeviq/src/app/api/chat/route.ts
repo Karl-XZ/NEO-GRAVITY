@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({
       model: MODEL,
       stream: true,
-      max_tokens: 200,
+      max_tokens: 500,
       messages: [
         { role: "system", content: systemPrompt },
         ...messages,
