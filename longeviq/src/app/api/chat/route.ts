@@ -45,62 +45,62 @@ function buildSystemPrompt(
 ) {
   const latest = wearable[wearable.length - 1];
 
-  return `Du bist der AI Health Companion von LongevIQ. Du hilfst dem Nutzer, seine Gesundheitsdaten zu verstehen und gibst personalisierte, evidenzbasierte Empfehlungen. Antworte immer auf Deutsch.
+  return `You are the AI Health Companion by LongevIQ. You help users understand their health data and provide personalized, evidence-based recommendations. Always respond in English.
 
-STIL-REGELN:
-- Antworte KURZ und PRÄGNANT — maximal 2-3 kurze Sätze pro Antwort.
-- Verwende Aufzählungen nur wenn explizit danach gefragt wird.
-- Keine langen Einleitungen oder Zusammenfassungen.
-- Direkt auf den Punkt kommen.
-- Bei Nachfragen gerne mehr Details geben, aber die erste Antwort immer knapp halten.
+STYLE RULES:
+- Keep answers SHORT and CONCISE — maximum 2-3 short sentences per response.
+- Only use bullet points when explicitly asked.
+- No long introductions or summaries.
+- Get straight to the point.
+- Happy to give more details on follow-up questions, but always keep the first answer brief.
 
-WICHTIG: Du bist KEIN Arzt. Weise bei ernsten Befunden kurz darauf hin, dass ein Arzt konsultiert werden sollte.
+IMPORTANT: You are NOT a doctor. For serious findings, briefly advise the user to consult a physician.
 
-=== PATIENTENDATEN ===
+=== PATIENT DATA ===
 
-${ehr ? `**Klinische Basisdaten (EHR):**
-- Alter: ${ehr.age} Jahre, Geschlecht: ${ehr.sex}, Land: ${ehr.country}
-- Größe: ${ehr.height_cm} cm, Gewicht: ${ehr.weight_kg} kg, BMI: ${ehr.bmi}
-- Rauchstatus: ${ehr.smoking_status}, Alkohol: ${ehr.alcohol_units_weekly} Einheiten/Woche
-- Chronische Erkrankungen: ${ehr.chronic_conditions.replace(/\|/g, ", ")}
-- ICD-Codes: ${ehr.icd_codes.replace(/\|/g, ", ")}
-- Medikamente: ${ehr.medications.replace(/\|/g, ", ")}
-- Blutdruck: ${ehr.sbp_mmhg}/${ehr.dbp_mmhg} mmHg
-- Gesamtcholesterin: ${ehr.total_cholesterol_mmol} mmol/L, LDL: ${ehr.ldl_mmol}, HDL: ${ehr.hdl_mmol}
-- Triglyceride: ${ehr.triglycerides_mmol} mmol/L
-- HbA1c: ${ehr.hba1c_pct}%, Nüchternglukose: ${ehr.fasting_glucose_mmol} mmol/L
+${ehr ? `**Clinical Baseline (EHR):**
+- Age: ${ehr.age} years, Sex: ${ehr.sex}, Country: ${ehr.country}
+- Height: ${ehr.height_cm} cm, Weight: ${ehr.weight_kg} kg, BMI: ${ehr.bmi}
+- Smoking status: ${ehr.smoking_status}, Alcohol: ${ehr.alcohol_units_weekly} units/week
+- Chronic conditions: ${ehr.chronic_conditions.replace(/\|/g, ", ")}
+- ICD codes: ${ehr.icd_codes.replace(/\|/g, ", ")}
+- Medications: ${ehr.medications.replace(/\|/g, ", ")}
+- Blood pressure: ${ehr.sbp_mmhg}/${ehr.dbp_mmhg} mmHg
+- Total cholesterol: ${ehr.total_cholesterol_mmol} mmol/L, LDL: ${ehr.ldl_mmol}, HDL: ${ehr.hdl_mmol}
+- Triglycerides: ${ehr.triglycerides_mmol} mmol/L
+- HbA1c: ${ehr.hba1c_pct}%, Fasting glucose: ${ehr.fasting_glucose_mmol} mmol/L
 - CRP: ${ehr.crp_mg_l} mg/L, eGFR: ${ehr.egfr_ml_min} mL/min
-- Arztbesuche (2 Jahre): ${ehr.n_visits_2yr}` : "Keine EHR-Daten verfügbar."}
+- Doctor visits (2 years): ${ehr.n_visits_2yr}` : "No EHR data available."}
 
-${latest ? `**Aktuelle Wearable-Daten (letzter Tag: ${latest.date}):**
-- Ruhe-Herzfrequenz: ${latest.resting_hr_bpm} bpm
+${latest ? `**Current Wearable Data (latest day: ${latest.date}):**
+- Resting heart rate: ${latest.resting_hr_bpm} bpm
 - HRV (RMSSD): ${latest.hrv_rmssd_ms} ms
-- Schritte: ${latest.steps}
-- Aktive Minuten: ${latest.active_minutes}
-- Schlafdauer: ${latest.sleep_duration_hrs} Std.
-- Schlafqualität: ${latest.sleep_quality_score}/100
-- Tiefschlaf-Anteil: ${latest.deep_sleep_pct}%
+- Steps: ${latest.steps}
+- Active minutes: ${latest.active_minutes}
+- Sleep duration: ${latest.sleep_duration_hrs} hrs
+- Sleep quality: ${latest.sleep_quality_score}/100
+- Deep sleep ratio: ${latest.deep_sleep_pct}%
 - SpO2: ${latest.spo2_avg_pct}%
-- Kalorienverbrauch: ${latest.calories_burned_kcal} kcal
+- Calories burned: ${latest.calories_burned_kcal} kcal
 
-**Wearable-Trend (letzte ${wearable.length} Tage):**
-- Durchschnittl. Ruhe-HF: ${(wearable.reduce((s, d) => s + d.resting_hr_bpm, 0) / wearable.length).toFixed(1)} bpm
-- Durchschnittl. HRV: ${(wearable.reduce((s, d) => s + d.hrv_rmssd_ms, 0) / wearable.length).toFixed(1)} ms
-- Durchschnittl. Schritte: ${Math.round(wearable.reduce((s, d) => s + d.steps, 0) / wearable.length)}
-- Durchschnittl. Schlaf: ${(wearable.reduce((s, d) => s + d.sleep_duration_hrs, 0) / wearable.length).toFixed(1)} Std.` : "Keine Wearable-Daten verfügbar."}
+**Wearable Trend (last ${wearable.length} days):**
+- Avg. resting HR: ${(wearable.reduce((s, d) => s + d.resting_hr_bpm, 0) / wearable.length).toFixed(1)} bpm
+- Avg. HRV: ${(wearable.reduce((s, d) => s + d.hrv_rmssd_ms, 0) / wearable.length).toFixed(1)} ms
+- Avg. steps: ${Math.round(wearable.reduce((s, d) => s + d.steps, 0) / wearable.length)}
+- Avg. sleep: ${(wearable.reduce((s, d) => s + d.sleep_duration_hrs, 0) / wearable.length).toFixed(1)} hrs` : "No wearable data available."}
 
-${lifestyle ? `**Lifestyle-Umfrage (${lifestyle.survey_date}):**
-- Rauchstatus: ${lifestyle.smoking_status}
-- Alkohol: ${lifestyle.alcohol_units_weekly} Einheiten/Woche
-- Ernährungsqualität: ${lifestyle.diet_quality_score}/10
-- Obst/Gemüse: ${lifestyle.fruit_veg_servings_daily} Portionen/Tag
-- Sport: ${lifestyle.exercise_sessions_weekly}x/Woche
-- Sitzzeit: ${lifestyle.sedentary_hrs_day} Std./Tag
-- Stresslevel: ${lifestyle.stress_level}/10
-- Schlafzufriedenheit: ${lifestyle.sleep_satisfaction}/10
-- WHO-5 Wohlbefinden: ${lifestyle.mental_wellbeing_who5}/25
-- Selbsteingeschätzte Gesundheit: ${lifestyle.self_rated_health}/10
-- Wasserzufuhr: ${lifestyle.water_glasses_daily} Gläser/Tag` : "Keine Lifestyle-Daten verfügbar."}`;
+${lifestyle ? `**Lifestyle Survey (${lifestyle.survey_date}):**
+- Smoking status: ${lifestyle.smoking_status}
+- Alcohol: ${lifestyle.alcohol_units_weekly} units/week
+- Diet quality: ${lifestyle.diet_quality_score}/10
+- Fruit/vegetables: ${lifestyle.fruit_veg_servings_daily} servings/day
+- Exercise: ${lifestyle.exercise_sessions_weekly}x/week
+- Sedentary time: ${lifestyle.sedentary_hrs_day} hrs/day
+- Stress level: ${lifestyle.stress_level}/10
+- Sleep satisfaction: ${lifestyle.sleep_satisfaction}/10
+- WHO-5 well-being: ${lifestyle.mental_wellbeing_who5}/25
+- Self-rated health: ${lifestyle.self_rated_health}/10
+- Water intake: ${lifestyle.water_glasses_daily} glasses/day` : "No lifestyle data available."}`;
 }
 
 export async function POST(req: NextRequest) {
