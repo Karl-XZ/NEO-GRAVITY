@@ -168,4 +168,112 @@ export interface ComputedFeatures {
   walkStreak: { days: number; interpretation: string };
   fallRisk: { score: number; level: TrafficLight; factors: string[] };
   clinicEngagement: { score: number; visitsPerYear: number; interpretation: string };
+
+  // Insights — cross-metric analysis
+  insights: ComputedInsights;
+}
+
+/** All computed insight features */
+export interface ComputedInsights {
+  sleepHrvCorrelation: {
+    correlation: number;
+    hrvAfterGoodSleep: number;
+    hrvAfterPoorSleep: number;
+    deltaMa: number;
+    sensitivity: "high" | "moderate" | "low";
+    interpretation: string;
+  };
+  energyBalance: {
+    avgCaloriesBurned: number;
+    estimatedIntakeProxy: number;
+    balanceRatio: number;
+    direction: "surplus" | "balanced" | "deficit";
+    flag: boolean;
+    interpretation: string;
+  };
+  hydration: {
+    waterGlasses: number;
+    adjustedNeed: number;
+    hydrationRatio: number;
+    rhrElevationFlag: boolean;
+    status: TrafficLight;
+    interpretation: string;
+  };
+  spo2Profile: {
+    avgSpo2: number;
+    minSpo2: number;
+    lowNights: number;
+    trend: number;
+    apneaRiskFlag: boolean;
+    compoundFlag: boolean;
+    status: TrafficLight;
+    interpretation: string;
+  };
+  sedentaryScore: {
+    sedentaryHrs: number;
+    activeMinAvg: number;
+    ratio: number;
+    offsetsRisk: boolean;
+    score: number;
+    status: TrafficLight;
+    interpretation: string;
+  };
+  circadianWeekday: {
+    dayProfiles: { dayName: string; avgSleepQuality: number; avgHRV: number; avgSteps: number }[];
+    bestDay: { name: string; avgHRV: number };
+    worstDay: { name: string; avgHRV: number };
+    socialJetLagFlag: boolean;
+    weekdaySleep: number;
+    weekendSleep: number;
+    interpretation: string;
+  };
+  weekOverWeek: {
+    metrics: {
+      name: string;
+      thisWeekAvg: number;
+      lastWeekAvg: number;
+      changePct: number;
+      improved: boolean;
+      significant: boolean;
+    }[];
+    overallTrend: "improving" | "stable" | "declining";
+    topImprovement: string;
+    topDecline: string;
+  };
+  lifestyleImpact: {
+    overallScore: number;
+    factors: { name: string; value: number; score: number; gap: number }[];
+    topOpportunity: string;
+    topStrength: string;
+    interpretation: string;
+  };
+  recoveryPrediction: {
+    predictedRecovery: number;
+    confidence: "high" | "moderate" | "low";
+    topDrivers: string[];
+    recommendation: string;
+  };
+  longevityTrend: {
+    dimensions: { name: string; firstHalfScore: number; secondHalfScore: number; change: number; improving: boolean; declining: boolean }[];
+    overallChange: number;
+    trendDirection: "improving" | "stable" | "declining";
+    momentum: number;
+    interpretation: string;
+  };
+  visitHistory: {
+    totalVisits: number;
+    daysSinceLastVisit: number;
+    visitReasons: { date: string; code: string; category: string }[];
+    frequencyTrend: "increasing" | "stable" | "decreasing";
+    preventiveOverdue: boolean;
+    interpretation: string;
+  };
+  medicationMapping: {
+    mappings: { medication: string; condition: string; matched: boolean }[];
+    medicationCount: number;
+    conditionCount: number;
+    coherenceScore: number;
+    polypharmacyFlag: boolean;
+    interpretation: string;
+  };
 }
