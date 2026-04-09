@@ -35,6 +35,12 @@ interface Message {
   files?: UploadedFile[];
 }
 
+const starterQuestions = [
+  "What matters most in my health data right now?",
+  "What should I focus on this week?",
+  "Can you explain my readiness and recovery scores?",
+] as const;
+
 export function HealthCompanion() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -168,11 +174,15 @@ export function HealthCompanion() {
     setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  async function handleSend() {
-    const text = input.trim();
+  async function handleSend(prefilledText?: string) {
+    const text = (prefilledText ?? input).trim();
     if (!text || isStreaming) return;
 
-    const userMessage: Message = { role: "user", content: text, files: attachedFiles.length > 0 ? attachedFiles : undefined };
+    const userMessage: Message = {
+      role: "user",
+      content: text,
+      files: attachedFiles.length > 0 ? attachedFiles : undefined,
+    };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
@@ -383,6 +393,19 @@ export function HealthCompanion() {
               PDF wird verarbeitet...
             </div>
           )}
+          <div className="mb-3 flex flex-wrap gap-2">
+            {starterQuestions.map((question) => (
+              <button
+                key={question}
+                type="button"
+                disabled={isStreaming || isParsingFile}
+                onClick={() => void handleSend(question)}
+                className="rounded-full border border-border/80 bg-white/85 px-3 py-1.5 text-left text-[11px] font-medium leading-snug text-foreground transition-colors hover:bg-muted disabled:opacity-40"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
           {attachedFiles.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1.5">
               {attachedFiles.map((file, i) => (
