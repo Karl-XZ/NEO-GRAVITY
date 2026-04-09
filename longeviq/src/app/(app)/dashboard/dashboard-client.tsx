@@ -114,7 +114,7 @@ export function DashboardClient({
     <div className="flex gap-6">
       <div className="mx-auto flex min-w-0 max-w-[1400px] flex-1 flex-col gap-8">
         {priorityCoachSuggestions.length > 0 ? (
-          <section className="animate-in overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(243,246,248,0.92)_100%)] px-5 py-5 shadow-[0_28px_72px_-42px_rgba(15,23,42,0.24)] sm:px-6">
+          <section className="animate-in rounded-[1.75rem] border border-white/70 bg-white/90 px-5 py-5 shadow-[0_18px_40px_-32px_rgba(15,23,42,0.16)] sm:px-6">
             <div className="mb-5 flex items-end justify-between gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -149,7 +149,7 @@ export function DashboardClient({
         ) : null}
 
         <section className="animate-in grid grid-cols-1 gap-4 xl:grid-cols-[1.08fr_0.92fr]">
-          <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(145deg,rgba(255,255,255,0.97)_0%,rgba(242,247,244,0.9)_100%)] p-5 shadow-[0_28px_72px_-44px_rgba(15,23,42,0.24)] sm:p-6">
+          <div className="rounded-[1.75rem] border border-white/70 bg-white/90 p-5 shadow-[0_18px_40px_-32px_rgba(15,23,42,0.16)] sm:p-6">
             <div className="mb-5 flex items-end justify-between gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -177,7 +177,7 @@ export function DashboardClient({
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(160deg,rgba(255,255,255,0.98)_0%,rgba(248,250,251,0.92)_100%)] p-5 shadow-[0_28px_72px_-44px_rgba(15,23,42,0.24)] sm:p-6">
+          <div className="rounded-[1.75rem] border border-white/70 bg-white/90 p-5 shadow-[0_18px_40px_-32px_rgba(15,23,42,0.16)] sm:p-6">
             <div className="mb-5 flex items-end justify-between gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
