@@ -14,7 +14,13 @@ import {
 
 import { computeAllFeatures, recoveryScoreDaily } from "@/lib/features";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
-import type { EhrRecord, TrafficLight, WearableTelemetry, LifestyleSurvey } from "@/lib/types";
+import type {
+  CoachSuggestion,
+  EhrRecord,
+  TrafficLight,
+  WearableTelemetry,
+  LifestyleSurvey,
+} from "@/lib/types";
 import {
   BioAgeCard,
   ScoreCard,
@@ -34,6 +40,39 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+
+const coachPreviewFallbacks: CoachSuggestion[] = [
+  {
+    severity: "red",
+    title: "Reduce strain for the next 48 hours",
+    rationale:
+      "Several recovery signals suggest your system needs more restoration before pushing intensity again.",
+    action:
+      "Keep movement gentle, prioritise sleep, and avoid stacking demanding sessions back-to-back.",
+  },
+  {
+    severity: "yellow",
+    title: "Tighten your evening routine",
+    rationale:
+      "A calmer digital wind-down and more consistent sleep timing could improve recovery and mood quickly.",
+    action:
+      "Reduce screens 90 minutes before sleep and keep tonight's bedtime steady.",
+  },
+  {
+    severity: "yellow",
+    title: "Use a light Zone-2 session as a reset",
+    rationale:
+      "A low-intensity cardio block can support activity consistency without adding unnecessary recovery load.",
+    action:
+      "Plan a 30 to 40 minute easy walk or cycle session for tomorrow.",
+  },
+];
+
+const severityOrder: Record<CoachSuggestion["severity"], number> = {
+  red: 0,
+  yellow: 1,
+  green: 2,
+};
 
 function HeartIcon() {
   return (
@@ -96,6 +135,7 @@ function trendPct(current: number, avgVal: number) {
 }
 
 function average(values: number[]) {
+  if (values.length === 0) return 0;
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
@@ -190,6 +230,7 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientProps) {
+  const [activeCoachSuggestion, setActiveCoachSuggestion] = useState<string | null>(null);
   const [plainLanguageMode, setPlainLanguageMode] = useState(true);
   const [weeklyActionDone, setWeeklyActionDone] = useState(false);
   const [memoryCheckOpen, setMemoryCheckOpen] = useState(false);
@@ -201,7 +242,20 @@ export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientPro
   const [followUpRequested, setFollowUpRequested] = useState(false);
 
   const features = computeAllFeatures(ehr, wearable, lifestyle);
-  const coachSuggestions = generateCoachSuggestions(features, ehr);
+  const generatedPriorityCoachSuggestions = generateCoachSuggestions(features, ehr).filter(
+    (suggestion) => suggestion.severity !== "green"
+  );
+  const priorityCoachSuggestions = [
+    ...generatedPriorityCoachSuggestions,
+    ...coachPreviewFallbacks.filter(
+      (fallback) =>
+        !generatedPriorityCoachSuggestions.some(
+          (suggestion) => suggestion.title === fallback.title
+        )
+    ),
+  ]
+    .sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
+    .slice(0, 3);
 
   const latest = wearable[wearable.length - 1];
   const prev7 = wearable.slice(-8, -1);
@@ -311,6 +365,31 @@ export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientPro
             Plain-language mode {plainLanguageMode ? "On" : "Off"}
           </Button>
         </section>
+
+        {priorityCoachSuggestions.length > 0 ? (
+          <section className="animate-in flex flex-col gap-4">
+            <h3 className="text-fluid-lg text-foreground">Coach suggestions</h3>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              {priorityCoachSuggestions.map((suggestion) => (
+                <CoachCard
+                  key={suggestion.title}
+                  suggestion={suggestion}
+                  isActive={activeCoachSuggestion === suggestion.title}
+                  isDimmed={
+                    activeCoachSuggestion !== null &&
+                    activeCoachSuggestion !== suggestion.title
+                  }
+                  onActivate={() => setActiveCoachSuggestion(suggestion.title)}
+                  onDeactivate={() =>
+                    setActiveCoachSuggestion((current) =>
+                      current === suggestion.title ? null : current
+                    )
+                  }
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
       <section className="animate-in grid grid-cols-1 gap-4 lg:grid-cols-3">
         <BioAgeCard data={features.bioAge} chronologicalAge={ehr.age} />
@@ -560,14 +639,7 @@ export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientPro
         />
       </section>
 
-      <section className="animate-in stagger-5 flex flex-col gap-4 pb-8">
-        <h3 className="text-fluid-lg text-foreground">Coach suggestions</h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {coachSuggestions.map((suggestion) => (
-            <CoachCard key={suggestion.title} suggestion={suggestion} />
-          ))}
-        </div>
-      </section>
+      <div className="pb-8" />
 
       <Sheet open={memoryCheckOpen} onOpenChange={setMemoryCheckOpen}>
         <SheetContent side="right" className="w-full max-w-xl gap-0">

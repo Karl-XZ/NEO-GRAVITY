@@ -16,35 +16,129 @@ const severityTextColor: Record<string, string> = {
   green: "text-status-normal",
 };
 
+const severityGlow: Record<string, string> = {
+  red: "bg-[radial-gradient(circle_at_bottom,rgba(220,38,38,0.12),transparent_62%)]",
+  yellow: "bg-[radial-gradient(circle_at_bottom,rgba(217,119,6,0.12),transparent_62%)]",
+  green: "bg-[radial-gradient(circle_at_bottom,rgba(5,150,105,0.12),transparent_62%)]",
+};
+
 interface CoachCardProps {
   suggestion: CoachSuggestion;
+  isActive?: boolean;
+  isDimmed?: boolean;
+  onActivate?: () => void;
+  onDeactivate?: () => void;
 }
 
-export function CoachCard({ suggestion }: CoachCardProps) {
+function normalizeTokens(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9äöüß]+/gi, " ")
+    .split(" ")
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2);
+}
+
+function isTooSimilarToTitle(title: string, body: string) {
+  const titleTokens = normalizeTokens(title);
+  const bodyTokens = new Set(normalizeTokens(body));
+
+  if (titleTokens.length === 0) {
+    return false;
+  }
+
+  const overlapCount = titleTokens.filter((token) => bodyTokens.has(token)).length;
+  return overlapCount / titleTokens.length >= 0.6;
+}
+
+function getCardBodyText(suggestion: CoachSuggestion) {
+  const candidates = [suggestion.rationale, suggestion.action].filter(Boolean);
+  const nonRepeatingCandidate = candidates.find(
+    (candidate) => !isTooSimilarToTitle(suggestion.title, candidate)
+  );
+
+  return nonRepeatingCandidate ?? suggestion.action ?? suggestion.rationale;
+}
+
+export function CoachCard({
+  suggestion,
+  isActive = false,
+  isDimmed = false,
+  onActivate,
+  onDeactivate,
+}: CoachCardProps) {
+  const bodyText = getCardBodyText(suggestion);
+
   return (
-    <div className="group relative flex min-w-[280px] flex-1 overflow-hidden rounded-xl bg-surface-1 ring-1 ring-foreground/10">
+    <div
+      tabIndex={0}
+      aria-expanded={isActive}
+      onMouseEnter={onActivate}
+      onMouseLeave={onDeactivate}
+      onFocus={onActivate}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          onDeactivate?.();
+        }
+      }}
+      style={{ flexGrow: isActive ? 1.45 : isDimmed ? 0.9 : 1 }}
+      className={cn(
+        "group relative flex min-h-[196px] w-full min-w-0 overflow-hidden rounded-[1.25rem] ring-1 ring-foreground/8 transition-[transform,box-shadow,flex-grow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 lg:basis-0",
+        "bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,251,0.94)_100%)]",
+        isActive
+          ? "-translate-y-0.5 shadow-[0_22px_56px_-28px_rgba(26,29,35,0.28)]"
+          : "shadow-[0_12px_36px_-30px_rgba(26,29,35,0.22)]",
+        isDimmed && "lg:scale-[0.985]"
+      )}
+    >
       {/* Severity bar */}
       <div
         className={cn(
-          "w-1 shrink-0 rounded-l-xl",
+          "absolute inset-y-0 left-0 w-1.5 shrink-0 rounded-l-[1.25rem]",
           severityBarColor[suggestion.severity]
         )}
       />
 
-      <div className="flex flex-col gap-2.5 px-4 py-4">
-        <h4
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          severityGlow[suggestion.severity],
+          isActive && "opacity-100"
+        )}
+      />
+
+      <div className="relative flex flex-1 flex-col justify-center px-5 py-5 sm:px-6">
+        <div
           className={cn(
-            "text-fluid-sm font-medium leading-snug",
-            severityTextColor[suggestion.severity]
+            "flex min-h-[96px] items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            isActive && "-translate-y-8"
           )}
         >
-          {suggestion.title}
-        </h4>
-        <p className="text-fluid-xs text-muted-foreground leading-relaxed line-clamp-2">
-          {suggestion.rationale}
-        </p>
-        <div className="mt-auto pt-1">
-          <Button variant="ghost" size="sm" className="text-fluid-xs text-primary px-0 h-auto hover:bg-transparent hover:text-primary/80">
+          <h4
+            className={cn(
+              "max-w-[15rem] text-center text-sm font-medium leading-snug line-clamp-2 sm:text-[0.95rem]",
+              severityTextColor[suggestion.severity]
+            )}
+          >
+            {suggestion.title}
+          </h4>
+        </div>
+
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-x-5 bottom-5 translate-y-8 space-y-3 opacity-0 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:inset-x-6",
+            isActive && "pointer-events-auto translate-y-0 opacity-100"
+          )}
+        >
+          <p className="border-t border-foreground/6 pt-3 text-fluid-xs leading-relaxed text-muted-foreground line-clamp-3">
+            {bodyText}
+          </p>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto rounded-full bg-white/70 px-3 text-fluid-xs text-primary shadow-none hover:bg-transparent hover:text-primary/80"
+          >
             Aktionsplan anzeigen
           </Button>
         </div>

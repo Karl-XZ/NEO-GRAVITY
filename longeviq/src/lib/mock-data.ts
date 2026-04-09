@@ -9,9 +9,31 @@ import type {
   BioAgeEstimate,
   CoachSuggestion,
   DailyScore,
+  UserProfile,
 } from "./types";
 
 export const MOCK_PATIENT_ID = "PAT-2024-0042";
+
+export const mockUserProfile: UserProfile = {
+  id: "00000000-0000-4000-8000-000000000042",
+  patient_id: MOCK_PATIENT_ID,
+  display_name: "Thomas M.",
+  ui_mode: "standard",
+  persona_hint: "digital-optimizer",
+  created_at: "2026-01-14T09:00:00.000Z",
+  email: "thomas.m@longeviq.demo",
+  role_label: "Patient",
+  plan_label: "LongevIQ Plus",
+  city: "Berlin",
+  country_code: "DE",
+  timezone: "Europe/Berlin",
+  primary_goal: "Mehr Energie im Alltag und bessere Erholung nach intensiven Wochen.",
+  focus_areas: [
+    "Schlafoptimierung",
+    "Kardiometabolische Prävention",
+    "Stressregulation",
+  ],
+};
 
 export const mockEhr: EhrRecord = {
   patient_id: MOCK_PATIENT_ID,

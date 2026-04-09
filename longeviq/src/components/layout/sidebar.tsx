@@ -11,6 +11,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -18,6 +19,7 @@ import { useState } from "react";
 export const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/biomarkers", label: "Biomarker", icon: FlaskConical },
+  { href: "/insights", label: "Insights", icon: Lightbulb },
   { href: "/journey", label: "Journey", icon: Route },
   { href: "/coach", label: "Coach", icon: MessageCircle },
   { href: "/settings", label: "Einstellungen", icon: Settings },
