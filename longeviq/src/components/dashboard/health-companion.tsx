@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Send, Bot, User, Loader2, Maximize2, Minimize2, Mic, MicOff, Paperclip, X } from "lucide-react";
+import { Send, Bot, User, Loader2, Maximize2, Minimize2, Mic, MicOff, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
+import Markdown from "react-markdown";
 
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ function getSpeechRecognitionConstructor(): (new () => SpeechRecognitionType) | 
 interface UploadedFile {
   name: string;
   content: string;
+  type?: "text" | "image" | "document";
 }
 
 interface Message {
@@ -121,13 +123,36 @@ export function HealthCompanion() {
     const files = e.target.files;
     if (!files) return;
 
+    const imageTypes = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"];
+
     Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const content = reader.result as string;
-        setAttachedFiles((prev) => [...prev, { name: file.name, content }]);
-      };
-      reader.readAsText(file);
+      if (imageTypes.includes(file.type)) {
+        // Read images as base64 data URL
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          setAttachedFiles((prev) => [...prev, { name: file.name, content: dataUrl, type: "image" }]);
+        };
+        reader.readAsDataURL(file);
+      } else if (file.type === "application/pdf") {
+        // PDF: extract text content via basic text extraction
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result as string;
+          // Filter out binary noise, keep readable text
+          const cleaned = text.replace(/[^\x20-\x7E\xA0-\xFF\n\r\t]/g, " ").replace(/ {3,}/g, " ").trim();
+          setAttachedFiles((prev) => [...prev, { name: file.name, content: cleaned.slice(0, 15000), type: "document" }]);
+        };
+        reader.readAsText(file);
+      } else {
+        // Text-based files
+        const reader = new FileReader();
+        reader.onload = () => {
+          const content = reader.result as string;
+          setAttachedFiles((prev) => [...prev, { name: file.name, content, type: "text" }]);
+        };
+        reader.readAsText(file);
+      }
     });
 
     // Reset so the same file can be re-selected
@@ -159,10 +184,16 @@ export function HealthCompanion() {
           messages: updatedMessages.map((m) => {
             let content = m.content;
             if (m.files && m.files.length > 0) {
-              const fileContext = m.files
-                .map((f) => `[File: ${f.name}]\n${f.content}`)
-                .join("\n\n");
-              content = `${content}\n\n--- Attached Files ---\n${fileContext}`;
+              const textFiles = m.files.filter((f) => f.type !== "image");
+              const imageFiles = m.files.filter((f) => f.type === "image");
+              const parts: string[] = [];
+              if (textFiles.length > 0) {
+                parts.push(textFiles.map((f) => `[File: ${f.name}]\n${f.content}`).join("\n\n"));
+              }
+              if (imageFiles.length > 0) {
+                parts.push(imageFiles.map((f) => `[Image attached: ${f.name}]`).join("\n"));
+              }
+              content = `${content}\n\n--- Attached Files ---\n${parts.join("\n\n")}`;
             }
             return { role: m.role, content };
           }),
@@ -313,16 +344,37 @@ export function HealthCompanion() {
                         key={fi}
                         className="inline-flex items-center gap-1 rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-medium"
                       >
-                        <Paperclip className="size-3" />
+                        {f.type === "image" ? <ImageIcon className="size-3" /> : <FileText className="size-3" />}
                         {f.name}
                       </span>
                     ))}
                   </div>
                 )}
-                {msg.content ||
-                  (isStreaming && i === messages.length - 1 ? (
+                {msg.content ? (
+                  msg.role === "assistant" ? (
+                    <Markdown
+                      components={{
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        ul: ({ children }) => <ul className="mb-2 ml-4 list-disc space-y-1 last:mb-0">{children}</ul>,
+                        ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal space-y-1 last:mb-0">{children}</ol>,
+                        li: ({ children }) => <li>{children}</li>,
+                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                        h1: ({ children }) => <p className="mb-1 font-semibold">{children}</p>,
+                        h2: ({ children }) => <p className="mb-1 font-semibold">{children}</p>,
+                        h3: ({ children }) => <p className="mb-1 font-semibold">{children}</p>,
+                        code: ({ children }) => <code className="rounded bg-black/5 px-1 py-0.5 text-[0.9em]">{children}</code>,
+                      }}
+                    >
+                      {msg.content}
+                    </Markdown>
+                  ) : (
+                    msg.content
+                  )
+                ) : (
+                  isStreaming && i === messages.length - 1 ? (
                     <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                  ) : null)}
+                  ) : null
+                )}
               </div>
             </div>
           ))}
@@ -336,7 +388,7 @@ export function HealthCompanion() {
                   key={i}
                   className="inline-flex items-center gap-1 rounded-lg border border-border/80 bg-white/80 px-2 py-1 text-[11px] font-medium text-foreground"
                 >
-                  <Paperclip className="size-3 text-muted-foreground" />
+                  {file.type === "image" ? <ImageIcon className="size-3 text-muted-foreground" /> : <FileText className="size-3 text-muted-foreground" />}
                   {file.name}
                   <button
                     type="button"
@@ -360,7 +412,7 @@ export function HealthCompanion() {
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".txt,.csv,.json,.md,.xml,.html,.log,.tsv,.yml,.yaml"
+              accept=".txt,.csv,.json,.md,.xml,.html,.log,.tsv,.yml,.yaml,.pdf,.png,.jpg,.jpeg,.gif,.webp"
               onChange={handleFileSelect}
               className="hidden"
             />
