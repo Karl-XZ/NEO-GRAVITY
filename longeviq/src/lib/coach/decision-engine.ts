@@ -72,6 +72,37 @@ export function inferSuggestionPriorityDomain(
   return "activity";
 }
 
+export function formatMainFocusText(input: {
+  suggestion?: CoachSuggestion | null;
+  fallback: DailyPriority;
+}) {
+  const { suggestion, fallback } = input;
+
+  if (suggestion) {
+    const domain = inferSuggestionPriorityDomain(suggestion);
+
+    if (domain === "clinical") {
+      return "Schedule a medical follow-up and keep today low strain.";
+    }
+
+    if (domain === "sleep") {
+      return "Prioritize sleep tonight and keep movement light today.";
+    }
+
+    if (domain === "recovery") {
+      return "Keep training easy today and focus on recovery.";
+    }
+
+    if (domain === "mood") {
+      return "Reduce load today and make time for a short check-in.";
+    }
+
+    return "Add one simple block of movement today and keep it consistent.";
+  }
+
+  return fallback.action;
+}
+
 export function buildDailyPriority(
   features: ComputedFeatures,
   ehr: EhrRecord,

@@ -1,14 +1,21 @@
 // ============================================================
 // LongevIQ — Rule-based coach suggestion generator
-// Produces CoachSuggestion[] from computed features
+// Produces a single top-priority CoachSuggestion from computed features
 // ============================================================
 
 import type { ComputedFeatures, CoachSuggestion, EhrRecord } from "../types";
 
+interface GenerateCoachSuggestionsOptions {
+  includeGreen?: boolean;
+  limit?: number;
+}
+
 export function generateCoachSuggestions(
   features: ComputedFeatures,
   ehr: EhrRecord,
+  options: GenerateCoachSuggestionsOptions = {},
 ): CoachSuggestion[] {
+  const { includeGreen = true, limit = 1 } = options;
   const suggestions: CoachSuggestion[] = [];
 
   // --- Cardio risk ---
@@ -273,6 +280,9 @@ export function generateCoachSuggestions(
   // Sort: red first, then yellow, then green
   const order: Record<string, number> = { red: 0, yellow: 1, green: 2 };
   suggestions.sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
+  const filtered = includeGreen
+    ? suggestions
+    : suggestions.filter((suggestion) => suggestion.severity !== "green");
 
-  return suggestions;
+  return filtered.slice(0, limit);
 }

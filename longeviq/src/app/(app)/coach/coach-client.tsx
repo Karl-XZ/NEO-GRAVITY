@@ -2,19 +2,15 @@
 
 import {
   Activity,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
 } from "lucide-react";
+import { formatMainFocusText } from "@/lib/coach/decision-engine";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
 import { computeAllFeatures } from "@/lib/features";
 import type {
-  CoachSuggestion,
   EhrRecord,
   LifestyleSurvey,
   WearableTelemetry,
 } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -22,71 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-const severityConfig: Record<
-  string,
-  { label: string; borderColor: string; badgeBg: string; badgeText: string; icon: typeof XCircle }
-> = {
-  red: {
-    label: "Kritisch",
-    borderColor: "border-l-status-critical",
-    badgeBg: "bg-status-critical/10",
-    badgeText: "text-status-critical",
-    icon: XCircle,
-  },
-  yellow: {
-    label: "Beobachten",
-    borderColor: "border-l-status-warning",
-    badgeBg: "bg-status-warning/10",
-    badgeText: "text-status-warning",
-    icon: AlertTriangle,
-  },
-  green: {
-    label: "Gut",
-    borderColor: "border-l-status-normal",
-    badgeBg: "bg-status-normal/10",
-    badgeText: "text-status-normal",
-    icon: CheckCircle2,
-  },
-};
-
-function SuggestionCard({ suggestion }: { suggestion: CoachSuggestion }) {
-  const config = severityConfig[suggestion.severity] ?? severityConfig.green;
-  const Icon = config.icon;
-
-  return (
-    <div className={cn("rounded-lg border-l-[3px] bg-surface-1 p-5", config.borderColor)}>
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <h3 className="text-[0.95rem] font-semibold leading-snug text-foreground">
-          {suggestion.title}
-        </h3>
-        <span
-          className={cn(
-            "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-            config.badgeBg,
-            config.badgeText,
-          )}
-        >
-          <Icon className="size-3" />
-          {config.label}
-        </span>
-      </div>
-
-      <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-        {suggestion.rationale}
-      </p>
-
-      <div className="rounded-md bg-surface-2/60 px-3.5 py-2.5">
-        <p className="text-sm leading-relaxed text-foreground/80">
-          <span className="mr-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Empfehlung
-          </span>
-          {suggestion.action}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 function nextVo2Target(current: number) {
   if (current < 38) return 40;
@@ -154,8 +85,21 @@ interface CoachClientProps {
 
 export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
   const features = computeAllFeatures(ehr, wearable, lifestyle);
-  const sortedSuggestions = generateCoachSuggestions(features, ehr);
-  const primarySuggestions = sortedSuggestions.slice(0, 4);
+  const primarySuggestion = generateCoachSuggestions(features, ehr)[0] ?? null;
+  const mainFocusText = formatMainFocusText({
+    suggestion: primarySuggestion,
+    fallback: {
+      key: "activity",
+      severity: "green",
+      headline: "",
+      reason: "",
+      action: "Keep your routine steady today.",
+      todayPlan: [],
+      priorityScore: 0,
+      suppresses: [],
+      supportingSignals: [],
+    },
+  });
   const vo2Target = nextVo2Target(features.vo2max.vo2max);
   const weeklyAction = getWeeklyAction({
     movementPct: features.movementConsistency.pct,
@@ -330,19 +274,16 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
       </section>
 
       <div className="animate-in stagger-3">
-        <div className="mb-5">
-          <h2 className="mb-1 text-lg font-semibold tracking-tight">
-            Current coaching priorities
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Reduced to the few recommendations with the clearest next-step value.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          {primarySuggestions.map((suggestion, index) => (
-            <SuggestionCard key={`${suggestion.title}-${index}`} suggestion={suggestion} />
-          ))}
+        <div className="flex items-stretch gap-4 rounded-lg bg-surface-1 p-5 sm:gap-5">
+          <div className="w-1 shrink-0 rounded-full bg-primary" />
+          <div className="min-w-0">
+            <p className="mb-2 text-sm font-semibold tracking-[0.04em] text-primary">
+              Main priority today
+            </p>
+            <p className="text-base leading-relaxed text-foreground/85">
+              {mainFocusText}
+            </p>
+          </div>
         </div>
       </div>
     </div>

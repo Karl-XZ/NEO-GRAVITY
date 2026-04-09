@@ -15,8 +15,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { getPersonaLabel, getProfileInitials } from "@/lib/profile";
-import type { UserProfile } from "@/lib/types";
+import {
+  ALERT_MODE_STORAGE_KEY,
+  getPersonaLabel,
+  getProfileInitials,
+  isAlertMode,
+} from "@/lib/profile";
+import type { AlertMode, UserProfile } from "@/lib/types";
 
 const dataSources = [
   {
@@ -41,16 +46,46 @@ type EditableProfileState = {
   email: string;
   city: string;
   timezone: string;
+  alertMode: AlertMode;
 };
 
 function createEditableState(profile: UserProfile): EditableProfileState {
+  const storedMode =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem(ALERT_MODE_STORAGE_KEY)
+      : null;
+
   return {
     displayName: profile.display_name ?? "",
     email: profile.email,
     city: profile.city,
     timezone: profile.timezone,
+    alertMode:
+      storedMode && isAlertMode(storedMode) ? storedMode : profile.alert_mode,
   };
 }
+
+const alertModeOptions: Array<{
+  value: AlertMode;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "simple",
+    label: "Simple",
+    description: "Zeigt nur den Hauptfokus des Tages.",
+  },
+  {
+    value: "detailed",
+    label: "Detailed",
+    description: "Zeigt zusätzlich die 3 wichtigsten Alerts unter dem Tagesfokus.",
+  },
+  {
+    value: "notification",
+    label: "Notification",
+    description: "Sendet Browser-Hinweise zum passenden Zeitpunkt des Tages.",
+  },
+];
 
 export function SettingsClient({
   initialProfile,
@@ -64,9 +99,9 @@ export function SettingsClient({
   const isDirty =
     JSON.stringify(form) !== JSON.stringify(createEditableState(initialProfile));
   const profileCompletion = Math.round(
-    ([form.displayName, form.email, form.city, form.timezone].filter(Boolean)
+    ([form.displayName, form.email, form.city, form.timezone, form.alertMode].filter(Boolean)
       .length /
-      4) *
+      5) *
       100,
   );
 
@@ -80,7 +115,23 @@ export function SettingsClient({
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function handleSave() {
+  async function handleSave() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(ALERT_MODE_STORAGE_KEY, form.alertMode);
+    }
+
+    if (form.alertMode === "notification" && typeof window !== "undefined" && "Notification" in window) {
+      const permission = await window.Notification.requestPermission();
+      if (permission === "granted") {
+        setSavedAt("Gerade eben lokal gespeichert · Browser-Hinweise aktiv");
+        return;
+      }
+      if (permission === "denied") {
+        setSavedAt("Gespeichert · Browser-Hinweise sind blockiert");
+        return;
+      }
+    }
+
     setSavedAt("Gerade eben lokal gespeichert");
   }
 
@@ -233,6 +284,39 @@ export function SettingsClient({
               <Button onClick={handleSave} disabled={!isDirty}>
                 Profil speichern
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="animate-in">
+          <CardHeader>
+            <CardTitle>Alert-Typ</CardTitle>
+            <CardDescription>
+              Legen Sie fest, wie stark LongevIQ Ihre täglichen Hinweise ausspielt.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              {alertModeOptions.map((option) => {
+                const isActive = form.alertMode === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateField("alertMode", option.value)}
+                    className={`rounded-xl border px-4 py-4 text-left transition-colors ${
+                      isActive
+                        ? "border-primary bg-primary/8 ring-1 ring-primary/20"
+                        : "border-border bg-background hover:bg-muted/40"
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-foreground">{option.label}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {option.description}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

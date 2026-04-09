@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { computeAllFeatures } from "@/lib/features";
 import {
   buildDailyPriority,
+  formatMainFocusText,
   inferSuggestionPriorityDomain,
 } from "@/lib/coach/decision-engine";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
+import { ALERT_MODE_STORAGE_KEY, isAlertMode } from "@/lib/profile";
 import type {
-  CoachSuggestion,
+  AlertMode,
   EhrRecord,
   LifestyleSurvey,
   WearableTelemetry,
@@ -20,45 +22,6 @@ import {
   ScoreCard,
   VitalTile,
 } from "@/components/dashboard";
-
-const coachPreviewFallbacks: CoachSuggestion[] = [
-  {
-    severity: "red",
-    title: "Reduce strain for the next 48 hours",
-    rationale:
-      "Several recovery signals suggest your system needs more restoration before pushing intensity again.",
-    action:
-      "Keep movement gentle, prioritise sleep, and avoid stacking demanding sessions back-to-back.",
-  },
-  {
-    severity: "yellow",
-    title: "Tighten your evening routine",
-    rationale:
-      "A calmer digital wind-down and more consistent sleep timing could improve recovery and mood quickly.",
-    action:
-      "Reduce screens 90 minutes before sleep and keep tonight's bedtime steady.",
-  },
-  {
-    severity: "yellow",
-    title: "Use a light Zone-2 session as a reset",
-    rationale:
-      "A low-intensity cardio block can support activity consistency without adding unnecessary recovery load.",
-    action:
-      "Plan a 30 to 40 minute easy walk or cycle session for tomorrow.",
-  },
-];
-
-const severityOrder: Record<CoachSuggestion["severity"], number> = {
-  red: 0,
-  yellow: 1,
-  green: 2,
-};
-
-const priorityToneClasses = {
-  red: "bg-status-critical/10 text-status-critical",
-  yellow: "bg-status-warning/10 text-status-warning",
-  green: "bg-status-normal/10 text-status-normal",
-};
 
 function HeartIcon() {
   return (
@@ -150,36 +113,28 @@ export function DashboardClient({
   lifestyle,
 }: DashboardClientProps) {
   const [activeCoachSuggestion, setActiveCoachSuggestion] = useState<string | null>(null);
+  const [alertMode] = useState<AlertMode>(() => {
+    if (typeof window === "undefined") {
+      return "simple";
+    }
 
-  const features = computeAllFeatures(ehr, wearable, lifestyle);
-  const generatedPriorityCoachSuggestions = generateCoachSuggestions(features, ehr).filter(
-    (suggestion) => suggestion.severity !== "green"
-  );
-
-  const priorityCoachSuggestions = [
-    ...generatedPriorityCoachSuggestions,
-    ...coachPreviewFallbacks.filter(
-      (fallback) =>
-        !generatedPriorityCoachSuggestions.some(
-          (suggestion) => suggestion.title === fallback.title
-        )
-    ),
-  ]
-    .sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
-    .slice(0, 3);
-
-  const dailyPriority = buildDailyPriority(features, ehr);
-  const filteredSecondarySuggestions = priorityCoachSuggestions.filter((suggestion) => {
-    const domain = inferSuggestionPriorityDomain(suggestion);
-    return (
-      domain !== dailyPriority.key &&
-      !dailyPriority.suppresses.includes(domain)
-    );
+    const storedMode = window.localStorage.getItem(ALERT_MODE_STORAGE_KEY);
+    return storedMode && isAlertMode(storedMode) ? storedMode : "simple";
   });
-  const secondaryCoachSuggestions =
-    filteredSecondarySuggestions.length > 0
-      ? filteredSecondarySuggestions.slice(0, 2)
-      : priorityCoachSuggestions.slice(0, 2);
+  const features = computeAllFeatures(ehr, wearable, lifestyle);
+  const dailyPriority = buildDailyPriority(features, ehr);
+  const mainSuggestion = generateCoachSuggestions(features, ehr, { limit: 1 })[0] ?? null;
+  const detailedSuggestions = generateCoachSuggestions(features, ehr, {
+    includeGreen: false,
+    limit: 4,
+  });
+  const detailedAlertCards = detailedSuggestions
+    .filter((suggestion) => suggestion.title !== mainSuggestion?.title)
+    .slice(0, 3);
+  const mainFocusText = formatMainFocusText({
+    suggestion: mainSuggestion,
+    fallback: dailyPriority,
+  });
 
   const latest = wearable[wearable.length - 1];
   const prev7 = wearable.slice(-8, -1);
@@ -189,83 +144,52 @@ export function DashboardClient({
   const stepsAvg7 = average(prev7.map((day) => day.steps));
   const sleepAvg7 = average(prev7.map((day) => day.sleep_duration_hrs));
 
+  useEffect(() => {
+    if (alertMode !== "notification") return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (window.Notification.permission !== "granted") return;
+
+    const activeSuggestion = mainSuggestion ?? detailedSuggestions[0] ?? null;
+    if (!activeSuggestion) return;
+
+    const domain = inferSuggestionPriorityDomain(activeSuggestion);
+    const hour = new Date().getHours();
+    const scheduledHour =
+      domain === "sleep"
+        ? 19
+        : domain === "clinical"
+          ? 9
+          : domain === "recovery"
+            ? 12
+            : domain === "mood"
+              ? 13
+              : 8;
+
+    if (hour < scheduledHour || hour >= scheduledHour + 2) return;
+
+    const key = `longeviq-alert-notification:${new Date().toISOString().slice(0, 10)}:${domain}`;
+    if (window.localStorage.getItem(key)) return;
+
+    window.localStorage.setItem(key, "sent");
+    window.Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        new window.Notification("LongevIQ", {
+          body: formatMainFocusText({
+            suggestion: activeSuggestion,
+            fallback: dailyPriority,
+          }),
+        });
+      }
+    });
+  }, [alertMode, dailyPriority, detailedSuggestions, mainSuggestion]);
+
   return (
     <div className="flex gap-6">
       <div className="mx-auto flex min-w-0 max-w-[1400px] flex-1 flex-col gap-8">
-        <section className="animate-in">
-          <div className="overflow-hidden rounded-[2rem] border border-white/84 bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(249,250,252,0.94)_58%,rgba(240,244,251,0.88)_100%)] p-5 shadow-[0_24px_48px_-36px_rgba(29,29,31,0.16)] ring-1 ring-black/[0.04] sm:p-6">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-              <div className="max-w-2xl">
-                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  Decision Engine
-                </p>
-                <h2 className="mt-3 text-[clamp(1.4rem,1.1rem+1vw,2.25rem)] font-semibold tracking-[-0.04em] text-foreground">
-                  {dailyPriority.headline}
-                </h2>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {dailyPriority.reason}
-                </p>
-              </div>
-
-              <div className="flex w-full max-w-md flex-col gap-3 rounded-[1.6rem] bg-white/70 p-4 ring-1 ring-black/[0.04]">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                    Today first
-                  </span>
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] ${priorityToneClasses[dailyPriority.severity]}`}
-                  >
-                    {dailyPriority.key}
-                  </span>
-                </div>
-                <p className="text-sm leading-relaxed text-foreground/85">
-                  {dailyPriority.action}
-                </p>
-                {dailyPriority.todayPlan.length > 0 ? (
-                  <div className="rounded-[1.2rem] bg-black/[0.03] px-3.5 py-3 ring-1 ring-black/[0.04]">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                      Today to improve
-                    </p>
-                    <div className="mt-3 space-y-2">
-                      {dailyPriority.todayPlan.slice(0, 3).map((step) => (
-                        <div key={step} className="flex items-start gap-2.5">
-                          <span className="mt-1 inline-block size-1.5 rounded-full bg-foreground/65" />
-                          <p className="text-sm leading-relaxed text-foreground/85">
-                            {step}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            {dailyPriority.supportingSignals.length > 0 ? (
-              <div className="mt-5 flex flex-wrap gap-2">
-                {dailyPriority.supportingSignals.slice(0, 3).map((signal) => (
-                  <span
-                    key={signal}
-                    className="rounded-full bg-black/[0.035] px-3 py-1.5 text-xs text-muted-foreground ring-1 ring-black/[0.04]"
-                  >
-                    {signal}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        {secondaryCoachSuggestions.length > 0 ? (
-          <section className="animate-in flex flex-col gap-4">
-            <div>
-              <h3 className="text-fluid-lg text-foreground">Secondary suggestions</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                These are still relevant, but not the main decision for today.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 lg:flex-row">
-              {secondaryCoachSuggestions.map((suggestion) => (
+        {alertMode === "detailed" ? (
+          detailedAlertCards.length > 0 ? (
+            <section className="animate-in flex flex-col gap-3 lg:flex-row">
+              {detailedAlertCards.map((suggestion) => (
                 <CoachCard
                   key={suggestion.title}
                   suggestion={suggestion}
@@ -282,9 +206,25 @@ export function DashboardClient({
                   }
                 />
               ))}
+            </section>
+          ) : null
+        ) : (
+          <section className="animate-in">
+            <div className="overflow-hidden rounded-[2rem] border border-white/84 bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(249,250,252,0.94)_58%,rgba(240,244,251,0.88)_100%)] p-5 shadow-[0_24px_48px_-36px_rgba(29,29,31,0.16)] ring-1 ring-black/[0.04] sm:p-6">
+              <div className="flex items-stretch gap-4 sm:gap-5">
+                <div className="w-1 shrink-0 rounded-full bg-primary" />
+                <div className="min-w-0">
+                  <p className="mb-2 text-sm font-semibold tracking-[0.04em] text-primary">
+                    Main priority today
+                  </p>
+                  <p className="text-[clamp(1.1rem,0.95rem+0.45vw,1.5rem)] font-medium leading-relaxed text-foreground">
+                    {mainFocusText}
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
-        ) : null}
+        )}
 
         <section className="animate-in grid grid-cols-1 gap-4 lg:grid-cols-2">
           <ScoreCard

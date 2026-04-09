@@ -4,6 +4,7 @@
 
 /** User-selectable detail level for the dashboard UI */
 export type UiMode = "simple" | "standard" | "expert";
+export type AlertMode = "simple" | "detailed" | "notification";
 
 /** Persona hint derived from onboarding */
 export type PersonaHint =
@@ -30,6 +31,7 @@ export interface UserProfile extends Profile {
   city: string;
   country_code: string;
   timezone: string;
+  alert_mode: AlertMode;
   primary_goal: string;
   focus_areas: string[];
 }
