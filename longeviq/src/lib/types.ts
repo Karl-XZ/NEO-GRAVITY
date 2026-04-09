@@ -129,6 +129,25 @@ export interface CoachSuggestion {
   action: string;
 }
 
+export type PriorityDomain =
+  | "clinical"
+  | "sleep"
+  | "recovery"
+  | "mood"
+  | "activity";
+
+export interface DailyPriority {
+  key: PriorityDomain;
+  severity: TrafficLight;
+  headline: string;
+  reason: string;
+  action: string;
+  todayPlan: string[];
+  priorityScore: number;
+  suppresses: PriorityDomain[];
+  supportingSignals: string[];
+}
+
 /** All computed features for a patient, returned by computeAllFeatures() */
 export interface ComputedFeatures {
   // Universal
