@@ -8,7 +8,7 @@ import {
   CoachCard,
   ScoreCard,
   TrendChart,
-  CoachCard,
+  VitalTile,
   HealthCompanion,
 } from "@/components/dashboard";
 import { Badge } from "@/components/ui/badge";
