@@ -100,6 +100,35 @@ function trendPct(current: number, avgVal: number) {
   return ((current - avgVal) / avgVal) * 100;
 }
 
+function getRecommendationFocusForSuggestion(suggestion: CoachSuggestion | null) {
+  if (!suggestion) return "/recommendations";
+
+  const domain = inferSuggestionPriorityDomain(suggestion);
+  const normalized = `${suggestion.title} ${suggestion.rationale} ${suggestion.action}`.toLowerCase();
+
+  if (domain === "sleep") return "/recommendations?focus=sleep-reset";
+  if (domain === "activity") return "/recommendations?focus=movement-plan";
+  if (domain === "mood" || domain === "recovery") {
+    return "/recommendations?focus=recovery-review";
+  }
+  if (
+    normalized.includes("metabol") ||
+    normalized.includes("gluk") ||
+    normalized.includes("hba1c")
+  ) {
+    return "/recommendations?focus=metabolic-diagnostics";
+  }
+  if (
+    normalized.includes("ernährung") ||
+    normalized.includes("ernahrung") ||
+    normalized.includes("hydration")
+  ) {
+    return "/recommendations?focus=nutrition-review";
+  }
+
+  return "/recommendations?focus=cardio-review";
+}
+
 interface DashboardClientProps {
   ehr: EhrRecord;
   wearable: WearableTelemetry[];
@@ -193,6 +222,7 @@ export function DashboardClient({
                 <CoachCard
                   key={suggestion.title}
                   suggestion={suggestion}
+                  actionHref={getRecommendationFocusForSuggestion(suggestion)}
                   isActive={activeCoachSuggestion === suggestion.title}
                   isDimmed={
                     activeCoachSuggestion !== null &&

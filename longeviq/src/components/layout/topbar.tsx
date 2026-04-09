@@ -30,9 +30,15 @@ import { cn } from "@/lib/utils";
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
+  "/assessment": "Assessment",
   "/biomarkers": "Biomarker",
+  "/insights": "Insights",
   "/journey": "Journey",
+  "/health-twin": "Health Twin",
+  "/recommendations": "Empfehlungen",
   "/coach": "Gesundheitscoach",
+  "/concept": "Konzept",
+  "/profile": "Profil",
   "/settings": "Einstellungen",
 };
 
