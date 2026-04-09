@@ -11,6 +11,7 @@ import {
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
 import { getStoredAlertMode } from "@/lib/profile";
 import type {
+  CoachSuggestion,
   EhrRecord,
   LifestyleSurvey,
   WearableTelemetry,

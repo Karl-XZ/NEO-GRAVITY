@@ -16,54 +16,54 @@ const REGION_LAYOUT: Record<
   }
 > = {
   brain: {
-    boxX: 32,
-    boxY: 46,
-    width: 280,
-    height: 150,
-    anchorX: 454,
-    anchorY: 118,
-    lineX: 312,
-    lineY: 126,
+    boxX: 36,
+    boxY: 132,
+    width: 312,
+    height: 204,
+    anchorX: 472,
+    anchorY: 228,
+    lineX: 348,
+    lineY: 220,
   },
   heart: {
-    boxX: 604,
-    boxY: 158,
-    width: 280,
-    height: 150,
-    anchorX: 492,
-    anchorY: 236,
-    lineX: 604,
-    lineY: 236,
+    boxX: 612,
+    boxY: 286,
+    width: 312,
+    height: 204,
+    anchorX: 548,
+    anchorY: 392,
+    lineX: 612,
+    lineY: 392,
   },
   metabolic: {
-    boxX: 32,
-    boxY: 260,
-    width: 280,
-    height: 150,
-    anchorX: 444,
-    anchorY: 356,
-    lineX: 312,
-    lineY: 356,
+    boxX: 36,
+    boxY: 432,
+    width: 312,
+    height: 204,
+    anchorX: 450,
+    anchorY: 560,
+    lineX: 348,
+    lineY: 548,
   },
   recovery: {
-    boxX: 604,
-    boxY: 398,
-    width: 280,
-    height: 150,
-    anchorX: 490,
-    anchorY: 462,
-    lineX: 604,
-    lineY: 462,
+    boxX: 612,
+    boxY: 624,
+    width: 312,
+    height: 204,
+    anchorX: 540,
+    anchorY: 746,
+    lineX: 612,
+    lineY: 742,
   },
   inflammation: {
-    boxX: 604,
-    boxY: 564,
-    width: 280,
-    height: 150,
-    anchorX: 472,
-    anchorY: 610,
-    lineX: 604,
-    lineY: 610,
+    boxX: 612,
+    boxY: 850,
+    width: 312,
+    height: 204,
+    anchorX: 510,
+    anchorY: 934,
+    lineX: 612,
+    lineY: 938,
   },
 };
 
@@ -73,90 +73,89 @@ const TREND_COLOR = {
   declining: "#B91C1C",
 } as const;
 
-function wrapText(text: string, maxChars: number) {
-  const words = text.split(" ");
-  const lines: string[] = [];
-
-  for (const word of words) {
-    const current = lines[lines.length - 1];
-    if (!current) {
-      lines.push(word);
-      continue;
-    }
-
-    if (`${current} ${word}`.length <= maxChars) {
-      lines[lines.length - 1] = `${current} ${word}`;
-      continue;
-    }
-
-    lines.push(word);
-  }
-
-  return lines;
-}
-
 function RegionBox({ region }: { region: BodyComparisonRegion }) {
   const layout = REGION_LAYOUT[region.id];
-  const explanationLines = wrapText(region.explanation, 40).slice(0, 3);
 
   return (
     <g>
       <rect
         x={layout.boxX}
         y={layout.boxY}
-        rx="24"
-        ry="24"
+        rx="28"
+        ry="28"
         width={layout.width}
         height={layout.height}
         fill="#FFFFFF"
-        stroke="#DCE7F3"
+        stroke="#D7E4F1"
+        strokeWidth="1.5"
       />
 
       <foreignObject
         x={layout.boxX + 20}
         y={layout.boxY + 18}
         width={layout.width - 40}
-        height={layout.height - 32}
+        height={layout.height - 36}
       >
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "8px",
+            height: "100%",
+            minHeight: 0,
+            gap: "10px",
             fontFamily: "inherit",
             color: "#0F172A",
           }}
         >
-          <div style={{ fontSize: "16px", fontWeight: 700, lineHeight: 1.2 }}>
+          <div style={{ fontSize: "17px", fontWeight: 700, lineHeight: 1.15 }}>
             {region.label}
           </div>
           <div style={{ fontSize: "12px", color: "#64748B", lineHeight: 1.3 }}>
             Aktuell: {region.currentValue}
           </div>
+
           <div
             style={{
-              fontSize: "12px",
-              color: TREND_COLOR[region.adherenceTrend],
-              fontWeight: 600,
-              lineHeight: 1.3,
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              paddingRight: "6px",
+              scrollbarWidth: "thin",
+              overflowWrap: "break-word",
             }}
           >
-            Bei Adhärenz: {region.adherenceChange}
-          </div>
-          <div
-            style={{
-              fontSize: "12px",
-              color: TREND_COLOR[region.nonAdherenceTrend],
-              fontWeight: 600,
-              lineHeight: 1.3,
-            }}
-          >
-            Ohne Adhärenz: {region.nonAdherenceChange}
-          </div>
-          <div style={{ fontSize: "11px", color: "#94A3B8", lineHeight: 1.28 }}>
-            {explanationLines.map((line) => (
-              <div key={`${region.id}-${line}`}>{line}</div>
-            ))}
+            <div
+              style={{
+                fontSize: "12px",
+                color: TREND_COLOR[region.adherenceTrend],
+                fontWeight: 600,
+                lineHeight: 1.34,
+              }}
+            >
+              Bei Adhärenz: {region.adherenceChange}
+            </div>
+            <div
+              style={{
+                fontSize: "12px",
+                color: TREND_COLOR[region.nonAdherenceTrend],
+                fontWeight: 600,
+                lineHeight: 1.34,
+              }}
+            >
+              Ohne Adhärenz: {region.nonAdherenceChange}
+            </div>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "#94A3B8",
+                lineHeight: 1.35,
+              }}
+            >
+              {region.explanation}
+            </div>
           </div>
         </div>
       </foreignObject>
@@ -174,10 +173,89 @@ function RegionBox({ region }: { region: BodyComparisonRegion }) {
   );
 }
 
+function BodyIllustration() {
+  return (
+    <g>
+      <circle
+        cx="480"
+        cy="214"
+        r="48"
+        fill="#DDF5F2"
+        stroke="#0D9488"
+        strokeWidth="5"
+      />
+
+      <path
+        d="M480 268V742"
+        stroke="#0F172A"
+        strokeWidth="12"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M480 360L378 478"
+        stroke="#0F172A"
+        strokeWidth="12"
+        strokeLinecap="round"
+      />
+      <path
+        d="M480 360L582 478"
+        stroke="#0F172A"
+        strokeWidth="12"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M480 742L428 984"
+        stroke="#0F172A"
+        strokeWidth="12"
+        strokeLinecap="round"
+      />
+      <path
+        d="M480 742L532 984"
+        stroke="#0F172A"
+        strokeWidth="12"
+        strokeLinecap="round"
+      />
+
+      <ellipse
+        cx="480"
+        cy="412"
+        rx="82"
+        ry="126"
+        fill="none"
+        stroke="#0D9488"
+        strokeOpacity="0.18"
+        strokeWidth="3"
+      />
+      <ellipse
+        cx="480"
+        cy="566"
+        rx="94"
+        ry="90"
+        fill="none"
+        stroke="#6366F1"
+        strokeOpacity="0.14"
+        strokeWidth="3"
+      />
+      <ellipse
+        cx="480"
+        cy="744"
+        rx="70"
+        ry="92"
+        fill="none"
+        stroke="#F59E0B"
+        strokeOpacity="0.1"
+        strokeWidth="3"
+      />
+    </g>
+  );
+}
+
 export function BodyComparisonMap({ regions }: { regions: BodyComparisonRegion[] }) {
   return (
-    <div className="overflow-x-auto rounded-[28px] border border-[#E2E8F0] bg-[radial-gradient(circle_at_top,#f0fdfa_0%,#ffffff_58%)] p-4">
-      <svg viewBox="0 0 920 760" className="min-w-[920px]">
+    <div className="overflow-x-auto rounded-[28px] border border-[#E2E8F0] bg-[radial-gradient(circle_at_top,#f0fdfa_0%,#ffffff_58%)] p-5">
+      <svg viewBox="0 0 960 1088" className="min-w-[960px]">
         <defs>
           <marker
             id="body-arrow"
@@ -191,99 +269,27 @@ export function BodyComparisonMap({ regions }: { regions: BodyComparisonRegion[]
           </marker>
         </defs>
 
-        <circle
-          cx="460"
-          cy="110"
-          r="36"
-          fill="#E2F7F4"
-          stroke="#0D9488"
-          strokeWidth="2.5"
-        />
-        <line
-          x1="460"
-          y1="146"
-          x2="460"
-          y2="420"
-          stroke="#0F172A"
-          strokeWidth="7"
-          strokeLinecap="round"
-        />
-        <line
-          x1="460"
-          y1="188"
-          x2="382"
-          y2="276"
-          stroke="#0F172A"
-          strokeWidth="7"
-          strokeLinecap="round"
-        />
-        <line
-          x1="460"
-          y1="188"
-          x2="538"
-          y2="276"
-          stroke="#0F172A"
-          strokeWidth="7"
-          strokeLinecap="round"
-        />
-        <line
-          x1="460"
-          y1="420"
-          x2="402"
-          y2="612"
-          stroke="#0F172A"
-          strokeWidth="7"
-          strokeLinecap="round"
-        />
-        <line
-          x1="460"
-          y1="420"
-          x2="518"
-          y2="612"
-          stroke="#0F172A"
-          strokeWidth="7"
-          strokeLinecap="round"
-        />
-        <ellipse
-          cx="460"
-          cy="236"
-          rx="62"
-          ry="86"
-          fill="none"
-          stroke="#0D9488"
-          strokeOpacity="0.2"
-          strokeWidth="2"
-        />
-        <ellipse
-          cx="460"
-          cy="336"
-          rx="72"
-          ry="72"
-          fill="none"
-          stroke="#6366F1"
-          strokeOpacity="0.12"
-          strokeWidth="2"
-        />
-
         <text
-          x="460"
-          y="42"
+          x="480"
+          y="60"
           textAnchor="middle"
           fill="#0F172A"
-          fontSize="20"
+          fontSize="24"
           fontWeight="700"
         >
           Körperzonen-Vergleich
         </text>
         <text
-          x="460"
-          y="64"
+          x="480"
+          y="92"
           textAnchor="middle"
           fill="#64748B"
-          fontSize="12"
+          fontSize="13"
         >
           Pfeile markieren die Bereiche, die sich bei Adhärenz oder Nicht-Adhärenz am stärksten verändern.
         </text>
+
+        <BodyIllustration />
 
         {regions.map((region) => (
           <RegionBox key={region.id} region={region} />
