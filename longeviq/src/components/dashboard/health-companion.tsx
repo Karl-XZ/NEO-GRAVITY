@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Send, Bot, User, Loader2, Maximize2, Minimize2, Mic, MicOff, Paperclip, X, FileText } from "lucide-react";
-import Markdown from "react-markdown";
 
 import { cn } from "@/lib/utils";
 
@@ -262,6 +261,17 @@ export function HealthCompanion() {
     }
   }
 
+  function renderAssistantContent(content: string) {
+    return content.split(/\n{2,}/).map((block, index) => (
+      <p
+        key={`${index}-${block.slice(0, 24)}`}
+        className="mb-2 whitespace-pre-wrap last:mb-0"
+      >
+        {block}
+      </p>
+    ));
+  }
+
   function renderCompanionCard(expanded: boolean) {
     return (
       <div
@@ -352,21 +362,7 @@ export function HealthCompanion() {
                 )}
                 {msg.content ? (
                   msg.role === "assistant" ? (
-                    <Markdown
-                      components={{
-                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                        ul: ({ children }) => <ul className="mb-2 ml-4 list-disc space-y-1 last:mb-0">{children}</ul>,
-                        ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal space-y-1 last:mb-0">{children}</ol>,
-                        li: ({ children }) => <li>{children}</li>,
-                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                        h1: ({ children }) => <p className="mb-1 font-semibold">{children}</p>,
-                        h2: ({ children }) => <p className="mb-1 font-semibold">{children}</p>,
-                        h3: ({ children }) => <p className="mb-1 font-semibold">{children}</p>,
-                        code: ({ children }) => <code className="rounded bg-black/5 px-1 py-0.5 text-[0.9em]">{children}</code>,
-                      }}
-                    >
-                      {msg.content}
-                    </Markdown>
+                    renderAssistantContent(msg.content)
                   ) : (
                     msg.content
                   )
