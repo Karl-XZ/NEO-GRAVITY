@@ -83,7 +83,7 @@ export function CoachCard({
       }}
       style={{ flexGrow: isActive ? 1.45 : isDimmed ? 0.9 : 1 }}
       className={cn(
-        "group relative flex min-h-[196px] w-full min-w-0 overflow-hidden rounded-[1.25rem] ring-1 ring-foreground/8 transition-[transform,box-shadow,flex-grow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 lg:basis-0",
+        "group relative flex min-h-[208px] w-full min-w-0 overflow-hidden rounded-[1.25rem] ring-1 ring-foreground/8 transition-[transform,box-shadow,flex-grow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 lg:basis-0",
         "bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,251,0.94)_100%)]",
         isActive
           ? "-translate-y-0.5 shadow-[0_22px_56px_-28px_rgba(26,29,35,0.28)]"
@@ -107,16 +107,16 @@ export function CoachCard({
         )}
       />
 
-      <div className="relative flex flex-1 flex-col justify-center px-5 py-5 sm:px-6">
+      <div className="relative flex flex-1 px-5 py-5 sm:px-6">
         <div
           className={cn(
-            "flex min-h-[96px] items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            isActive && "-translate-y-8"
+            "absolute inset-x-5 top-1/2 -translate-y-1/2 transition-[top,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:inset-x-6",
+            isActive && "top-[42%] -translate-y-[58%]"
           )}
         >
           <h4
             className={cn(
-              "max-w-[15rem] text-center text-sm font-medium leading-snug line-clamp-2 sm:text-[0.95rem]",
+              "mx-auto max-w-[15rem] text-center text-sm font-medium leading-snug line-clamp-2 sm:text-[0.95rem]",
               severityTextColor[suggestion.severity]
             )}
           >
