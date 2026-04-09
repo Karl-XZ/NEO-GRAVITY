@@ -12,7 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { computeAllFeatures, recoveryScoreDaily } from "@/lib/features";
+import { computeAllFeatures } from "@/lib/features";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
 import type {
   CoachSuggestion,
@@ -22,10 +22,8 @@ import type {
   LifestyleSurvey,
 } from "@/lib/types";
 import {
-  BioAgeCard,
   ScoreCard,
   VitalTile,
-  TrendChart,
   CoachCard,
   HealthCompanion,
 } from "@/components/dashboard";
@@ -265,21 +263,6 @@ export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientPro
   const stepsAvg7 = average(prev7.map((d) => d.steps));
   const sleepAvg7 = average(prev7.map((d) => d.sleep_duration_hrs));
 
-  const dailyScoreData = wearable.map((_, i) => {
-    const recovery = recoveryScoreDaily(wearable, i);
-    return {
-      date: wearable[i].date,
-      readiness: recovery.score,
-      recovery: recovery.score,
-    };
-  });
-
-  const vitalChartData = wearable.map((d) => ({
-    date: d.date,
-    resting_hr: d.resting_hr_bpm,
-    hrv: d.hrv_rmssd_ms,
-  }));
-
   const weeklyAction = getWeeklyAction({
     movementPct: features.movementConsistency.pct,
     sleepFlagged: features.sleepFragmentation.flagged,
@@ -391,19 +374,20 @@ export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientPro
           </section>
         ) : null}
 
-      <section className="animate-in grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <BioAgeCard data={features.bioAge} chronologicalAge={ehr.age} />
+      <section className="animate-in grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ScoreCard
           label="Readiness"
           value={features.recoveryScore.score}
           colorClass="text-chart-1"
           barColorClass="bg-chart-1"
+          helpText="Readiness zeigt, wie bereit Ihr Körper heute für Belastung ist. Der Wert berücksichtigt unter anderem HRV, Ruhepuls und Schlafsignale."
         />
         <ScoreCard
           label="Recovery"
           value={features.recoveryScore.score}
           colorClass="text-chart-2"
           barColorClass="bg-chart-2"
+          helpText="Recovery beschreibt, wie gut sich Ihr System zuletzt erholt hat. Höhere Werte sprechen für mehr Regeneration und geringere aktuelle Belastung."
         />
       </section>
 
@@ -617,26 +601,6 @@ export function DashboardClient({ ehr, wearable, lifestyle }: DashboardClientPro
             </div>
           </CardContent>
         </Card>
-      </section>
-
-      <section className="animate-in stagger-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <TrendChart
-          title="Readiness & Recovery - 30 days"
-          data={dailyScoreData}
-          series={[
-            { dataKey: "readiness", label: "Readiness", color: "var(--chart-1)" },
-            { dataKey: "recovery", label: "Recovery", color: "var(--chart-2)" },
-          ]}
-          yDomain={[50, 100]}
-        />
-        <TrendChart
-          title="Resting HR & HRV - 30 days"
-          data={vitalChartData}
-          series={[
-            { dataKey: "resting_hr", label: "Resting HR", color: "var(--chart-4)" },
-            { dataKey: "hrv", label: "HRV", color: "var(--chart-5)" },
-          ]}
-        />
       </section>
 
       <div className="pb-8" />
