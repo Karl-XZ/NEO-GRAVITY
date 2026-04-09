@@ -107,8 +107,8 @@ export function CoachCard({
         )}
       />
 
-      <div className="relative flex flex-1 px-5 py-5 sm:px-6">
-        <div className="absolute inset-x-5 top-5 flex items-center justify-between sm:inset-x-6">
+      <div className="relative flex flex-1 flex-col px-5 py-5 sm:px-6">
+        <div className="flex items-center justify-between">
           <span
             className={cn(
               "rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em]",
@@ -128,8 +128,8 @@ export function CoachCard({
 
         <div
           className={cn(
-            "absolute inset-x-5 top-[4.25rem] transition-[top,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:inset-x-6",
-            isActive && "top-[4rem]"
+            "mt-8 flex-1 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            isActive && "-translate-y-1"
           )}
         >
           <h4
@@ -140,18 +140,18 @@ export function CoachCard({
           >
             {suggestion.title}
           </h4>
-          <p className="mt-3 max-w-[18rem] text-sm leading-relaxed text-muted-foreground line-clamp-3">
+          <p className="mt-3 max-w-[18rem] text-sm leading-relaxed text-muted-foreground line-clamp-4">
             {bodyText}
           </p>
         </div>
 
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-5 bottom-5 translate-y-8 space-y-3 opacity-0 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:inset-x-6",
-            isActive && "pointer-events-auto translate-y-0 opacity-100"
+            "mt-auto overflow-hidden border-t border-foreground/6 pt-0 opacity-0 transition-[max-height,opacity,padding-top,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] max-h-0 translate-y-3",
+            isActive && "max-h-32 translate-y-0 pt-3 opacity-100"
           )}
         >
-          <p className="border-t border-foreground/6 pt-3 text-fluid-xs leading-relaxed text-muted-foreground">
+          <p className="text-fluid-xs leading-relaxed text-muted-foreground">
             {suggestion.action}
           </p>
 

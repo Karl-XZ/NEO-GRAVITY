@@ -41,6 +41,7 @@ export function HealthCompanion() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [supportsSTT, setSupportsSTT] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionType | null>(null);
@@ -54,6 +55,10 @@ export function HealthCompanion() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    setSupportsSTT(getSpeechRecognitionConstructor() !== null);
+  }, []);
 
   useEffect(() => {
     if (!isExpanded) return undefined;
@@ -75,8 +80,6 @@ export function HealthCompanion() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isExpanded]);
-
-  const supportsSTT = getSpeechRecognitionConstructor() !== null;
 
   function toggleListening() {
     if (isListening) {
