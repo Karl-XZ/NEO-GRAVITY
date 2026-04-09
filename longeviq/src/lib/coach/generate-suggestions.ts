@@ -179,6 +179,97 @@ export function generateCoachSuggestions(
     });
   }
 
+  // --- Insights: Hydration ---
+  if (features.insights.hydration.status === "red") {
+    suggestions.push({
+      severity: "red",
+      title: "Hydration unzureichend",
+      rationale: features.insights.hydration.interpretation,
+      action: "Wasserzufuhr auf mindestens 8 Glaeser/Tag erhoehen. Bei Sport zusaetzlich 1-2 Glaeser.",
+    });
+  } else if (features.insights.hydration.status === "yellow") {
+    suggestions.push({
+      severity: "yellow",
+      title: "Hydration verbessern",
+      rationale: features.insights.hydration.interpretation,
+      action: "Versuchen Sie, ueber den Tag verteilt regelmaessig zu trinken.",
+    });
+  }
+
+  // --- Insights: SpO2 ---
+  if (features.insights.spo2Profile.status === "red") {
+    suggestions.push({
+      severity: "red",
+      title: "SpO2-Werte auffaellig",
+      rationale: features.insights.spo2Profile.interpretation,
+      action: "Aerztliche Abklaerung empfohlen — Schlafapnoe-Screening in Betracht ziehen.",
+    });
+  } else if (features.insights.spo2Profile.status === "yellow") {
+    suggestions.push({
+      severity: "yellow",
+      title: "SpO2-Werte beobachten",
+      rationale: features.insights.spo2Profile.interpretation,
+      action: "SpO2-Trend weiter verfolgen. Bei Verschlechterung aerztlich abklaeren.",
+    });
+  }
+
+  // --- Insights: Sedentary ---
+  if (features.insights.sedentaryScore.status === "red") {
+    suggestions.push({
+      severity: "red",
+      title: "Zu viel Sitzzeit",
+      rationale: features.insights.sedentaryScore.interpretation,
+      action: "Alle 45 Minuten 3-5 Minuten aufstehen und bewegen. Stehschreibtisch in Betracht ziehen.",
+    });
+  } else if (features.insights.sedentaryScore.status === "yellow") {
+    suggestions.push({
+      severity: "yellow",
+      title: "Sitzzeit reduzieren",
+      rationale: features.insights.sedentaryScore.interpretation,
+      action: "Regelmaessige Bewegungspausen einplanen. Walking-Meetings nutzen.",
+    });
+  }
+
+  // --- Insights: Energy balance flag ---
+  if (features.insights.energyBalance.flag) {
+    suggestions.push({
+      severity: "yellow",
+      title: "Energiebilanz beachten",
+      rationale: features.insights.energyBalance.interpretation,
+      action: "Portionsgroessen bewusst waehlen. Ernaehrungsberatung kann helfen.",
+    });
+  }
+
+  // --- Insights: Social Jet Lag ---
+  if (features.insights.circadianWeekday.socialJetLagFlag) {
+    suggestions.push({
+      severity: "yellow",
+      title: "Social Jet Lag erkannt",
+      rationale: features.insights.circadianWeekday.interpretation,
+      action: "Versuchen Sie, auch am Wochenende aehnliche Schlafzeiten einzuhalten.",
+    });
+  }
+
+  // --- Insights: Visit history ---
+  if (features.insights.visitHistory.preventiveOverdue) {
+    suggestions.push({
+      severity: "yellow",
+      title: "Vorsorgeuntersuchung ueberfaellig",
+      rationale: features.insights.visitHistory.interpretation,
+      action: "Vereinbaren Sie einen Termin fuer eine Vorsorgeuntersuchung.",
+    });
+  }
+
+  // --- Insights: Positive — longevity trend ---
+  if (features.insights.longevityTrend.trendDirection === "improving") {
+    suggestions.push({
+      severity: "green",
+      title: "Positiver Gesundheitstrend",
+      rationale: features.insights.longevityTrend.interpretation,
+      action: "Ausgezeichnete Entwicklung. Aktuelle Gewohnheiten beibehalten.",
+    });
+  }
+
   // Sort: red first, then yellow, then green
   const order: Record<string, number> = { red: 0, yellow: 1, green: 2 };
   suggestions.sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));

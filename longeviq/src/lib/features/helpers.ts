@@ -86,3 +86,40 @@ export function round(value: number, decimals = 1): number {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
 }
+
+/** Pearson correlation coefficient between two equal-length arrays */
+export function pearsonR(xs: number[], ys: number[]): number {
+  const n = Math.min(xs.length, ys.length);
+  if (n < 3) return 0;
+  const mx = mean(xs.slice(0, n));
+  const my = mean(ys.slice(0, n));
+  let num = 0;
+  let denX = 0;
+  let denY = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - mx;
+    const dy = ys[i] - my;
+    num += dx * dy;
+    denX += dx * dx;
+    denY += dy * dy;
+  }
+  const den = Math.sqrt(denX * denY);
+  return den === 0 ? 0 : num / den;
+}
+
+/** Group an array by a key function, returning a Map */
+export function groupBy<T, K>(items: T[], keyFn: (item: T) => K): Map<K, T[]> {
+  const map = new Map<K, T[]>();
+  for (const item of items) {
+    const key = keyFn(item);
+    const group = map.get(key);
+    if (group) group.push(item);
+    else map.set(key, [item]);
+  }
+  return map;
+}
+
+/** Sum of numbers */
+export function sum(values: number[]): number {
+  return values.reduce((a, b) => a + b, 0);
+}
