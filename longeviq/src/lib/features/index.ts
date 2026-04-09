@@ -54,8 +54,11 @@ export {
   clinicEngagementScore,
 } from "./persona-04";
 
+// Insights — cross-metric analysis
+export { computeAllInsights } from "./insights";
+
 // Helpers
-export { mean, stddev, zscore, slope, clamp, normalize, pctWhere, rollingMean, streak, round } from "./helpers";
+export { mean, stddev, zscore, slope, clamp, normalize, pctWhere, rollingMean, streak, round, pearsonR, groupBy, sum } from "./helpers";
 
 // ------------------------------------------------------------------
 // Orchestrator: compute all features in one call
@@ -65,6 +68,7 @@ import * as p01 from "./persona-01";
 import * as p02 from "./persona-02";
 import * as p03 from "./persona-03";
 import * as p04 from "./persona-04";
+import { computeAllInsights } from "./insights";
 
 export function computeAllFeatures(
   ehr: EhrRecord,
@@ -109,5 +113,8 @@ export function computeAllFeatures(
     walkStreak: p04.walkStreakDays(wearable),
     fallRisk: p04.fallRiskProxy(ehr, wearable),
     clinicEngagement: p04.clinicEngagementScore(ehr),
+
+    // Insights — cross-metric analysis
+    insights: computeAllInsights(ehr, wearable, lifestyle),
   };
 }

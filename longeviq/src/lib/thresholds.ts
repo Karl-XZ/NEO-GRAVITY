@@ -109,6 +109,30 @@ export const THRESHOLDS = {
     low: 92,
   },
 
+  /** Hydration (glasses of water per day) */
+  hydration: {
+    base_need: 8,
+    active_bonus_high: 2, // active_minutes > 45
+    active_bonus_moderate: 1, // active_minutes > 20
+    bmi_bonus: 1, // BMI > 30
+    good_ratio: 0.85,
+    adequate_ratio: 0.7,
+  },
+
+  /** Sedentary behaviour (hours per day) */
+  sedentary: {
+    optimal_max_hrs: 6,
+    high_risk_hrs: 10,
+    who_offset_min_weekly: 150,
+  },
+
+  /** Energy balance proxy */
+  energy: {
+    base_kcal_per_meal: 500,
+    surplus_ratio: 0.8,
+    deficit_ratio: 1.2,
+  },
+
   /**
    * Bio-age model weights — simplified Klemera-Doubal-inspired
    * Each weight represents the biomarker's contribution to aging deviation.
