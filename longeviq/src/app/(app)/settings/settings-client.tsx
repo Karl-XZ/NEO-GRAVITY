@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { Activity, Mail, MapPin, ShieldCheck, Sparkles } from "lucide-react";
+import { useAppState } from "@/components/AppState";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,28 +19,9 @@ import { Separator } from "@/components/ui/separator";
 import {
   ALERT_MODE_STORAGE_KEY,
   getStoredAlertMode,
-  getPersonaLabel,
   getProfileInitials,
 } from "@/lib/profile";
 import type { AlertMode, UserProfile } from "@/lib/types";
-
-const dataSources = [
-  {
-    name: "Electronic Health Record",
-    status: "Connected",
-    lastSync: "03/12/2026",
-  },
-  {
-    name: "Wearable (Smartwatch)",
-    status: "Connected",
-    lastSync: "04/09/2026",
-  },
-  {
-    name: "Lifestyle Questionnaire",
-    status: "Connected",
-    lastSync: "04/01/2026",
-  },
-];
 
 type EditableProfileState = {
   displayName: string;
@@ -68,40 +50,64 @@ const alertModeOptions: Array<{
 }> = [
   {
     value: "simple",
-    label: "Simple",
-    description: "Shows only the main focus of the day.",
+    label: "Kompakt",
+    description: "Zeigt nur den Hauptfokus des Tages.",
   },
   {
     value: "detailed",
-    label: "Detailed",
-    description: "Also shows the 3 most important alerts below the daily focus.",
+    label: "Erweitert",
+    description: "Zeigt zusaetzlich die 3 wichtigsten Alerts unter dem Tagesfokus.",
   },
   {
     value: "notification",
-    label: "Notification",
-    description: "Sends browser notifications at the right time of day.",
+    label: "Hinweis",
+    description: "Sendet Browser-Hinweise zum passenden Zeitpunkt des Tages.",
   },
 ];
 
-export function SettingsClient({
-  initialProfile,
+export function SettingsClient() {
+  const { currentProfile, selectedPatient, updateCurrentProfile } = useAppState();
+  const profileResetKey = [
+    currentProfile.id,
+    currentProfile.patient_id,
+    currentProfile.display_name ?? "",
+    selectedPatient?.patientId ?? "none",
+  ].join(":");
+
+  return (
+    <SettingsPanel
+      key={profileResetKey}
+      currentProfile={currentProfile}
+      selectedPatient={selectedPatient}
+      updateCurrentProfile={updateCurrentProfile}
+    />
+  );
+}
+
+function SettingsPanel({
+  currentProfile,
+  selectedPatient,
+  updateCurrentProfile,
 }: {
-  initialProfile: UserProfile;
+  currentProfile: UserProfile;
+  selectedPatient: ReturnType<typeof useAppState>["selectedPatient"];
+  updateCurrentProfile: ReturnType<typeof useAppState>["updateCurrentProfile"];
 }) {
   const storedAlertMode = useSyncExternalStore(
     subscribeToAlertMode,
-    () => getStoredAlertMode(initialProfile.alert_mode),
-    () => initialProfile.alert_mode,
+    () => getStoredAlertMode(currentProfile.alert_mode),
+    () => currentProfile.alert_mode,
   );
   const [form, setForm] = useState<EditableProfileState>(() =>
-    createEditableState(initialProfile),
+    createEditableState(currentProfile),
   );
   const [selectedAlertMode, setSelectedAlertMode] = useState<AlertMode | null>(null);
-  const [savedAt, setSavedAt] = useState("Today, 2:42 PM");
+  const [savedAt, setSavedAt] = useState("Noch nicht lokal geaendert");
+
   const currentAlertMode = selectedAlertMode ?? storedAlertMode;
   const isDirty =
-    JSON.stringify(form) !== JSON.stringify(createEditableState(initialProfile)) ||
-    currentAlertMode !== initialProfile.alert_mode;
+    JSON.stringify(form) !== JSON.stringify(createEditableState(currentProfile)) ||
+    currentAlertMode !== currentProfile.alert_mode;
   const profileCompletion = Math.round(
     ([form.displayName, form.email, form.city, form.timezone, currentAlertMode].filter(Boolean)
       .length /
@@ -110,7 +116,90 @@ export function SettingsClient({
   );
 
   const initials = getProfileInitials(form.displayName);
-  const personaLabel = getPersonaLabel(initialProfile.persona_hint);
+  const isQuestionnaireDraft =
+    selectedPatient?.source !== "questionnaire" &&
+    currentProfile.patient_id === "Q-SELF-BASELINE";
+  const activeSource = selectedPatient?.source ?? (isQuestionnaireDraft ? "questionnaire" : null);
+  const currentDataSources =
+    activeSource === "questionnaire"
+      ? [
+          {
+            name: "Fragebogen-Basislinie",
+            status: "Aktiv",
+            detail: "Gerade aus Ihren Antworten abgeleitet",
+          },
+          {
+            name: "Wearable-Signale",
+            status: "Geschaetzt",
+            detail: "Aus Schlaf-, Aktivitaets- und Stressangaben abgeleitet",
+          },
+          {
+            name: "Klinische Basiswerte",
+            status: "Geschaetzt",
+            detail: "Aus Selbstauskuenften fuer die Demo angenaehert",
+          },
+        ]
+      : activeSource === "persona"
+        ? [
+            {
+              name: "Persona-Fall aus dem Pitchdeck",
+              status: "Aktiv",
+              detail: "Kuratiertes Fallprofil passend zum PPT-Case-Login",
+            },
+            {
+              name: "Klinische Basisdaten",
+              status: "Geladen",
+              detail: "Mit dem aktiven Persona-Fall verknuepft",
+            },
+            {
+              name: "Wearable- und Lebensstil-Signale",
+              status: "Geladen",
+              detail: "Deterministische Demo-Daten passend zur Persona",
+            },
+          ]
+        : activeSource === "supabase"
+          ? [
+              {
+                name: "Elektronische Patientenakte",
+                status: "Geladen",
+                detail: "Mit dem aktiven Fall importiert",
+              },
+              {
+                name: "Wearable-Telemetrie",
+                status: "Geladen",
+                detail: "Mit dem aktiven Fall importiert",
+              },
+              {
+                name: "Lifestyle-Daten",
+                status: "Geladen",
+                detail: "Mit dem aktiven Fall importiert",
+              },
+            ]
+          : [
+              {
+                name: "Startseite",
+                status: "Bereit",
+                detail: "Login-Fall auswaehlen oder Fragebogen beginnen",
+              },
+              {
+                name: "Ergebnisansicht",
+                status: "Bereit",
+                detail: "Wird nach der Fall- oder Fragebogenwahl befuellt",
+              },
+              {
+                name: "Empfehlungs-Merkliste",
+                status: "Lokal",
+                detail: "Nur in dieser Demo-Sitzung gespeichert",
+              },
+            ];
+  const sourceSummary =
+    activeSource === "questionnaire"
+      ? "Fragebogen aktiv"
+      : activeSource === "persona"
+        ? "Persona-Fall aktiv"
+        : activeSource === "supabase"
+          ? "Importfall aktiv"
+          : "Demo bereit";
 
   function updateField<Key extends keyof EditableProfileState>(
     key: Key,
@@ -124,30 +213,42 @@ export function SettingsClient({
       window.localStorage.setItem(ALERT_MODE_STORAGE_KEY, currentAlertMode);
     }
 
-    if (currentAlertMode === "notification" && typeof window !== "undefined" && "Notification" in window) {
+    updateCurrentProfile({
+      display_name: form.displayName || null,
+      email: form.email,
+      city: form.city,
+      timezone: form.timezone,
+      alert_mode: currentAlertMode,
+    });
+
+    if (
+      currentAlertMode === "notification" &&
+      typeof window !== "undefined" &&
+      "Notification" in window
+    ) {
       const permission = await window.Notification.requestPermission();
       if (permission === "granted") {
-        setSavedAt("Just now saved locally · Browser notifications active");
+        setSavedAt("Gerade eben lokal gespeichert · Browser-Hinweise aktiv");
         return;
       }
       if (permission === "denied") {
-        setSavedAt("Saved · Browser notifications are blocked");
+        setSavedAt("Gespeichert · Browser-Hinweise sind blockiert");
         return;
       }
     }
 
-    setSavedAt("Just now saved locally");
+    setSavedAt("Gerade eben lokal gespeichert");
   }
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 pb-24">
       <div className="animate-in">
         <h1 className="text-fluid-xl font-semibold tracking-tight">
-          Your Profile
+          Ihr Profil
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Manage your personal details, preferences, and longevity
-          coaching focus all in one place.
+          Verwalten Sie Ihre persoenlichen Angaben, Praeferenzen und den aktiven
+          Demo-Kontext an einem Ort.
         </p>
       </div>
 
@@ -162,22 +263,22 @@ export function SettingsClient({
 
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className="bg-primary/15 text-primary border-primary/25">
-                  {initialProfile.plan_label}
+                <Badge className="border-primary/25 bg-primary/15 text-primary">
+                  {currentProfile.plan_label}
                 </Badge>
-                <Badge variant="outline">{personaLabel}</Badge>
-                <Badge variant="outline">{initialProfile.patient_id}</Badge>
+                <Badge variant="outline">{sourceSummary}</Badge>
+                <Badge variant="outline">{currentProfile.patient_id}</Badge>
               </div>
 
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight">
-                  {form.displayName || "Complete your profile"}
+                  {form.displayName || "Profil vervollstaendigen"}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {initialProfile.role_label} in {form.city},{" "}
-                  {initialProfile.country_code} · Member since{" "}
-                  {new Date(initialProfile.created_at).toLocaleDateString(
-                    "en-US",
+                  {currentProfile.role_label} in {form.city},{" "}
+                  {currentProfile.country_code} · Mitglied seit{" "}
+                  {new Date(currentProfile.created_at).toLocaleDateString(
+                    "de-DE",
                     {
                       month: "long",
                       year: "numeric",
@@ -189,26 +290,26 @@ export function SettingsClient({
               <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
                 <div className="rounded-xl border border-border bg-white/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em]">
-                    Data Sources
+                    Datenkontext
                   </p>
                   <p className="mt-1 text-lg font-semibold text-foreground">
-                    3 active
+                    {sourceSummary}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-white/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em]">
-                    Profile Completion
+                    Profilvollstaendigkeit
                   </p>
                   <p className="mt-1 text-lg font-semibold text-foreground">
                     {profileCompletion}%
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Based on your profile details
+                    Basierend auf Ihren Profilangaben
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-white/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em]">
-                    Last Saved
+                    Letzte Speicherung
                   </p>
                   <p className="mt-1 text-sm font-medium text-foreground">
                     {savedAt}
@@ -218,21 +319,20 @@ export function SettingsClient({
             </div>
           </CardContent>
         </Card>
-
       </section>
 
       <section className="grid gap-6">
         <Card className="animate-in">
           <CardHeader>
-            <CardTitle>Personal Details</CardTitle>
+            <CardTitle>Persoenliche Angaben</CardTitle>
             <CardDescription>
-              Update your core information.
+              Aktualisieren Sie Ihre Kerndaten fuer diese lokale Demo-Sitzung.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="display-name">Display Name</Label>
+                <Label htmlFor="display-name">Anzeigename</Label>
                 <Input
                   id="display-name"
                   value={form.displayName}
@@ -243,30 +343,26 @@ export function SettingsClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">E-Mail</Label>
                 <Input
                   id="email"
                   type="email"
                   value={form.email}
-                  onChange={(event) =>
-                    updateField("email", event.target.value)
-                  }
+                  onChange={(event) => updateField("email", event.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="city">Stadt</Label>
                 <Input
                   id="city"
                   value={form.city}
-                  onChange={(event) =>
-                    updateField("city", event.target.value)
-                  }
+                  onChange={(event) => updateField("city", event.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="timezone">Timezone</Label>
+                <Label htmlFor="timezone">Zeitzone</Label>
                 <Input
                   id="timezone"
                   value={form.timezone}
@@ -279,14 +375,14 @@ export function SettingsClient({
 
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
               <div>
-                <p className="text-sm font-medium">Demo Profile Mode</p>
+                <p className="text-sm font-medium">Demo-Profilmodus</p>
                 <p className="text-xs text-muted-foreground">
-                  Changes are saved for this session but are not yet
-                  persisted on the server.
+                  Aenderungen werden lokal gespeichert und aktualisieren direkt
+                  Topbar und Profilansicht.
                 </p>
               </div>
               <Button onClick={handleSave} disabled={!isDirty}>
-                Save Profile
+                Profil speichern
               </Button>
             </div>
           </CardContent>
@@ -294,9 +390,9 @@ export function SettingsClient({
 
         <Card className="animate-in">
           <CardHeader>
-            <CardTitle>Alert Type</CardTitle>
+            <CardTitle>Alert-Typ</CardTitle>
             <CardDescription>
-              Choose how prominently LongevIQ delivers your daily alerts.
+              Legen Sie fest, wie stark LongevIQ Ihre taeglichen Hinweise ausspielt.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -329,13 +425,13 @@ export function SettingsClient({
       <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card className="animate-in">
           <CardHeader>
-            <CardTitle>Data Sources</CardTitle>
+            <CardTitle>Datenquellen</CardTitle>
             <CardDescription>
-              Connected systems and last synchronization.
+              Aktiver Demo-Kontext und verfuegbare Quellen.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {dataSources.map((source) => (
+            {currentDataSources.map((source) => (
               <div
                 key={source.name}
                 className="flex flex-col gap-3 rounded-xl border border-border bg-background px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
@@ -343,10 +439,10 @@ export function SettingsClient({
                 <div>
                   <p className="text-sm font-medium">{source.name}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Last synced: {source.lastSync}
+                    {source.detail}
                   </p>
                 </div>
-                <Badge className="bg-primary/15 text-primary border-primary/25 w-fit">
+                <Badge className="w-fit border-primary/25 bg-primary/15 text-primary">
                   {source.status}
                 </Badge>
               </div>
@@ -356,9 +452,9 @@ export function SettingsClient({
 
         <Card className="animate-in">
           <CardHeader>
-            <CardTitle>Privacy and Export</CardTitle>
+            <CardTitle>Privatsphaere und Export</CardTitle>
             <CardDescription>
-              Manage visibility, export, and account security.
+              Verwalten Sie Sichtbarkeit, Export und Kontosicherheit.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -368,7 +464,7 @@ export function SettingsClient({
                 <div className="min-w-0">
                   <p className="break-all text-sm font-medium">{form.email}</p>
                   <p className="text-xs text-muted-foreground">
-                    Primary contact address
+                    Primaere Kontaktadresse
                   </p>
                 </div>
               </div>
@@ -376,19 +472,19 @@ export function SettingsClient({
                 <MapPin className="mt-0.5 size-4 text-primary" />
                 <div className="min-w-0">
                   <p className="text-sm font-medium">
-                    {form.city}, {initialProfile.country_code}
+                    {form.city}, {currentProfile.country_code}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Timezone: {form.timezone}
+                    Zeitzone: {form.timezone}
                   </p>
                 </div>
               </div>
               <div className="min-w-0 flex items-start gap-3 rounded-xl border border-border bg-background px-4 py-3">
                 <ShieldCheck className="mt-0.5 size-4 text-primary" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">Privacy enabled</p>
+                  <p className="text-sm font-medium">Datenschutz aktiviert</p>
                   <p className="text-xs text-muted-foreground">
-                    Profile data stays local in this demo.
+                    Profildaten bleiben in dieser Demo lokal.
                   </p>
                 </div>
               </div>
@@ -399,15 +495,14 @@ export function SettingsClient({
             <div className="rounded-xl border border-border bg-background px-4 py-4">
               <div className="flex items-center gap-2">
                 <Sparkles className="size-4 text-primary" />
-                <p className="text-sm font-medium">Export Center</p>
+                <p className="text-sm font-medium">Export-Vorschau</p>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Download your key health data as CSV or PDF to share with
-                your doctor or coach.
+                Diese Demo zeigt nur die vorgesehenen Exportpfade. CSV- und PDF-Export sind in dieser Version noch nicht aktiviert.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <Button variant="outline">CSV Export</Button>
-                <Button variant="outline">PDF Report</Button>
+                <Button variant="outline" disabled>CSV-Export (spaeter)</Button>
+                <Button variant="outline" disabled>PDF-Report (spaeter)</Button>
               </div>
             </div>
 
@@ -417,15 +512,14 @@ export function SettingsClient({
               <div className="flex items-center gap-2">
                 <Activity className="size-4 text-destructive" />
                 <p className="text-sm font-medium text-destructive">
-                  Delete Account
+                  Konto-Loeschung
                 </p>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Your account and all associated health data will be
-                permanently deleted. This action cannot be undone.
+                Die Loeschfunktion ist in dieser Demo nicht aktiv. Der Hinweis zeigt nur, dass dieser Schritt in einem produktiven Setup besonders sensibel behandelt werden muesste.
               </p>
-              <Button variant="destructive" className="mt-4">
-                Delete Account and Data
+              <Button variant="destructive" className="mt-4" disabled>
+                In dieser Demo nicht aktiv
               </Button>
             </div>
           </CardContent>

@@ -2,7 +2,12 @@ import "server-only";
 
 import { cache } from "react";
 import { computeAllFeatures } from "@/lib/features";
-import { fetchRestJson } from "@/lib/server/supabase-rest";
+import type {
+  EhrRecord,
+  LifestyleSurvey,
+  UserProfile,
+  WearableTelemetry,
+} from "@/lib/types";
 import type {
   AssessmentResult,
   BodyComparisonRegion,
@@ -87,6 +92,381 @@ interface PatientIdRow {
 const FEATURED_PATIENT_COUNT = 4;
 const FEATURED_PATIENT_CANDIDATE_LIMIT = 32;
 
+interface DemoPersonaSeed {
+  patientId: string;
+  profileId: string;
+  displayName: string;
+  quote: string;
+  occupation: string;
+  city: string;
+  country: string;
+  countryCode: string;
+  age: number;
+  sex: EhrRow["sex"];
+  personaHint: UserProfile["persona_hint"];
+  email: string;
+  planLabel: string;
+  roleLabel: string;
+  tag: string;
+  techAffinity: string;
+  willingnessToPay: string;
+  primaryGoal: string;
+  focusAreas: string[];
+  motivations: string[];
+  healthGoals: string[];
+  shortSummary: string;
+  primaryConcern: string;
+  keyRisks: string[];
+  chronicConditions: string[];
+  icdCodes: string[];
+  medications: string[];
+  visitCount2yr: number;
+  heightCm: number;
+  weightKg: number;
+  bmi: number;
+  smokingStatus: string;
+  alcoholUnitsWeekly: number;
+  sbpMmhg: number;
+  dbpMmhg: number;
+  totalCholesterolMmol: number;
+  ldlMmol: number;
+  hdlMmol: number;
+  triglyceridesMmol: number;
+  hba1cPct: number;
+  fastingGlucoseMmol: number;
+  crpMgL: number;
+  egfrMlMin: number;
+  dietQualityScore: number;
+  fruitVegServingsDaily: number;
+  mealFrequencyDaily: number;
+  exerciseSessionsWeekly: number;
+  sedentaryHoursDay: number;
+  stressLevel: number;
+  sleepSatisfaction: number;
+  mentalWellbeingWho5: number;
+  selfRatedHealth: number;
+  waterGlassesDaily: number;
+  telemetryBase: {
+    restingHr: number;
+    hrv: number;
+    steps: number;
+    activeMinutes: number;
+    sleepHours: number;
+    sleepQuality: number;
+    deepSleepPct: number;
+    spo2: number;
+    calories: number;
+    trendBias: number;
+  };
+}
+
+const DEMO_PERSONA_SEEDS: DemoPersonaSeed[] = [
+  {
+    patientId: "PPT-THOMAS",
+    profileId: "00000000-0000-4000-8000-000000000101",
+    displayName: "Dr. Thomas Berger",
+    quote: '"Health is my most important investment - I want to see the numbers."',
+    occupation: "Senior Physician",
+    city: "Hamburg",
+    country: "Germany",
+    countryCode: "DE",
+    age: 48,
+    sex: "M",
+    personaHint: "preventive-performer",
+    email: "thomas.berger@longeviq.demo",
+    planLabel: "High-LTV Launch Target",
+    roleLabel: "Senior Physician",
+    tag: "Persona 01",
+    techAffinity: "Very high",
+    willingnessToPay: "EUR 30-50 / month",
+    primaryGoal: "Biologisches Alter dauerhaft unter dem chronologischen Alter halten.",
+    focusAreas: ["VO2max", "HRV", "Schlafqualitaet"],
+    motivations: [
+      "Will mit 70 noch Marathon laufen",
+      "Sieht Gesundheit als Investment",
+      "Vertraut Zahlen mehr als Bauchgefuehl",
+    ],
+    healthGoals: [
+      "Biologisches Alter unter chronologischem Alter halten",
+      "VO2max in die Top 10% seiner Altersgruppe bringen",
+      "HRV und Schlafqualitaet kontinuierlich optimieren",
+    ],
+    shortSummary:
+      "Datendichter Premium-Fall mit leichter kardiovaskulaerer Restlast, starker Adhaerenz und klarer Bereitschaft fuer Diagnostik-Upsells.",
+    primaryConcern: "Feinjustierung von Lipiden und Peak-Performance",
+    keyRisks: ["Kardiovaskulaere Last", "Diagnostik-Kalibrierung", "Erholungssteuerung"],
+    chronicConditions: ["dyslipidaemia"],
+    icdCodes: ["E78.5"],
+    medications: [],
+    visitCount2yr: 2,
+    heightCm: 182,
+    weightKg: 79.7,
+    bmi: 24.1,
+    smokingStatus: "never",
+    alcoholUnitsWeekly: 4,
+    sbpMmhg: 126,
+    dbpMmhg: 81,
+    totalCholesterolMmol: 5.2,
+    ldlMmol: 3.2,
+    hdlMmol: 1.5,
+    triglyceridesMmol: 1.3,
+    hba1cPct: 5.4,
+    fastingGlucoseMmol: 5.1,
+    crpMgL: 1.0,
+    egfrMlMin: 96,
+    dietQualityScore: 8,
+    fruitVegServingsDaily: 5,
+    mealFrequencyDaily: 3,
+    exerciseSessionsWeekly: 5,
+    sedentaryHoursDay: 6,
+    stressLevel: 4,
+    sleepSatisfaction: 8,
+    mentalWellbeingWho5: 21,
+    selfRatedHealth: 4,
+    waterGlassesDaily: 8,
+    telemetryBase: {
+      restingHr: 56,
+      hrv: 58,
+      steps: 11500,
+      activeMinutes: 76,
+      sleepHours: 7.6,
+      sleepQuality: 84,
+      deepSleepPct: 22,
+      spo2: 97.8,
+      calories: 2550,
+      trendBias: 1.5,
+    },
+  },
+  {
+    patientId: "PPT-SABINE",
+    profileId: "00000000-0000-4000-8000-000000000102",
+    displayName: "Sabine Kowalski",
+    quote: '"I want to stay independent - but please, no app chaos."',
+    occupation: "Project Manager",
+    city: "Dortmund",
+    country: "Germany",
+    countryCode: "DE",
+    age: 56,
+    sex: "F",
+    personaHint: "concerned-preventer",
+    email: "sabine.kowalski@longeviq.demo",
+    planLabel: "Trust-Driven Volume Segment",
+    roleLabel: "Project Manager",
+    tag: "Persona 02",
+    techAffinity: "Medium",
+    willingnessToPay: "EUR 10-15 / month",
+    primaryGoal: "Herz, Knochen und kognitive Reserve mit moeglichst wenig App-Reibung stabilisieren.",
+    focusAreas: ["Herzgesundheit", "Knochengesundheit", "Kognitive Reserve"],
+    motivations: [
+      "Mehr Gesundheitsbewusstsein seit der Menopause",
+      "Moeglichst lange unabhaengig bleiben",
+      "Sucht klare Einordnung statt Informationschaos",
+    ],
+    healthGoals: [
+      "Knochendichte und Herzgesundheit stabilisieren",
+      "Kognitive Reserve aufbauen",
+      "Gewicht senken bei aktuellem BMI 28",
+    ],
+    shortSummary:
+      "Vertrauensgetriebener Fall mit leicht erhoehtem metabolischem und kardiovaskulaerem Druckbild, bei dem Einfachheit und klare Sprache entscheidend sind.",
+    primaryConcern: "Gewicht, Herzgesundheit und alltagstaugliche Orientierung",
+    keyRisks: ["Metabolische Drift", "Kardiovaskulaere Last", "Schlafdefizit"],
+    chronicConditions: ["dyslipidaemia", "obesity"],
+    icdCodes: ["E78.5", "E66.9"],
+    medications: [],
+    visitCount2yr: 3,
+    heightCm: 167,
+    weightKg: 78.1,
+    bmi: 28.0,
+    smokingStatus: "never",
+    alcoholUnitsWeekly: 2,
+    sbpMmhg: 134,
+    dbpMmhg: 86,
+    totalCholesterolMmol: 5.9,
+    ldlMmol: 3.4,
+    hdlMmol: 1.2,
+    triglyceridesMmol: 1.9,
+    hba1cPct: 5.8,
+    fastingGlucoseMmol: 5.9,
+    crpMgL: 2.1,
+    egfrMlMin: 88,
+    dietQualityScore: 6,
+    fruitVegServingsDaily: 4,
+    mealFrequencyDaily: 3,
+    exerciseSessionsWeekly: 3,
+    sedentaryHoursDay: 8,
+    stressLevel: 6,
+    sleepSatisfaction: 5,
+    mentalWellbeingWho5: 15,
+    selfRatedHealth: 3,
+    waterGlassesDaily: 6,
+    telemetryBase: {
+      restingHr: 69,
+      hrv: 29,
+      steps: 6700,
+      activeMinutes: 34,
+      sleepHours: 6.3,
+      sleepQuality: 62,
+      deepSleepPct: 14,
+      spo2: 96.6,
+      calories: 2140,
+      trendBias: 0.3,
+    },
+  },
+  {
+    patientId: "PPT-MAX",
+    profileId: "00000000-0000-4000-8000-000000000103",
+    displayName: "Max Hoffmann",
+    quote: '"What gets measured gets managed - peak performance, always."',
+    occupation: "Product Manager",
+    city: "Berlin",
+    country: "Germany",
+    countryCode: "DE",
+    age: 32,
+    sex: "M",
+    personaHint: "digital-optimizer",
+    email: "max.hoffmann@longeviq.demo",
+    planLabel: "Biohacker Early Adopter",
+    roleLabel: "Product Manager",
+    tag: "Persona 03",
+    techAffinity: "Very high",
+    willingnessToPay: "EUR 40+ / month",
+    primaryGoal: "Recovery und Biomarker in einen Peak-Performance-Rhythmus bringen.",
+    focusAreas: ["Recovery", "Entzuendungsmarker", "Metabolik"],
+    motivations: [
+      "Longevity als Lifestyle",
+      "Will Peak Performance im Job und privat",
+      "Misst moeglichst alles",
+    ],
+    healthGoals: [
+      "Sleep and recovery von Whoop 68 Richtung 85 entwickeln",
+      "Metabolische und Entzuendungsmarker auf Top-Niveau bringen",
+      "Quartalsweise Blutpanels und Biomarker-Tracking",
+    ],
+    shortSummary:
+      "High-resolution Biohacker-Fall mit guter Grundfitness, aber deutlicher Burnout- und Recovery-Spannung durch viel Stress und inkonsistenten Schlaf.",
+    primaryConcern: "Recovery-Defizit trotz hoher Leistungsbereitschaft",
+    keyRisks: ["Stressbelastung", "Schlafdefizit", "Entzuendungsdruck"],
+    chronicConditions: [],
+    icdCodes: [],
+    medications: [],
+    visitCount2yr: 1,
+    heightCm: 180,
+    weightKg: 76.5,
+    bmi: 23.6,
+    smokingStatus: "never",
+    alcoholUnitsWeekly: 7,
+    sbpMmhg: 118,
+    dbpMmhg: 76,
+    totalCholesterolMmol: 4.7,
+    ldlMmol: 2.5,
+    hdlMmol: 1.4,
+    triglyceridesMmol: 1.1,
+    hba1cPct: 5.1,
+    fastingGlucoseMmol: 5.0,
+    crpMgL: 2.8,
+    egfrMlMin: 104,
+    dietQualityScore: 7,
+    fruitVegServingsDaily: 4,
+    mealFrequencyDaily: 3,
+    exerciseSessionsWeekly: 4,
+    sedentaryHoursDay: 9,
+    stressLevel: 8,
+    sleepSatisfaction: 6,
+    mentalWellbeingWho5: 16,
+    selfRatedHealth: 4,
+    waterGlassesDaily: 7,
+    telemetryBase: {
+      restingHr: 61,
+      hrv: 42,
+      steps: 9800,
+      activeMinutes: 58,
+      sleepHours: 6.1,
+      sleepQuality: 68,
+      deepSleepPct: 16,
+      spo2: 97.1,
+      calories: 2440,
+      trendBias: -1.0,
+    },
+  },
+  {
+    patientId: "PPT-JUERGEN",
+    profileId: "00000000-0000-4000-8000-000000000104",
+    displayName: "Juergen Wolff",
+    quote: "\"If my doctor recommends it, I'll try it - but it has to be simple.\"",
+    occupation: "Engineer (pre-retirement)",
+    city: "Muenster",
+    country: "Germany",
+    countryCode: "DE",
+    age: 64,
+    sex: "M",
+    personaHint: "clinic-anchored-loyalist",
+    email: "juergen.wolff@longeviq.demo",
+    planLabel: "Clinic-Anchored Loyalist",
+    roleLabel: "Engineer (pre-retirement)",
+    tag: "Persona 04",
+    techAffinity: "Low-medium",
+    willingnessToPay: "EUR 5-15 / month",
+    primaryGoal: "Blutdruck und Glukose in den Zielbereich bringen, ohne die Komplexitaet zu erhoehen.",
+    focusAreas: ["Blutdruck", "Glukose", "Mobilitaet"],
+    motivations: [
+      "Will ein aktiver Grossvater bleiben",
+      "Der Kardiologe war ein Weckruf",
+      "Vertraut seit Jahren seiner Klinik",
+    ],
+    healthGoals: [
+      "Blutdruck und Glukose in den Normbereich bringen",
+      "Medikation eher reduzieren als ausbauen",
+      "Sturzpraevention und Mobilitaet erhalten",
+    ],
+    shortSummary:
+      "Klinisch verankerter Fall mit Hypertonie und Praediabetes, der vor allem klare Sprache, Arztbezug und wenige valide Kennzahlen braucht.",
+    primaryConcern: "Hypertonie und Praediabetes alltagstauglich stabilisieren",
+    keyRisks: ["Kardiovaskulaere Last", "Glykaemische Kontrolle", "Bewegungsdefizit"],
+    chronicConditions: ["hypertension", "prediabetes"],
+    icdCodes: ["I10", "R73.0"],
+    medications: ["Ramipril 5mg od", "Metformin 500mg bd"],
+    visitCount2yr: 5,
+    heightCm: 177,
+    weightKg: 91.0,
+    bmi: 29.0,
+    smokingStatus: "former",
+    alcoholUnitsWeekly: 2,
+    sbpMmhg: 146,
+    dbpMmhg: 91,
+    totalCholesterolMmol: 5.6,
+    ldlMmol: 3.1,
+    hdlMmol: 1.1,
+    triglyceridesMmol: 2.0,
+    hba1cPct: 6.1,
+    fastingGlucoseMmol: 6.6,
+    crpMgL: 2.6,
+    egfrMlMin: 82,
+    dietQualityScore: 5,
+    fruitVegServingsDaily: 3,
+    mealFrequencyDaily: 3,
+    exerciseSessionsWeekly: 2,
+    sedentaryHoursDay: 9,
+    stressLevel: 5,
+    sleepSatisfaction: 6,
+    mentalWellbeingWho5: 17,
+    selfRatedHealth: 3,
+    waterGlassesDaily: 5,
+    telemetryBase: {
+      restingHr: 73,
+      hrv: 24,
+      steps: 4800,
+      activeMinutes: 22,
+      sleepHours: 6.7,
+      sleepQuality: 64,
+      deepSleepPct: 13,
+      spo2: 95.8,
+      calories: 2080,
+      trendBias: 0.1,
+    },
+  },
+];
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -108,6 +488,10 @@ function splitPipe(value: string) {
     .filter(Boolean);
 }
 
+function pipeJoin(values: string[]) {
+  return values.join("|");
+}
+
 function titleCase(value: string) {
   return value.replace(/[_-]+/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
 }
@@ -126,6 +510,18 @@ function uniqueStrings(values: string[]) {
   return [...new Set(values)];
 }
 
+function inferCountryCode(country: string) {
+  const normalized = country.trim().toLowerCase();
+
+  if (normalized === "germany" || normalized === "deutschland") return "DE";
+  if (normalized === "austria" || normalized === "oesterreich" || normalized === "österreich") return "AT";
+  if (normalized === "switzerland" || normalized === "schweiz") return "CH";
+  if (normalized === "united kingdom" || normalized === "uk") return "GB";
+  if (normalized === "united states" || normalized === "usa") return "US";
+
+  return country.slice(0, 2).toUpperCase();
+}
+
 function stableHash(value: string) {
   let hash = 0;
 
@@ -135,6 +531,185 @@ function stableHash(value: string) {
 
   return hash;
 }
+
+async function fetchSupabaseRestJson<T>(path: string, query: string) {
+  const { fetchRestJson } = await import("@/lib/server/supabase-rest");
+  return fetchRestJson<T>(path, query);
+}
+
+function buildDemoProfile(seed: DemoPersonaSeed): UserProfile {
+  return {
+    id: seed.profileId,
+    patient_id: seed.patientId,
+    display_name: seed.displayName,
+    ui_mode: "standard",
+    persona_hint: seed.personaHint,
+    created_at: "2026-04-10T08:00:00.000Z",
+    email: seed.email,
+    role_label: seed.roleLabel,
+    plan_label: seed.planLabel,
+    city: seed.city,
+    country_code: seed.countryCode,
+    timezone: "Europe/Berlin",
+    alert_mode:
+      seed.personaHint === "digital-optimizer" ||
+      seed.personaHint === "preventive-performer"
+        ? "detailed"
+        : "simple",
+    primary_goal: seed.primaryGoal,
+    focus_areas: seed.focusAreas,
+  };
+}
+
+function buildDemoTelemetryRows(seed: DemoPersonaSeed): TelemetryRow[] {
+  return Array.from({ length: 90 }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (89 - index));
+
+    const phase = (index + stableHash(seed.patientId) % 11) / 6;
+    const wave = Math.sin(phase);
+    const secondWave = Math.cos(phase / 1.9);
+    const progress = index / 89 - 0.5;
+    const trend = progress * seed.telemetryBase.trendBias;
+
+    return {
+      patient_id: seed.patientId,
+      date: date.toISOString().slice(0, 10),
+      resting_hr_bpm: Math.round(
+        clamp(seed.telemetryBase.restingHr + wave * 2.2 - trend * 1.4, 48, 90),
+      ),
+      hrv_rmssd_ms: round(
+        clamp(seed.telemetryBase.hrv + secondWave * 4 + trend * 2.2, 15, 85),
+      ),
+      steps: Math.round(
+        clamp(seed.telemetryBase.steps + wave * 1200 + secondWave * 650 + trend * 320, 2200, 18000),
+      ),
+      active_minutes: Math.round(
+        clamp(seed.telemetryBase.activeMinutes + wave * 8 + secondWave * 4 + trend * 3, 5, 140),
+      ),
+      sleep_duration_hrs: round(
+        clamp(seed.telemetryBase.sleepHours + secondWave * 0.35 + trend * 0.15, 4.8, 8.7),
+      ),
+      sleep_quality_score: Math.round(
+        clamp(seed.telemetryBase.sleepQuality + secondWave * 6 + trend * 2.5, 45, 94),
+      ),
+      deep_sleep_pct: round(
+        clamp(seed.telemetryBase.deepSleepPct + wave * 1.1 + trend * 0.8, 9, 28),
+      ),
+      spo2_avg_pct: round(
+        clamp(seed.telemetryBase.spo2 + secondWave * 0.2, 93.2, 99.2),
+      ),
+      calories_burned_kcal: Math.round(
+        clamp(seed.telemetryBase.calories + wave * 120 + trend * 40, 1650, 3400),
+      ),
+    };
+  });
+}
+
+function buildDemoEhrRow(seed: DemoPersonaSeed): EhrRow {
+  return {
+    patient_id: seed.patientId,
+    age: seed.age,
+    sex: seed.sex,
+    country: seed.country,
+    height_cm: seed.heightCm,
+    weight_kg: seed.weightKg,
+    bmi: seed.bmi,
+    smoking_status: seed.smokingStatus,
+    alcohol_units_weekly: seed.alcoholUnitsWeekly,
+    chronic_conditions: pipeJoin(seed.chronicConditions),
+    icd_codes: pipeJoin(seed.icdCodes),
+    n_chronic_conditions: seed.chronicConditions.length,
+    medications: pipeJoin(seed.medications),
+    n_visits_2yr: seed.visitCount2yr,
+    sbp_mmhg: seed.sbpMmhg,
+    dbp_mmhg: seed.dbpMmhg,
+    total_cholesterol_mmol: seed.totalCholesterolMmol,
+    ldl_mmol: seed.ldlMmol,
+    hdl_mmol: seed.hdlMmol,
+    triglycerides_mmol: seed.triglyceridesMmol,
+    hba1c_pct: seed.hba1cPct,
+    fasting_glucose_mmol: seed.fastingGlucoseMmol,
+    crp_mg_l: seed.crpMgL,
+    egfr_ml_min: seed.egfrMlMin,
+  };
+}
+
+function buildDemoLifestyleRow(seed: DemoPersonaSeed): LifestyleRow {
+  return {
+    patient_id: seed.patientId,
+    survey_date: "2026-04-01",
+    smoking_status: seed.smokingStatus,
+    alcohol_units_weekly: seed.alcoholUnitsWeekly,
+    diet_quality_score: seed.dietQualityScore,
+    fruit_veg_servings_daily: seed.fruitVegServingsDaily,
+    meal_frequency_daily: seed.mealFrequencyDaily,
+    exercise_sessions_weekly: seed.exerciseSessionsWeekly,
+    sedentary_hrs_day: seed.sedentaryHoursDay,
+    stress_level: seed.stressLevel,
+    sleep_satisfaction: seed.sleepSatisfaction,
+    mental_wellbeing_who5: seed.mentalWellbeingWho5,
+    self_rated_health: seed.selfRatedHealth,
+    water_glasses_daily: seed.waterGlassesDaily,
+  };
+}
+
+function buildDemoPatientRecord(seed: DemoPersonaSeed): {
+  profile: UserProfile;
+  patient: PatientRecord;
+  ehr: EhrRecord;
+  wearable: WearableTelemetry[];
+  lifestyle: LifestyleSurvey;
+} {
+  const ehrRow = buildDemoEhrRow(seed);
+  const lifestyleRow = buildDemoLifestyleRow(seed);
+  const telemetryRows = buildDemoTelemetryRows(seed);
+  const basePatient = buildPatientRecord(ehrRow, lifestyleRow, telemetryRows);
+  const patient: PatientRecord = {
+    ...basePatient,
+    source: "persona",
+    sourceLabel: "PPT-Fall",
+    tag: seed.tag,
+    displayName: seed.displayName,
+    city: seed.city,
+    occupation: seed.occupation,
+    quote: seed.quote,
+    techAffinity: seed.techAffinity,
+    willingnessToPay: seed.willingnessToPay,
+    motivations: seed.motivations,
+    healthGoals: seed.healthGoals,
+    shortSummary: seed.shortSummary,
+    primaryConcern: seed.primaryConcern,
+    keyRisks: seed.keyRisks,
+  };
+
+  return {
+    profile: buildDemoProfile(seed),
+    patient,
+    ehr: {
+      ...ehrRow,
+      sex: mapSex(seed.sex),
+      visit_history: "",
+    },
+    wearable: telemetryRows,
+    lifestyle: {
+      ...lifestyleRow,
+    },
+  };
+}
+
+const getDemoBundles = cache(async (): Promise<PatientBundle[]> => {
+  return DEMO_PERSONA_SEEDS.map((seed) => {
+    const demoData = buildDemoPatientRecord(seed);
+    return buildBundle(
+      demoData.profile,
+      demoData.patient,
+      demoData.ehr,
+      demoData.wearable,
+      demoData.lifestyle,
+    );
+  });
+});
 
 function buildCaseAlias(patientId: string) {
   const numericPart = patientId.replace(/\D+/g, "").slice(-3).padStart(3, "0");
@@ -978,15 +1553,22 @@ function buildTwin(
 }
 
 function buildBundle(
+  profile: UserProfile,
   patient: PatientRecord,
-  telemetryRows: TelemetryRow[],
+  ehr: EhrRecord,
+  telemetryRows: WearableTelemetry[],
+  lifestyle: LifestyleSurvey,
 ): PatientBundle {
   const result = buildAssessmentResult(patient, telemetryRows);
   const recommendations = buildRecommendations(patient, result);
   const twin = buildTwin(patient, result, recommendations);
 
   return {
+    profile,
     patient,
+    ehr,
+    wearable: telemetryRows,
+    lifestyle,
     result,
     recommendations,
     twin,
@@ -1000,7 +1582,7 @@ const getFeaturedEhrRows = cache(async () => {
   const query =
     "select=patient_id,age,sex,country,height_cm,weight_kg,bmi,smoking_status,alcohol_units_weekly,chronic_conditions,icd_codes,n_chronic_conditions,medications,n_visits_2yr,sbp_mmhg,dbp_mmhg,total_cholesterol_mmol,ldl_mmol,hdl_mmol,triglycerides_mmol,hba1c_pct,fasting_glucose_mmol,crp_mg_l,egfr_ml_min" +
     `&patient_id=in.(${encodeIdList(featuredPatientIds)})&order=patient_id.asc`;
-  return fetchRestJson<EhrRow[]>("ehr_records", query);
+  return fetchSupabaseRestJson<EhrRow[]>("ehr_records", query);
 });
 
 const getFeaturedLifestyleRows = cache(async () => {
@@ -1010,14 +1592,14 @@ const getFeaturedLifestyleRows = cache(async () => {
   const query =
     "select=patient_id,survey_date,smoking_status,alcohol_units_weekly,diet_quality_score,fruit_veg_servings_daily,meal_frequency_daily,exercise_sessions_weekly,sedentary_hrs_day,stress_level,sleep_satisfaction,mental_wellbeing_who5,self_rated_health,water_glasses_daily" +
     `&patient_id=in.(${encodeIdList(featuredPatientIds)})&order=patient_id.asc,survey_date.desc`;
-  return fetchRestJson<LifestyleRow[]>("lifestyle_survey", query);
+  return fetchSupabaseRestJson<LifestyleRow[]>("lifestyle_survey", query);
 });
 
 const getTelemetryForPatient = cache(async (patientId: string) => {
   const query =
     "select=patient_id,date,resting_hr_bpm,hrv_rmssd_ms,steps,active_minutes,sleep_duration_hrs,sleep_quality_score,deep_sleep_pct,spo2_avg_pct,calories_burned_kcal" +
     `&patient_id=eq.${patientId}&order=date.desc&limit=90`;
-  return fetchRestJson<TelemetryRow[]>("wearable_telemetry", query);
+  return fetchSupabaseRestJson<TelemetryRow[]>("wearable_telemetry", query);
 });
 
 const getTelemetryForPatients = cache(async (patientIdsKey: string) => {
@@ -1026,11 +1608,11 @@ const getTelemetryForPatients = cache(async (patientIdsKey: string) => {
   const query =
     "select=patient_id,date,resting_hr_bpm,hrv_rmssd_ms,steps,active_minutes,sleep_duration_hrs,sleep_quality_score,deep_sleep_pct,spo2_avg_pct,calories_burned_kcal" +
     `&patient_id=in.(${encodeIdList(patientIds)})&order=patient_id.asc,date.desc`;
-  return fetchRestJson<TelemetryRow[]>("wearable_telemetry", query);
+  return fetchSupabaseRestJson<TelemetryRow[]>("wearable_telemetry", query);
 });
 
 const getFeaturedPatientIds = cache(async () => {
-  const candidateRows = await fetchRestJson<PatientIdRow[]>(
+  const candidateRows = await fetchSupabaseRestJson<PatientIdRow[]>(
     "ehr_records",
     `select=patient_id&order=age.desc&limit=${FEATURED_PATIENT_CANDIDATE_LIMIT}`,
   );
@@ -1043,11 +1625,11 @@ const getFeaturedPatientIds = cache(async () => {
   }
 
   const [lifestyleRows, telemetryRows] = await Promise.all([
-    fetchRestJson<Array<Pick<LifestyleRow, "patient_id" | "survey_date">>>(
+    fetchSupabaseRestJson<Array<Pick<LifestyleRow, "patient_id" | "survey_date">>>(
       "lifestyle_survey",
       `select=patient_id,survey_date&patient_id=in.(${encodeIdList(candidateIds)})&order=survey_date.desc`,
     ),
-    fetchRestJson<Array<Pick<TelemetryRow, "patient_id" | "date">>>(
+    fetchSupabaseRestJson<Array<Pick<TelemetryRow, "patient_id" | "date">>>(
       "wearable_telemetry",
       `select=patient_id,date&patient_id=in.(${encodeIdList(candidateIds)})&order=date.desc&limit=5000`,
     ),
@@ -1083,7 +1665,7 @@ function groupTelemetryRows(rows: TelemetryRow[]) {
 }
 
 async function findPatientRow(patientId: string) {
-  const rows = await fetchRestJson<EhrRow[]>(
+  const rows = await fetchSupabaseRestJson<EhrRow[]>(
     "ehr_records",
     "select=patient_id,age,sex,country,height_cm,weight_kg,bmi,smoking_status,alcohol_units_weekly,chronic_conditions,icd_codes,n_chronic_conditions,medications,n_visits_2yr,sbp_mmhg,dbp_mmhg,total_cholesterol_mmol,ldl_mmol,hdl_mmol,triglycerides_mmol,hba1c_pct,fasting_glucose_mmol,crp_mg_l,egfr_ml_min" +
       `&patient_id=eq.${patientId}&limit=1`,
@@ -1092,7 +1674,7 @@ async function findPatientRow(patientId: string) {
 }
 
 async function findLifestyleRow(patientId: string) {
-  const rows = await fetchRestJson<LifestyleRow[]>(
+  const rows = await fetchSupabaseRestJson<LifestyleRow[]>(
     "lifestyle_survey",
     "select=patient_id,survey_date,smoking_status,alcohol_units_weekly,diet_quality_score,fruit_veg_servings_daily,meal_frequency_daily,exercise_sessions_weekly,sedentary_hrs_day,stress_level,sleep_satisfaction,mental_wellbeing_who5,self_rated_health,water_glasses_daily" +
       `&patient_id=eq.${patientId}&order=survey_date.desc&limit=1`,
@@ -1101,49 +1683,14 @@ async function findLifestyleRow(patientId: string) {
 }
 
 export const getFeaturedPatients = cache(async (): Promise<PatientSummary[]> => {
-  const featuredPatientIds = await getFeaturedPatientIds();
-  if (featuredPatientIds.length === 0) return [];
-
-  const [ehrRows, lifestyleRows, telemetryRows] = await Promise.all([
-    getFeaturedEhrRows(),
-    getFeaturedLifestyleRows(),
-    getTelemetryForPatients(featuredPatientIds.join(",")),
-  ]);
-
-  const lifestyleByPatient = new Map<string, LifestyleRow>();
-  for (const row of lifestyleRows) {
-    if (!lifestyleByPatient.has(row.patient_id)) {
-      lifestyleByPatient.set(row.patient_id, row);
-    }
-  }
-
-  const telemetryByPatient = groupTelemetryRows(telemetryRows);
-  return ehrRows
-    .map((row) => {
-      const lifestyle = lifestyleByPatient.get(row.patient_id);
-      if (!lifestyle) return null;
-      const telemetry = summarizeTelemetry(
-        telemetryByPatient.get(row.patient_id) ?? [],
-      );
-      return buildSummary(row, lifestyle, telemetry);
-    })
-    .filter((item): item is PatientSummary => Boolean(item));
+  const bundles = await getDemoBundles();
+  return bundles.map((bundle) => bundle.patient);
 });
 
 export const getPatientBundle = cache(
   async (patientId: string): Promise<PatientBundle | null> => {
-    const [ehrRow, lifestyleRow, telemetryRows] = await Promise.all([
-      findPatientRow(patientId),
-      findLifestyleRow(patientId),
-      getTelemetryForPatient(patientId),
-    ]);
-
-    if (!ehrRow || !lifestyleRow || telemetryRows.length === 0) {
-      return null;
-    }
-
-    const patient = buildPatientRecord(ehrRow, lifestyleRow, telemetryRows);
-    return buildBundle(patient, telemetryRows);
+    const bundles = await getDemoBundles();
+    return bundles.find((bundle) => bundle.patient.patientId === patientId) ?? null;
   },
 );
 
@@ -1464,5 +2011,65 @@ export async function createQuestionnaireBundle(
     patient.bmi,
     smokingPenalty,
   );
-  return buildBundle(patient, telemetryRows);
+  const profile: UserProfile = {
+    id: "demo-questionnaire-profile",
+    patient_id: patient.patientId,
+    display_name: "Neue Registrierung",
+    ui_mode: "standard",
+    persona_hint: null,
+    created_at: new Date().toISOString(),
+    email: "questionnaire@longeviq.local",
+    role_label: "Fragebogenprofil",
+    plan_label: "Intake-Start",
+    city: "Noch offen",
+    country_code: inferCountryCode(input.country),
+    timezone: "Europe/Berlin",
+    alert_mode: "simple",
+    primary_goal: "Eine erste praeventive Ausgangslage ueber den Fragebogen aufbauen.",
+    focus_areas: ["Selbstauskunft", "Praeventionsscore", "Szenariomodell"],
+  };
+  const ehr: EhrRecord = {
+    patient_id: patient.patientId,
+    age: patient.age,
+    sex: patient.sex,
+    country: patient.country,
+    height_cm: patient.heightCm,
+    weight_kg: patient.weightKg,
+    bmi: patient.bmi,
+    smoking_status: patient.lifestyle.smokingStatus,
+    alcohol_units_weekly: patient.lifestyle.alcoholUnitsWeekly,
+    chronic_conditions: patient.chronicConditions.join("|"),
+    icd_codes: "",
+    n_chronic_conditions: patient.chronicConditions.length,
+    medications: "",
+    n_visits_2yr: 0,
+    visit_history: "",
+    sbp_mmhg: patient.systolicBp,
+    dbp_mmhg: patient.diastolicBp,
+    total_cholesterol_mmol: patient.totalCholesterolMmol,
+    ldl_mmol: patient.ldlMmol,
+    hdl_mmol: 1.2,
+    triglycerides_mmol: 1.6,
+    hba1c_pct: patient.hba1cPct,
+    fasting_glucose_mmol: patient.fastingGlucoseMmol,
+    crp_mg_l: patient.crpMgL,
+    egfr_ml_min: patient.egfrMlMin,
+  };
+  const lifestyle: LifestyleSurvey = {
+    patient_id: patient.patientId,
+    survey_date: patient.lifestyle.surveyDate,
+    smoking_status: patient.lifestyle.smokingStatus,
+    alcohol_units_weekly: patient.lifestyle.alcoholUnitsWeekly,
+    diet_quality_score: patient.lifestyle.dietQualityScore,
+    fruit_veg_servings_daily: patient.lifestyle.fruitVegServingsDaily,
+    meal_frequency_daily: patient.lifestyle.mealFrequencyDaily,
+    exercise_sessions_weekly: patient.lifestyle.exerciseSessionsWeekly,
+    sedentary_hrs_day: patient.lifestyle.sedentaryHoursDay,
+    stress_level: patient.lifestyle.stressLevel,
+    sleep_satisfaction: patient.lifestyle.sleepSatisfaction,
+    mental_wellbeing_who5: patient.lifestyle.mentalWellbeingWho5,
+    self_rated_health: patient.lifestyle.selfRatedHealth,
+    water_glasses_daily: patient.lifestyle.waterGlassesDaily,
+  };
+  return buildBundle(profile, patient, ehr, telemetryRows, lifestyle);
 }

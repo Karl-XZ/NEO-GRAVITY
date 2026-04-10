@@ -24,7 +24,7 @@ import {
   getRegionalHealthAlert,
   type RegionalHealthAlert,
 } from "@/lib/profile";
-import type { UserProfile } from "@/lib/types";
+import { useAppState } from "@/components/AppState";
 import { NAV_ITEMS } from "./sidebar";
 import { cn } from "@/lib/utils";
 
@@ -42,7 +42,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/settings": "Settings",
 };
 
-export function Topbar({ profile }: { profile: UserProfile }) {
+export function Topbar() {
+  const { currentProfile: profile } = useAppState();
   const pathname = usePathname();
   const title = PAGE_TITLES[pathname] ?? "LongevIQ";
   const [sheetOpen, setSheetOpen] = useState(false);

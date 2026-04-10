@@ -66,31 +66,31 @@ export function getRegionalHealthAlert(
 
   if (month >= 3 && month <= 5) {
     return {
-      title: `${regionLabel}: pollen elevated`,
-      detail: "If you are sensitive, keep outdoor intensity lighter and plan recovery indoors.",
+      title: `${regionLabel}: hohe Pollenbelastung`,
+      detail: "Wenn Sie empfindlich reagieren, planen Sie draußen eher leichte Einheiten und längere Erholung ein.",
       tone: "warning",
     };
   }
 
   if (month >= 6 && month <= 8) {
     return {
-      title: `${regionLabel}: heat strain risk`,
-      detail: "Hydrate early and avoid your hardest outdoor training in the hottest hours.",
+      title: `${regionLabel}: Hitzebelastung möglich`,
+      detail: "Früh trinken, Belastung staffeln und intensive Outdoor-Einheiten nicht in die heißesten Stunden legen.",
       tone: "warning",
     };
   }
 
   if (month >= 9 && month <= 11) {
     return {
-      title: `${regionLabel}: respiratory season`,
-      detail: "Sleep, hydration, and lighter load are worth prioritizing if you feel run down.",
+      title: `${regionLabel}: Atemwegsaison`,
+      detail: "Wenn Sie sich angeschlagen fühlen, priorisieren Sie Schlaf, Hydration und einen geringeren Trainingsreiz.",
       tone: "info",
     };
   }
 
   return {
-    title: `${regionLabel}: cold and flu pressure`,
-    detail: "Recovery, layering, and lower-intensity outdoor sessions are the safer baseline today.",
-    tone: "critical",
+    title: `${regionLabel}: Erkältungssaison`,
+    detail: "Erholung, passende Kleidung und eher lockere Outdoor-Einheiten sind im Moment die sicherere Basis.",
+    tone: "warning",
   };
 }

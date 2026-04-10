@@ -1,8 +1,7 @@
-import { getUserProfile } from "@/lib/data";
+"use client";
+
 import { SettingsClient } from "./settings-client";
 
-export default async function SettingsPage() {
-  const profile = await getUserProfile();
-
-  return <SettingsClient initialProfile={profile} />;
+export default function SettingsPage() {
+  return <SettingsClient />;
 }

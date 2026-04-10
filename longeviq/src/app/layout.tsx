@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { AppProvider } from "@/components/AppState";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -21,9 +22,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LongevIQ — Personalised Longevity Insights",
+  title: "LongevIQ — Präventive Gesundheitsübersicht",
   description:
-    "Turn your health data into actionable, personalised longevity insights.",
+    "Gesundheitsdaten in verständliche Präventionssignale und nächste Schritte übersetzen.",
 };
 
 export default function RootLayout({
@@ -33,11 +34,11 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="de"
       className={`${spaceGrotesk.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        {children}
+        <AppProvider>{children}</AppProvider>
       </body>
     </html>
   );

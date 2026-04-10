@@ -10,9 +10,14 @@ import {
   useState,
 } from "react";
 import type {
-  AssessmentResult,
+  EhrRecord,
+  LifestyleSurvey,
+  UserProfile,
+  WearableTelemetry,
+} from "@/lib/types";
+import type {
   ChatMessage,
-  HealthTwin,
+  PatientBundle,
   PatientRecord,
   PatientSource,
   PatientSummary,
@@ -20,28 +25,26 @@ import type {
   Recommendation,
 } from "@/types";
 
-interface PatientBundleResponse {
-  patient: PatientRecord;
-  result: AssessmentResult;
-  recommendations: Recommendation[];
-  twin: HealthTwin;
-}
-
 interface StoredState {
   patientId: string | null;
   patientSource: PatientSource | null;
-  questionnaireBundle: PatientBundleResponse | null;
+  profile: UserProfile | null;
+  questionnaireBundle: PatientBundle | null;
   chatHistory: ChatMessage[];
   savedRecommendationIds: string[];
 }
 
 interface AppState {
   featuredPatients: PatientSummary[];
+  currentProfile: UserProfile;
   selectedPatient: PatientRecord | null;
-  result: AssessmentResult | null;
+  ehr: EhrRecord | null;
+  wearable: WearableTelemetry[];
+  lifestyle: LifestyleSurvey | null;
   recommendations: Recommendation[];
   chatHistory: ChatMessage[];
-  twin: HealthTwin | null;
+  twin: PatientBundle["twin"] | null;
+  result: PatientBundle["result"] | null;
   activeTab: string;
   loading: boolean;
   error: string | null;
@@ -49,17 +52,56 @@ interface AppState {
   runQuestionnaireAssessment: (
     payload: QuestionnaireAssessmentInput,
   ) => Promise<boolean>;
+  startQuestionnaireSignup: () => void;
   clearPatient: () => void;
   addChatMessage: (msg: Omit<ChatMessage, "id" | "timestamp">) => void;
   setActiveTab: (tab: string) => void;
   toggleRecommendation: (id: string) => void;
+  updateCurrentProfile: (patch: Partial<UserProfile>) => void;
 }
 
-const STORAGE_KEY = "longevity_real_patient_state_v1";
+const STORAGE_KEY = "longeviq_demo_session_v2";
+
+const DEFAULT_PROFILE: UserProfile = {
+  id: "demo-guest-profile",
+  patient_id: "DEMO-GUEST",
+  display_name: "Demo-Zugang",
+  ui_mode: "standard",
+  persona_hint: null,
+  created_at: "2026-04-10T08:00:00.000Z",
+  email: "demo@longeviq.local",
+  role_label: "Demo",
+  plan_label: "Persona-Bibliothek",
+  city: "Berlin",
+  country_code: "DE",
+  timezone: "Europe/Berlin",
+  alert_mode: "simple",
+  primary_goal: "Fall waehlen oder neue Registrierung mit Fragebogen starten.",
+  focus_areas: ["Fallauswahl", "Fragebogen", "Ergebnisansicht"],
+};
+
+const QUESTIONNAIRE_PROFILE: UserProfile = {
+  id: "demo-questionnaire-profile",
+  patient_id: "Q-SELF-BASELINE",
+  display_name: "Neue Registrierung",
+  ui_mode: "standard",
+  persona_hint: null,
+  created_at: "2026-04-10T08:00:00.000Z",
+  email: "questionnaire@longeviq.local",
+  role_label: "Fragebogenprofil",
+  plan_label: "Intake-Start",
+  city: "Berlin",
+  country_code: "DE",
+  timezone: "Europe/Berlin",
+  alert_mode: "simple",
+  primary_goal: "Eine erste praeventive Ausgangslage ueber den Fragebogen aufbauen.",
+  focus_areas: ["Selbstauskunft", "Praeventionsscore", "Szenariomodell"],
+};
 
 const DEFAULT_STORED_STATE: StoredState = {
   patientId: null,
   patientSource: null,
+  profile: null,
   questionnaireBundle: null,
   chatHistory: [],
   savedRecommendationIds: [],
@@ -77,25 +119,38 @@ function loadStoredState(): StoredState {
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (!saved) return DEFAULT_STORED_STATE;
+
     const parsed = JSON.parse(saved) as StoredState;
     const patientSource =
+      parsed.patientSource === "persona" ||
       parsed.patientSource === "supabase" ||
       parsed.patientSource === "questionnaire"
         ? parsed.patientSource
         : parsed.patientId
-          ? "supabase"
+          ? "persona"
           : null;
+
     return {
       patientId: parsed.patientId ?? null,
       patientSource,
+      profile:
+        parsed.profile &&
+        typeof parsed.profile === "object" &&
+        "display_name" in parsed.profile
+          ? (parsed.profile as UserProfile)
+          : null,
       questionnaireBundle:
         parsed.questionnaireBundle &&
         typeof parsed.questionnaireBundle === "object" &&
         "patient" in parsed.questionnaireBundle &&
         "result" in parsed.questionnaireBundle &&
         "recommendations" in parsed.questionnaireBundle &&
-        "twin" in parsed.questionnaireBundle
-          ? (parsed.questionnaireBundle as PatientBundleResponse)
+        "twin" in parsed.questionnaireBundle &&
+        "profile" in parsed.questionnaireBundle &&
+        "ehr" in parsed.questionnaireBundle &&
+        "wearable" in parsed.questionnaireBundle &&
+        "lifestyle" in parsed.questionnaireBundle
+          ? (parsed.questionnaireBundle as PatientBundle)
           : null,
       chatHistory: Array.isArray(parsed.chatHistory) ? parsed.chatHistory : [],
       savedRecommendationIds: Array.isArray(parsed.savedRecommendationIds)
@@ -118,9 +173,9 @@ function applySavedRecommendations(
 }
 
 function applySavedBundle(
-  bundle: PatientBundleResponse,
+  bundle: PatientBundle,
   savedRecommendationIds: string[],
-): PatientBundleResponse {
+): PatientBundle {
   return {
     ...bundle,
     recommendations: applySavedRecommendations(
@@ -133,15 +188,21 @@ function applySavedBundle(
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const initialState = useMemo(() => loadStoredState(), []);
   const [featuredPatients, setFeaturedPatients] = useState<PatientSummary[]>([]);
+  const [currentProfile, setCurrentProfile] = useState<UserProfile>(
+    initialState.profile ?? DEFAULT_PROFILE,
+  );
   const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(
     null,
   );
-  const [result, setResult] = useState<AssessmentResult | null>(null);
+  const [ehr, setEhr] = useState<EhrRecord | null>(null);
+  const [wearable, setWearable] = useState<WearableTelemetry[]>([]);
+  const [lifestyle, setLifestyle] = useState<LifestyleSurvey | null>(null);
+  const [result, setResult] = useState<PatientBundle["result"] | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>(
     initialState.chatHistory,
   );
-  const [twin, setTwin] = useState<HealthTwin | null>(null);
+  const [twin, setTwin] = useState<PatientBundle["twin"] | null>(null);
   const [savedRecommendationIds, setSavedRecommendationIds] = useState<
     string[]
   >(initialState.savedRecommendationIds);
@@ -159,7 +220,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
           const response = await fetch("/api/patients", { cache: "no-store" });
-          if (!response.ok) throw new Error("Failed to load patient list");
+          if (!response.ok) {
+            throw new Error("Fallliste konnte nicht geladen werden");
+          }
 
           const data = (await response.json()) as { patients: PatientSummary[] };
           if (!cancelled) {
@@ -173,7 +236,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           lastError =
             fetchError instanceof Error
               ? fetchError
-              : new Error("Failed to load patient list");
+              : new Error("Fallliste konnte nicht geladen werden");
 
           if (attempt === 1 || cancelled) break;
           await sleep(700);
@@ -181,7 +244,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!cancelled) {
-        setError(lastError?.message ?? "Failed to load patient list");
+        setError(lastError?.message ?? "Fallliste konnte nicht geladen werden");
       }
     };
 
@@ -205,8 +268,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         initialState.questionnaireBundle,
         initialState.savedRecommendationIds,
       );
+
       startTransition(() => {
+        setCurrentProfile(nextBundle.profile);
         setSelectedPatient(nextBundle.patient);
+        setEhr(nextBundle.ehr);
+        setWearable(nextBundle.wearable);
+        setLifestyle(nextBundle.lifestyle);
         setResult(nextBundle.result);
         setRecommendations(nextBundle.recommendations);
         setTwin(nextBundle.twin);
@@ -215,8 +283,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (initialState.patientSource === "supabase" && initialState.patientId) {
+    if (
+      (initialState.patientSource === "persona" ||
+        initialState.patientSource === "supabase") &&
+      initialState.patientId
+    ) {
       void loadPatientBundle(initialState.patientId);
+      return;
+    }
+
+    if (initialState.profile) {
+      setCurrentProfile(initialState.profile);
     }
   }, [initialState]);
 
@@ -224,9 +301,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
 
     const questionnaireBundle =
-      selectedPatient?.source === "questionnaire" && selectedPatient && result && twin
+      selectedPatient?.source === "questionnaire" &&
+      selectedPatient &&
+      result &&
+      twin &&
+      ehr &&
+      lifestyle &&
+      wearable.length > 0
         ? {
+            profile: currentProfile,
             patient: selectedPatient,
+            ehr,
+            wearable,
+            lifestyle,
             result,
             recommendations,
             twin,
@@ -237,16 +324,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       STORAGE_KEY,
       JSON.stringify({
         patientId:
-          selectedPatient?.source === "supabase"
+          selectedPatient &&
+          selectedPatient.source !== "questionnaire"
             ? selectedPatient.patientId
             : null,
         patientSource: selectedPatient?.source ?? null,
+        profile: currentProfile,
         questionnaireBundle,
         chatHistory,
         savedRecommendationIds,
       } satisfies StoredState),
     );
-  }, [chatHistory, recommendations, result, savedRecommendationIds, selectedPatient, twin]);
+  }, [
+    chatHistory,
+    currentProfile,
+    ehr,
+    lifestyle,
+    recommendations,
+    result,
+    savedRecommendationIds,
+    selectedPatient,
+    twin,
+    wearable,
+  ]);
 
   async function loadPatientBundle(patientId: string): Promise<boolean> {
     setLoading(true);
@@ -256,34 +356,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch(`/api/patients/${patientId}`, {
         cache: "no-store",
       });
-      if (!response.ok) throw new Error("Failed to load patient case");
-      const bundle = (await response.json()) as PatientBundleResponse;
-      const nextBundle = applySavedBundle(bundle, savedRecommendationIds);
+      if (!response.ok) throw new Error("Fall konnte nicht geladen werden");
 
+      const bundle = (await response.json()) as PatientBundle;
+      const isNewAccount = selectedPatient?.patientId !== patientId;
+      const activeSavedIds = isNewAccount ? [] : savedRecommendationIds;
+      const nextBundle = applySavedBundle(bundle, activeSavedIds);
+
+      if (isNewAccount) {
+        setSavedRecommendationIds([]);
+      }
+
+      setCurrentProfile(nextBundle.profile);
       setSelectedPatient(nextBundle.patient);
+      setEhr(nextBundle.ehr);
+      setWearable(nextBundle.wearable);
+      setLifestyle(nextBundle.lifestyle);
       setResult(nextBundle.result);
       setRecommendations(nextBundle.recommendations);
       setTwin(nextBundle.twin);
-      if (chatHistory.length === 0) {
-        setChatHistory([
-          {
-            id: "intro",
-            role: "assistant",
-            content: `${nextBundle.patient.displayName} has been loaded. ${
-              nextBundle.patient.source === "supabase"
-                ? "This case uses real EHR, lifestyle, and wearable data from Supabase."
-                : "This assessment uses your questionnaire responses to estimate a preventive baseline."
-            } Ask about the most important risk area or open the Health Twin for scenario comparison.`,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-      }
+      setChatHistory([
+        {
+          id: "intro",
+          role: "assistant",
+          content:
+            `${nextBundle.patient.displayName} wurde geladen. ` +
+            (nextBundle.patient.source === "persona"
+              ? "Dieser Demo-Login basiert auf dem Persona-Fall aus dem Longevity-Personas-Pitchdeck."
+              : "Dieser Fall nutzt importierte Gesundheitsdaten.") +
+            " Fragen Sie nach dem wichtigsten Risikobereich oder oeffnen Sie den Gesundheitszwilling fuer den Szenarienvergleich.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
       return true;
     } catch (fetchError) {
       setError(
         fetchError instanceof Error
           ? fetchError.message
-          : "Failed to load patient case",
+          : "Fall konnte nicht geladen werden",
       );
       return false;
     } finally {
@@ -304,13 +414,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(payload),
         cache: "no-store",
       });
-      if (!response.ok)
-        throw new Error("Failed to generate questionnaire assessment");
+      if (!response.ok) {
+        throw new Error("Fragebogen-Auswertung konnte nicht erstellt werden");
+      }
 
-      const bundle = (await response.json()) as PatientBundleResponse;
-      const nextBundle = applySavedBundle(bundle, savedRecommendationIds);
+      const bundle = (await response.json()) as PatientBundle;
+      const nextBundle = applySavedBundle(bundle, []);
 
+      setSavedRecommendationIds([]);
+      setCurrentProfile(nextBundle.profile);
       setSelectedPatient(nextBundle.patient);
+      setEhr(nextBundle.ehr);
+      setWearable(nextBundle.wearable);
+      setLifestyle(nextBundle.lifestyle);
       setResult(nextBundle.result);
       setRecommendations(nextBundle.recommendations);
       setTwin(nextBundle.twin);
@@ -319,7 +435,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           id: "intro",
           role: "assistant",
           content:
-            "Your questionnaire-based baseline has been loaded. These values are estimated from your self-reported responses and then processed in the prevention model and Health Twin.",
+            "Ihre fragebogenbasierte Ausgangslage wurde geladen. Diese Werte werden aus den Selbstauskuenften geschaetzt und anschliessend im Praeventionsmodell sowie im Gesundheitszwilling weiterverarbeitet.",
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -329,7 +445,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setError(
         fetchError instanceof Error
           ? fetchError.message
-          : "Failed to generate questionnaire assessment",
+          : "Fragebogen-Auswertung konnte nicht erstellt werden",
       );
       return false;
     } finally {
@@ -338,13 +454,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   const clearPatient = () => {
+    setCurrentProfile(DEFAULT_PROFILE);
     setSelectedPatient(null);
+    setEhr(null);
+    setWearable([]);
+    setLifestyle(null);
     setResult(null);
     setRecommendations([]);
     setChatHistory([]);
     setTwin(null);
     setSavedRecommendationIds([]);
     setError(null);
+  };
+
+  const startQuestionnaireSignup = () => {
+    clearPatient();
+    setCurrentProfile({
+      ...QUESTIONNAIRE_PROFILE,
+      created_at: new Date().toISOString(),
+    });
   };
 
   const addChatMessage = (msg: Omit<ChatMessage, "id" | "timestamp">) => {
@@ -372,24 +500,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const updateCurrentProfile = (patch: Partial<UserProfile>) => {
+    setCurrentProfile((previous) => ({
+      ...previous,
+      ...patch,
+    }));
+  };
+
   return (
     <AppContext.Provider
       value={{
         featuredPatients,
+        currentProfile,
         selectedPatient,
-        result,
+        ehr,
+        wearable,
+        lifestyle,
         recommendations,
         chatHistory,
         twin,
+        result,
         activeTab,
         loading,
         error,
         loadPatient: loadPatientBundle,
         runQuestionnaireAssessment,
+        startQuestionnaireSignup,
         clearPatient,
         addChatMessage,
         setActiveTab,
         toggleRecommendation,
+        updateCurrentProfile,
       }}
     >
       {children}

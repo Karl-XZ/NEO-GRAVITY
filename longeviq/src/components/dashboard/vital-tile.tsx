@@ -34,7 +34,7 @@ export function VitalTile({ label, value, unit, trend, icon }: VitalTileProps) {
                 : "bg-status-normal/12 text-status-normal"
           )}
         >
-          {isNeutral ? "Stable" : `${isUp ? "+" : ""}${trend.toFixed(1)}%`}
+          {isNeutral ? "Stabil" : `${isUp ? "+" : ""}${trend.toFixed(1)}%`}
         </span>
       </div>
 
@@ -72,7 +72,7 @@ export function VitalTile({ label, value, unit, trend, icon }: VitalTileProps) {
                 : "text-status-normal"
           )}
         >
-          {isNeutral ? "No major change" : isUp ? "Above 7-day average" : "Below 7-day average"}
+          {isNeutral ? "Keine große Veränderung" : isUp ? "Über dem 7-Tage-Schnitt" : "Unter dem 7-Tage-Schnitt"}
         </span>
       </div>
     </div>

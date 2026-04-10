@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 
 import { computeAllFeatures } from "@/lib/features";
 import {
@@ -16,6 +18,7 @@ import type {
   LifestyleSurvey,
   WearableTelemetry,
 } from "@/lib/types";
+import { useAppState } from "@/components/AppState";
 import {
   CoachCard,
   HealthCompanion,
@@ -145,6 +148,8 @@ export function DashboardClient({
   wearable,
   lifestyle,
 }: DashboardClientProps) {
+  const router = useRouter();
+  const { selectedPatient, startQuestionnaireSignup } = useAppState();
   const [activeCoachSuggestion, setActiveCoachSuggestion] = useState<string | null>(null);
   const alertMode = useSyncExternalStore(
     subscribeToAlertMode,
@@ -173,6 +178,11 @@ export function DashboardClient({
   const hrvAvg7 = average(prev7.map((day) => day.hrv_rmssd_ms));
   const stepsAvg7 = average(prev7.map((day) => day.steps));
   const sleepAvg7 = average(prev7.map((day) => day.sleep_duration_hrs));
+
+  const handleRestartQuestionnaire = () => {
+    startQuestionnaireSignup();
+    router.push("/assessment?mode=questionnaire");
+  };
 
   useEffect(() => {
     if (alertMode !== "notification") return;
@@ -216,6 +226,30 @@ export function DashboardClient({
   return (
     <div className="flex gap-6">
       <div className="mx-auto flex min-w-0 max-w-[1400px] flex-1 flex-col gap-8">
+        <section className="animate-in flex flex-col gap-4 rounded-[2rem] border border-white/84 bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(249,250,252,0.94)_58%,rgba(240,244,251,0.88)_100%)] p-5 shadow-[0_24px_48px_-36px_rgba(29,29,31,0.16)] ring-1 ring-black/[0.04] sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">
+              Aktiver Dashboard-Flow
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              {selectedPatient?.displayName ?? "Praeventions-Dashboard"}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              Wenn Sie den Intake neu ausfuellen moechten, koennen Sie den kompletten
+              Fragebogen-Flow hier neu starten und anschliessend wieder mit einer
+              frischen Analyse in den Prozess einsteigen.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleRestartQuestionnaire}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Fragebogen neu ausfuellen
+            <ArrowRight className="size-4" />
+          </button>
+        </section>
+
         {alertMode === "detailed" ? (
           detailedAlertCards.length > 0 ? (
             <section className="animate-in flex flex-col gap-3 lg:flex-row">
@@ -246,7 +280,7 @@ export function DashboardClient({
                 <div className="w-1 shrink-0 rounded-full bg-primary" />
                 <div className="min-w-0">
                   <p className="mb-2 text-sm font-semibold tracking-[0.04em] text-primary">
-                    Main priority today
+                    Wichtigster Fokus heute
                   </p>
                   <p className="text-[clamp(1.1rem,0.95rem+0.45vw,1.5rem)] font-medium leading-relaxed text-foreground">
                     {mainFocusText}
@@ -259,24 +293,24 @@ export function DashboardClient({
 
         <section className="animate-in grid grid-cols-1 gap-4 lg:grid-cols-2">
           <ScoreCard
-            label="Readiness"
+            label="Tagesbereitschaft"
             value={features.recoveryScore.score}
             colorClass="text-chart-1"
             barColorClass="bg-chart-1"
-            helpText="Readiness shows how prepared your body is for exertion today. The score takes into account HRV, resting heart rate, and sleep signals, among other factors."
+            helpText="Die Tagesbereitschaft zeigt, wie belastbar Ihr System heute wirkt. Grundlage sind unter anderem HRV, Ruhepuls und Schlafsignale."
           />
           <ScoreCard
-            label="Recovery"
-            value={features.recoveryScore.score}
+            label="Schlafbasis"
+            value={Math.round(features.sleepComposite.score)}
             colorClass="text-chart-2"
             barColorClass="bg-chart-2"
-            helpText="Recovery describes how well your body has recovered recently. Higher values indicate greater regeneration and lower current strain."
+            helpText="Die Schlafbasis verdichtet Dauer, Qualitaet und Rhythmus Ihres Schlafs zu einem einfachen Orientierungswert."
           />
         </section>
 
         <section className="animate-in stagger-1 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <VitalTile
-            label="Resting HR"
+            label="Ruhepuls"
             value={String(latest.resting_hr_bpm)}
             unit="bpm"
             trend={trendPct(latest.resting_hr_bpm, restingHrAvg7)}
@@ -290,16 +324,16 @@ export function DashboardClient({
             icon={<ActivityIcon />}
           />
           <VitalTile
-            label="Steps"
-            value={latest.steps.toLocaleString("en-US")}
+            label="Schritte"
+            value={latest.steps.toLocaleString("de-DE")}
             unit=""
             trend={trendPct(latest.steps, stepsAvg7)}
             icon={<FootprintsIcon />}
           />
           <VitalTile
-            label="Sleep"
+            label="Schlafdauer"
             value={latest.sleep_duration_hrs.toFixed(1)}
-            unit="hrs"
+            unit="Std."
             trend={trendPct(latest.sleep_duration_hrs, sleepAvg7)}
             icon={<MoonIcon />}
           />

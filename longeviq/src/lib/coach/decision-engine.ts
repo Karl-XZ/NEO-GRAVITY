@@ -82,22 +82,22 @@ export function formatMainFocusText(input: {
     const domain = inferSuggestionPriorityDomain(suggestion);
 
     if (domain === "clinical") {
-      return "Schedule a medical follow-up and keep today low strain.";
+      return "Ärztliches Follow-up anstoßen und die Belastung heute niedrig halten.";
     }
 
     if (domain === "sleep") {
-      return "Prioritize sleep tonight and keep movement light today.";
+      return "Schlaf heute priorisieren und Bewegung bewusst leicht halten.";
     }
 
     if (domain === "recovery") {
-      return "Keep training easy today and focus on recovery.";
+      return "Training heute locker halten und Regeneration vorziehen.";
     }
 
     if (domain === "mood") {
-      return "Reduce load today and make time for a short check-in.";
+      return "Belastung heute senken und Zeit für ein kurzes Check-in reservieren.";
     }
 
-    return "Add one simple block of movement today and keep it consistent.";
+    return "Heute einen einfachen Bewegungsblock fest einplanen und bei der Routine bleiben.";
   }
 
   return fallback.action;

@@ -1,5 +1,12 @@
+import type {
+  EhrRecord,
+  LifestyleSurvey,
+  UserProfile,
+  WearableTelemetry,
+} from "@/lib/types";
+
 export type Sex = "male" | "female" | "other";
-export type PatientSource = "supabase" | "questionnaire";
+export type PatientSource = "persona" | "supabase" | "questionnaire";
 export type RiskLevel = "low" | "moderate" | "high" | "critical";
 export type RecommendationCategory =
   | "checkup"
@@ -35,6 +42,13 @@ export interface PatientSummary {
   age: number;
   sex: Sex;
   country: string;
+  city?: string;
+  occupation?: string;
+  quote?: string;
+  techAffinity?: string;
+  willingnessToPay?: string;
+  healthGoals?: string[];
+  motivations?: string[];
   chronicConditions: string[];
   keyRisks: string[];
   primaryConcern: string;
@@ -200,7 +214,11 @@ export interface HealthTwin {
 }
 
 export interface PatientBundle {
+  profile: UserProfile;
   patient: PatientRecord;
+  ehr: EhrRecord;
+  wearable: WearableTelemetry[];
+  lifestyle: LifestyleSurvey;
   result: AssessmentResult;
   recommendations: Recommendation[];
   twin: HealthTwin;
