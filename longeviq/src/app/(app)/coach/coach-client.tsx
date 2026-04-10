@@ -3,8 +3,6 @@
 import {
   Activity,
 } from "lucide-react";
-import { formatMainFocusText } from "@/lib/coach/decision-engine";
-import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
 import { computeAllFeatures } from "@/lib/features";
 import type {
   EhrRecord,
@@ -85,21 +83,6 @@ interface CoachClientProps {
 
 export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
   const features = computeAllFeatures(ehr, wearable, lifestyle);
-  const primarySuggestion = generateCoachSuggestions(features, ehr)[0] ?? null;
-  const mainFocusText = formatMainFocusText({
-    suggestion: primarySuggestion,
-    fallback: {
-      key: "activity",
-      severity: "green",
-      headline: "",
-      reason: "",
-      action: "Keep your routine steady today.",
-      todayPlan: [],
-      priorityScore: 0,
-      suppresses: [],
-      supportingSignals: [],
-    },
-  });
   const vo2Target = nextVo2Target(features.vo2max.vo2max);
   const weeklyAction = getWeeklyAction({
     movementPct: features.movementConsistency.pct,
@@ -272,20 +255,6 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
           </Card>
         ))}
       </section>
-
-      <div className="animate-in stagger-3">
-        <div className="flex items-stretch gap-4 rounded-lg bg-surface-1 p-5 sm:gap-5">
-          <div className="w-1 shrink-0 rounded-full bg-primary" />
-          <div className="min-w-0">
-            <p className="mb-2 text-sm font-semibold tracking-[0.04em] text-primary">
-              Main priority today
-            </p>
-            <p className="text-base leading-relaxed text-foreground/85">
-              {mainFocusText}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
