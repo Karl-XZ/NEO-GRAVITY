@@ -171,7 +171,7 @@ export function CoachCard({
             }}
             className="h-auto rounded-full bg-white/80 px-3 text-fluid-xs text-primary shadow-none hover:bg-transparent hover:text-primary/80"
           >
-            Aktionsplan anzeigen
+            View action plan
           </Button>
         </div>
       </div>

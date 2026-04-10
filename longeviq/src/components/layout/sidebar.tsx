@@ -27,10 +27,10 @@ export const NAV_ITEMS = [
   { href: "/insights", label: "Insights", icon: Lightbulb },
   { href: "/journey", label: "Journey", icon: Route },
   { href: "/health-twin", label: "Health Twin", icon: Orbit },
-  { href: "/recommendations", label: "Empfehlungen", icon: Sparkles },
+  { href: "/recommendations", label: "Recommendations", icon: Sparkles },
   { href: "/coach", label: "Coach", icon: MessageCircle },
-  { href: "/concept", label: "Konzept", icon: BookOpen },
-  { href: "/settings", label: "Einstellungen", icon: Settings },
+  { href: "/concept", label: "Concept", icon: BookOpen },
+  { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function Sidebar() {

@@ -17,7 +17,7 @@ export function BioAgeCard({ data, chronologicalAge }: BioAgeCardProps) {
     <Card className="col-span-full lg:col-span-1 border-0 bg-surface-1">
       <CardHeader>
         <CardTitle className="text-muted-foreground text-fluid-sm font-normal tracking-wide uppercase">
-          Biologisches Alter
+          Biological Age
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
@@ -35,21 +35,21 @@ export function BioAgeCard({ data, chronologicalAge }: BioAgeCardProps) {
               )}
             >
               {isYounger ? "" : "+"}
-              {data.delta.toFixed(1)} Jahre
+              {data.delta.toFixed(1)} years
             </Badge>
             <span className="text-fluid-xs text-muted-foreground">
-              vs. {chronologicalAge} chronologisch
+              vs. {chronologicalAge} chronological
             </span>
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <span className="text-fluid-xs text-muted-foreground uppercase tracking-wider">
-            Einflussfaktoren
+            Contributing Factors
           </span>
           <ul className="flex flex-col gap-1.5">
             {data.drivers.map((driver) => {
-              const isPositive = driver.toLowerCase().includes("senkt");
+              const isPositive = driver.toLowerCase().includes("lowers");
               return (
                 <li key={driver} className="flex items-center gap-2 text-fluid-sm">
                   <span

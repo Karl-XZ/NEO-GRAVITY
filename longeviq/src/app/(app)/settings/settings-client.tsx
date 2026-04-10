@@ -25,19 +25,19 @@ import type { AlertMode, UserProfile } from "@/lib/types";
 
 const dataSources = [
   {
-    name: "Elektronische Patientenakte",
-    status: "Verbunden",
-    lastSync: "12.03.2026",
+    name: "Electronic Health Record",
+    status: "Connected",
+    lastSync: "03/12/2026",
   },
   {
     name: "Wearable (Smartwatch)",
-    status: "Verbunden",
-    lastSync: "09.04.2026",
+    status: "Connected",
+    lastSync: "04/09/2026",
   },
   {
-    name: "Lifestyle-Fragebogen",
-    status: "Verbunden",
-    lastSync: "01.04.2026",
+    name: "Lifestyle Questionnaire",
+    status: "Connected",
+    lastSync: "04/01/2026",
   },
 ];
 
@@ -69,17 +69,17 @@ const alertModeOptions: Array<{
   {
     value: "simple",
     label: "Simple",
-    description: "Zeigt nur den Hauptfokus des Tages.",
+    description: "Shows only the main focus of the day.",
   },
   {
     value: "detailed",
     label: "Detailed",
-    description: "Zeigt zusätzlich die 3 wichtigsten Alerts unter dem Tagesfokus.",
+    description: "Also shows the 3 most important alerts below the daily focus.",
   },
   {
     value: "notification",
     label: "Notification",
-    description: "Sendet Browser-Hinweise zum passenden Zeitpunkt des Tages.",
+    description: "Sends browser notifications at the right time of day.",
   },
 ];
 
@@ -97,7 +97,7 @@ export function SettingsClient({
     createEditableState(initialProfile),
   );
   const [selectedAlertMode, setSelectedAlertMode] = useState<AlertMode | null>(null);
-  const [savedAt, setSavedAt] = useState("Heute, 14:42");
+  const [savedAt, setSavedAt] = useState("Today, 2:42 PM");
   const currentAlertMode = selectedAlertMode ?? storedAlertMode;
   const isDirty =
     JSON.stringify(form) !== JSON.stringify(createEditableState(initialProfile)) ||
@@ -127,27 +127,27 @@ export function SettingsClient({
     if (currentAlertMode === "notification" && typeof window !== "undefined" && "Notification" in window) {
       const permission = await window.Notification.requestPermission();
       if (permission === "granted") {
-        setSavedAt("Gerade eben lokal gespeichert · Browser-Hinweise aktiv");
+        setSavedAt("Just now saved locally · Browser notifications active");
         return;
       }
       if (permission === "denied") {
-        setSavedAt("Gespeichert · Browser-Hinweise sind blockiert");
+        setSavedAt("Saved · Browser notifications are blocked");
         return;
       }
     }
 
-    setSavedAt("Gerade eben lokal gespeichert");
+    setSavedAt("Just now saved locally");
   }
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 pb-24">
       <div className="animate-in">
         <h1 className="text-fluid-xl font-semibold tracking-tight">
-          Ihr Profil
+          Your Profile
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Verwalten Sie Ihre persönlichen Angaben, Ihre Präferenzen und den
-          Fokus Ihrer Longevity-Begleitung an einem Ort.
+          Manage your personal details, preferences, and longevity
+          coaching focus all in one place.
         </p>
       </div>
 
@@ -171,13 +171,13 @@ export function SettingsClient({
 
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight">
-                  {form.displayName || "Profil vervollständigen"}
+                  {form.displayName || "Complete your profile"}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {initialProfile.role_label} in {form.city},{" "}
-                  {initialProfile.country_code} · Mitglied seit{" "}
+                  {initialProfile.country_code} · Member since{" "}
                   {new Date(initialProfile.created_at).toLocaleDateString(
-                    "de-DE",
+                    "en-US",
                     {
                       month: "long",
                       year: "numeric",
@@ -189,26 +189,26 @@ export function SettingsClient({
               <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
                 <div className="rounded-xl border border-border bg-white/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em]">
-                    Datenquellen
+                    Data Sources
                   </p>
                   <p className="mt-1 text-lg font-semibold text-foreground">
-                    3 aktiv
+                    3 active
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-white/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em]">
-                    Profilvollständigkeit
+                    Profile Completion
                   </p>
                   <p className="mt-1 text-lg font-semibold text-foreground">
                     {profileCompletion}%
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Basierend auf Ihren Profilangaben
+                    Based on your profile details
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-white/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em]">
-                    Letzte Speicherung
+                    Last Saved
                   </p>
                   <p className="mt-1 text-sm font-medium text-foreground">
                     {savedAt}
@@ -224,15 +224,15 @@ export function SettingsClient({
       <section className="grid gap-6">
         <Card className="animate-in">
           <CardHeader>
-            <CardTitle>Persönliche Angaben</CardTitle>
+            <CardTitle>Personal Details</CardTitle>
             <CardDescription>
-              Aktualisieren Sie Ihre Kerndaten.
+              Update your core information.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="display-name">Anzeigename</Label>
+                <Label htmlFor="display-name">Display Name</Label>
                 <Input
                   id="display-name"
                   value={form.displayName}
@@ -243,7 +243,7 @@ export function SettingsClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-Mail</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -255,7 +255,7 @@ export function SettingsClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">Stadt</Label>
+                <Label htmlFor="city">City</Label>
                 <Input
                   id="city"
                   value={form.city}
@@ -266,7 +266,7 @@ export function SettingsClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="timezone">Zeitzone</Label>
+                <Label htmlFor="timezone">Timezone</Label>
                 <Input
                   id="timezone"
                   value={form.timezone}
@@ -279,14 +279,14 @@ export function SettingsClient({
 
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
               <div>
-                <p className="text-sm font-medium">Demo-Profilmodus</p>
+                <p className="text-sm font-medium">Demo Profile Mode</p>
                 <p className="text-xs text-muted-foreground">
-                  Anderungen werden fur diese Sitzung vorgemerkt, aber noch
-                  nicht serverseitig gespeichert.
+                  Changes are saved for this session but are not yet
+                  persisted on the server.
                 </p>
               </div>
               <Button onClick={handleSave} disabled={!isDirty}>
-                Profil speichern
+                Save Profile
               </Button>
             </div>
           </CardContent>
@@ -294,9 +294,9 @@ export function SettingsClient({
 
         <Card className="animate-in">
           <CardHeader>
-            <CardTitle>Alert-Typ</CardTitle>
+            <CardTitle>Alert Type</CardTitle>
             <CardDescription>
-              Legen Sie fest, wie stark LongevIQ Ihre täglichen Hinweise ausspielt.
+              Choose how prominently LongevIQ delivers your daily alerts.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -329,9 +329,9 @@ export function SettingsClient({
       <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card className="animate-in">
           <CardHeader>
-            <CardTitle>Datenquellen</CardTitle>
+            <CardTitle>Data Sources</CardTitle>
             <CardDescription>
-              Verbundene Systeme und letzte Synchronisation.
+              Connected systems and last synchronization.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -343,7 +343,7 @@ export function SettingsClient({
                 <div>
                   <p className="text-sm font-medium">{source.name}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Zuletzt synchronisiert: {source.lastSync}
+                    Last synced: {source.lastSync}
                   </p>
                 </div>
                 <Badge className="bg-primary/15 text-primary border-primary/25 w-fit">
@@ -356,9 +356,9 @@ export function SettingsClient({
 
         <Card className="animate-in">
           <CardHeader>
-            <CardTitle>Privatsphäre und Export</CardTitle>
+            <CardTitle>Privacy and Export</CardTitle>
             <CardDescription>
-              Verwalten Sie Sichtbarkeit, Export und Kontosicherheit.
+              Manage visibility, export, and account security.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -368,7 +368,7 @@ export function SettingsClient({
                 <div className="min-w-0">
                   <p className="break-all text-sm font-medium">{form.email}</p>
                   <p className="text-xs text-muted-foreground">
-                    Primaere Kontaktadresse
+                    Primary contact address
                   </p>
                 </div>
               </div>
@@ -379,16 +379,16 @@ export function SettingsClient({
                     {form.city}, {initialProfile.country_code}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Zeitzone: {form.timezone}
+                    Timezone: {form.timezone}
                   </p>
                 </div>
               </div>
               <div className="min-w-0 flex items-start gap-3 rounded-xl border border-border bg-background px-4 py-3">
                 <ShieldCheck className="mt-0.5 size-4 text-primary" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">Datenschutz aktiviert</p>
+                  <p className="text-sm font-medium">Privacy enabled</p>
                   <p className="text-xs text-muted-foreground">
-                    Profildaten bleiben in dieser Demo lokal.
+                    Profile data stays local in this demo.
                   </p>
                 </div>
               </div>
@@ -399,11 +399,11 @@ export function SettingsClient({
             <div className="rounded-xl border border-border bg-background px-4 py-4">
               <div className="flex items-center gap-2">
                 <Sparkles className="size-4 text-primary" />
-                <p className="text-sm font-medium">Exportcenter</p>
+                <p className="text-sm font-medium">Export Center</p>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Laden Sie Ihre wichtigsten Gesundheitsdaten als CSV oder PDF
-                herunter, um sie mit Ihrem Arzt oder Coach zu teilen.
+                Download your key health data as CSV or PDF to share with
+                your doctor or coach.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
                 <Button variant="outline">CSV Export</Button>
@@ -417,16 +417,15 @@ export function SettingsClient({
               <div className="flex items-center gap-2">
                 <Activity className="size-4 text-destructive" />
                 <p className="text-sm font-medium text-destructive">
-                  Konto löschen
+                  Delete Account
                 </p>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Ihr Konto und alle zugehörigen Gesundheitsdaten werden
-                unwiderruflich gelöscht. Dieser Vorgang kann nicht rückgängig
-                gemacht werden.
+                Your account and all associated health data will be
+                permanently deleted. This action cannot be undone.
               </p>
               <Button variant="destructive" className="mt-4">
-                Konto und Daten löschen
+                Delete Account and Data
               </Button>
             </div>
           </CardContent>

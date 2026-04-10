@@ -35,11 +35,11 @@ const PAGE_TITLES: Record<string, string> = {
   "/insights": "Insights",
   "/journey": "Journey",
   "/health-twin": "Health Twin",
-  "/recommendations": "Empfehlungen",
-  "/coach": "Gesundheitscoach",
-  "/concept": "Konzept",
-  "/profile": "Profil",
-  "/settings": "Einstellungen",
+  "/recommendations": "Recommendations",
+  "/coach": "Health Coach",
+  "/concept": "Concept",
+  "/profile": "Profile",
+  "/settings": "Settings",
 };
 
 export function Topbar({ profile }: { profile: UserProfile }) {
@@ -167,7 +167,7 @@ export function Topbar({ profile }: { profile: UserProfile }) {
         >
           <div className="hidden text-right sm:block">
             <p className="text-sm font-medium leading-none">
-              {profile.display_name ?? "Unbekannter Nutzer"}
+              {profile.display_name ?? "Unknown User"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               {profile.role_label} | {personaLabel}

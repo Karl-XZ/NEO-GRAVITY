@@ -263,14 +263,14 @@ export function DashboardClient({
             value={features.recoveryScore.score}
             colorClass="text-chart-1"
             barColorClass="bg-chart-1"
-            helpText="Readiness zeigt, wie bereit Ihr Körper heute für Belastung ist. Der Wert berücksichtigt unter anderem HRV, Ruhepuls und Schlafsignale."
+            helpText="Readiness shows how prepared your body is for exertion today. The score takes into account HRV, resting heart rate, and sleep signals, among other factors."
           />
           <ScoreCard
             label="Recovery"
             value={features.recoveryScore.score}
             colorClass="text-chart-2"
             barColorClass="bg-chart-2"
-            helpText="Recovery beschreibt, wie gut sich Ihr System zuletzt erholt hat. Höhere Werte sprechen für mehr Regeneration und geringere aktuelle Belastung."
+            helpText="Recovery describes how well your body has recovered recently. Higher values indicate greater regeneration and lower current strain."
           />
         </section>
 

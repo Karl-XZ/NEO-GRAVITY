@@ -139,15 +139,15 @@ export function buildDailyPriority(
       makePriority({
         key: "clinical",
         severity: clinicalScore >= 85 ? "red" : "yellow",
-        headline: "Heute ist klinische Klärung wichtig.",
+        headline: "Clinical clarification is the priority today.",
         reason:
-          "Mindestens ein medizinisches Risikosignal steht heute über Lifestyle-Feintuning und Trainingsoptimierung.",
+          "At least one medical risk signal outweighs lifestyle fine-tuning and training optimization today.",
         action:
-          "Fokus auf Follow-up, Messwiederholung oder ärztliche Rücksprache statt auf zusätzliche Belastung.",
+          "Focus on follow-up, repeat measurement, or medical consultation rather than adding more strain.",
         todayPlan: [
-          "Blutdruck oder den auffälligen Wert heute noch einmal ruhig nachmessen.",
-          "Einen Arzttermin oder ein kurzes Follow-up für diese Woche anstoßen.",
-          "Heute keine zusätzliche Trainingsintensität als Ausgleich nutzen.",
+          "Re-measure blood pressure or the flagged value calmly today.",
+          "Schedule a doctor appointment or a short follow-up for this week.",
+          "Do not use extra training intensity as compensation today.",
         ],
         priorityScore: clinicalScore,
         suppresses: ["activity"],
@@ -189,15 +189,15 @@ export function buildDailyPriority(
       makePriority({
         key: "sleep",
         severity: sleepScore >= 85 ? "red" : "yellow",
-        headline: "Heute ist Schlaf wichtig.",
+        headline: "Sleep is the priority today.",
         reason:
-          "Ihre Schlaf- und Erholungssignale deuten darauf hin, dass zusätzliche Belastung heute eher stört als hilft.",
+          "Your sleep and recovery signals suggest that additional strain today would hurt more than help.",
         action:
-          "Kein hartes Training heute. Frühere Schlafenszeit, weniger spätes Licht und nur leichte Bewegung.",
+          "No hard training today. Earlier bedtime, less late-night screen time, and only light movement.",
         todayPlan: [
-          "Heute nur lockere Bewegung wie Spaziergang oder leichtes Zone 2.",
-          "Koffein nach dem frühen Nachmittag streichen und abends Bildschirme früher beenden.",
-          "Schlaf heute 30 bis 60 Minuten früher einplanen.",
+          "Only light movement today such as a walk or easy zone 2.",
+          "Cut caffeine after early afternoon and stop screens earlier in the evening.",
+          "Plan to go to sleep 30 to 60 minutes earlier today.",
         ],
         priorityScore: Math.min(sleepScore, 95),
         suppresses: ["activity", "recovery"],
@@ -226,15 +226,15 @@ export function buildDailyPriority(
       makePriority({
         key: "mood",
         severity: moodScore >= 85 ? "red" : "yellow",
-        headline: "Heute ist Stabilisierung wichtig.",
+        headline: "Stabilization is the priority today.",
         reason:
-          "Wohlbefinden und mentale Belastbarkeit wirken heute fragiler als Ihre anderen Präventionssignale.",
+          "Well-being and mental resilience appear more fragile today than your other prevention signals.",
         action:
-          "Kurzes Check-in, Belastung reduzieren und Support früh aktivieren statt nur weiter zu optimieren.",
+          "Short check-in, reduce strain, and activate support early rather than continuing to optimize.",
         todayPlan: [
-          "Heute einen kurzen Check-in mit Arzt, Coach oder vertrauter Person anstoßen.",
-          "Anspruch und Trainingslast für heute bewusst reduzieren.",
-          "Einen ruhigen Block für Spaziergang, Tageslicht oder Atemübung reservieren.",
+          "Initiate a short check-in with a doctor, coach, or trusted person today.",
+          "Consciously reduce expectations and training load for today.",
+          "Reserve a calm block for a walk, daylight, or a breathing exercise.",
         ],
         priorityScore: moodScore,
         suppresses: ["activity"],
@@ -267,15 +267,15 @@ export function buildDailyPriority(
       makePriority({
         key: "recovery",
         severity: recoveryScore >= 85 ? "red" : "yellow",
-        headline: "Heute ist Regeneration wichtig.",
+        headline: "Recovery is the priority today.",
         reason:
-          "Ihr System zeigt Zeichen von Überlastung. Mehr Intensität würde heute eher die Erholung verzögern.",
+          "Your system is showing signs of overload. More intensity today would delay recovery rather than help.",
         action:
-          "Aktive Erholung, Zone 2 oder Pause sind heute sinnvoller als Leistungsspitzen.",
+          "Active recovery, zone 2, or rest are more beneficial today than peak performance efforts.",
         todayPlan: [
-          "Kein Intervall- oder Maximaltraining heute.",
-          "Wenn Sie trainieren, dann nur locker und kürzer als üblich.",
-          "Erholung heute aktiv unterstützen: früh essen, trinken und mehr Schlaf einplanen.",
+          "No interval or maximal training today.",
+          "If you train, keep it easy and shorter than usual.",
+          "Actively support recovery today: eat early, hydrate, and plan for more sleep.",
         ],
         priorityScore: recoveryScore,
         suppresses: ["activity"],
@@ -310,15 +310,15 @@ export function buildDailyPriority(
       makePriority({
         key: "activity",
         severity: activityScore >= 80 ? "yellow" : "green",
-        headline: "Heute ist Bewegung wichtig.",
+        headline: "Movement is the priority today.",
         reason:
-          "Im Moment ist weniger die Feinanalyse das Problem, sondern die fehlende Konsistenz bei Alltagsbewegung und Trainingsbasis.",
+          "Right now the issue is less about fine-tuning analysis and more about lacking consistency in daily movement and a training base.",
         action:
-          "Heute zuerst gehen, nicht weiter planen: ein einfacher Walk oder eine lockere Cardio-Einheit reicht.",
+          "Get moving today instead of planning more: a simple walk or an easy cardio session is enough.",
         todayPlan: [
-          "Heute einen festen 20- bis 30-Minuten-Walk in den Kalender setzen.",
-          "Längere Sitzblöcke mit kurzen Bewegungsbreaks unterbrechen.",
-          "Die einfache Bewegung zuerst erledigen, bevor Sie weiter optimieren.",
+          "Schedule a dedicated 20- to 30-minute walk on your calendar today.",
+          "Break up long sitting blocks with short movement breaks.",
+          "Complete the simple movement first before optimizing further.",
         ],
         priorityScore: activityScore,
         suppresses: [],
@@ -347,15 +347,15 @@ export function buildDailyPriority(
     makePriority({
       key: "activity",
       severity: "green",
-      headline: "Heute ist Konstanz wichtig.",
+      headline: "Consistency is the priority today.",
       reason:
-        "Kein einzelnes Signal dominiert stark genug, um alles andere zu verdrängen.",
+        "No single signal is dominant enough to override everything else.",
       action:
-        "Routine beibehalten, nicht überoptimieren und nur kleine, wiederholbare Schritte wählen.",
+        "Maintain your routine, avoid over-optimizing, and choose only small, repeatable steps.",
       todayPlan: [
-        "Ihre normale Routine heute bewusst einfach halten.",
-        "Eine kleine Gesundheitsaktion früh am Tag abhaken.",
-        "Nichts Neues hinzufügen, wenn es nicht nötig ist.",
+        "Consciously keep your normal routine simple today.",
+        "Check off one small health action early in the day.",
+        "Do not add anything new unless it is truly necessary.",
       ],
       priorityScore: 40,
       suppresses: [],

@@ -7,17 +7,17 @@ import { Badge } from '@/components/ui/badge';
 import { useAppState } from '@/components/AppState';
 
 const JOURNEY_STEPS = [
-  { stage: 'Datenaufnahme', desc: 'Strukturierte EHR-, Lifestyle- und Wearable-Daten in einer Fallansicht zusammenführen.' },
-  { stage: 'Risikosynthese', desc: 'Reale Signale in einen verständlichen Präventionsscore und den stärksten Risikobereich übersetzen.' },
-  { stage: 'Twin-Projektion', desc: 'Adhärenz und Nicht-Adhärenz mit einer kohortenbasierten ML-Projektion vergleichen.' },
-  { stage: 'Aktionspfad', desc: 'Das stärkste Risikosignal in einen klinischen und einen Verhaltensschritt übersetzen.' },
-  { stage: 'Nachverfolgung', desc: 'Nachhalten, ob die nächste Aktion tatsächlich gespeichert und umgesetzt wurde.' },
+  { stage: 'Data Intake', desc: 'Merge structured EHR, lifestyle, and wearable data into a single case view.' },
+  { stage: 'Risk Synthesis', desc: 'Translate real signals into an understandable prevention score and the strongest risk area.' },
+  { stage: 'Twin Projection', desc: 'Compare adherence and non-adherence using a cohort-based ML projection.' },
+  { stage: 'Action Path', desc: 'Translate the strongest risk signal into a clinical step and a behavioral step.' },
+  { stage: 'Follow-Up', desc: 'Track whether the next action was actually saved and carried out.' },
 ];
 
 const USER_STORIES = [
-  { metric: 'Als klinischer Operator', want: 'möchte ich eine zusammengeführte Fallansicht aus Silodaten', so: 'damit ich das Signal erklären kann, ohne mehrere Systeme zu öffnen.' },
-  { metric: 'Als präventiver Patient', want: 'möchte ich Zukunft mit und ohne Plan-Adhärenz vergleichen', so: 'damit die Kosten schlechter Adhärenz sichtbar werden.' },
-  { metric: 'Als Product Owner', want: 'möchte ich eine Demo mit realen Datensätzen statt Personas', so: 'damit die Story gegenüber Stakeholdern glaubwürdig wirkt.' },
+  { metric: 'As a clinical operator', want: 'I want a merged case view from siloed data', so: 'so I can explain the signal without opening multiple systems.' },
+  { metric: 'As a preventive patient', want: 'I want to compare the future with and without plan adherence', so: 'so the cost of poor adherence becomes visible.' },
+  { metric: 'As a product owner', want: 'I want a demo with real datasets instead of personas', so: 'so the story is credible to stakeholders.' },
 ];
 
 function getCaseBadgeLabel(displayName: string) {
@@ -38,33 +38,33 @@ export default function ConceptPage() {
       <div className="animate-fade-up">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#CCFBF1] bg-[#F0FDFA] px-3 py-1.5 text-xs font-medium text-[#0D9488]">
           <BookOpen className="h-3 w-3" />
-          Konzept
+          Concept
         </div>
-        <h1 className="mb-2 text-3xl font-semibold text-[#0F172A]">Von Mock-Personas zu realen Fällen</h1>
+        <h1 className="mb-2 text-3xl font-semibold text-[#0F172A]">From Mock Personas to Real Cases</h1>
         <p className="max-w-2xl text-base leading-relaxed text-[#64748B]">
-          Diese Konzeptseite beschreibt die aktualisierte Produktform: eine präventive Gesundheitsplattform auf Basis realer Supabase-Daten mit einem Twin, der die praktischen Folgen von Plan-Adhärenz oder Nicht-Adhärenz zeigt.
+          This concept page describes the updated product form: a preventive health platform based on real Supabase data with a twin that shows the practical consequences of plan adherence or non-adherence.
         </p>
       </div>
 
       <Card className="rounded-2xl border border-[#E2E8F0] bg-white p-6 animate-fade-up delay-100">
-            <h2 className="mb-4 text-base font-semibold text-[#0F172A]">Warum diese Version wichtig ist</h2>
+            <h2 className="mb-4 text-base font-semibold text-[#0F172A]">Why This Version Matters</h2>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl bg-[#F8FAFC] p-4">
-                <p className="mb-1 text-xs font-semibold text-[#0F172A]">Daten-Glaubwürdigkeit</p>
+                <p className="mb-1 text-xs font-semibold text-[#0F172A]">Data Credibility</p>
                 <p className="text-xs leading-relaxed text-[#64748B]">
-              De-identifizierte Kohortenfälle, Biomarker und Wearable-Signale treiben die Demo statt erfundener Journeys.
+              De-identified cohort cases, biomarkers, and wearable signals drive the demo instead of fabricated journeys.
                 </p>
               </div>
           <div className="rounded-xl bg-[#F8FAFC] p-4">
-            <p className="mb-1 text-xs font-semibold text-[#0F172A]">Twin-Glaubwürdigkeit</p>
+            <p className="mb-1 text-xs font-semibold text-[#0F172A]">Twin Credibility</p>
             <p className="text-xs leading-relaxed text-[#64748B]">
-              Der Health Twin nutzt jetzt eine kohortenbasierte KNN-Projektion, um Veränderungen bei besserer oder schlechterer Adhärenz zu schätzen.
+              The Health Twin now uses a cohort-based KNN projection to estimate changes with better or worse adherence.
             </p>
           </div>
           <div className="rounded-xl bg-[#F8FAFC] p-4">
-            <p className="mb-1 text-xs font-semibold text-[#0F172A]">Klinisches Framing</p>
+            <p className="mb-1 text-xs font-semibold text-[#0F172A]">Clinical Framing</p>
             <p className="text-xs leading-relaxed text-[#64748B]">
-              Die UI bleibt präventiv und handlungsorientiert, statt eine Diagnose vorzutäuschen.
+              The UI stays preventive and action-oriented rather than simulating a diagnosis.
             </p>
           </div>
         </div>
@@ -76,18 +76,18 @@ export default function ConceptPage() {
             <Target className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="mb-1 text-xs font-medium opacity-70">North-Star-Metrik</p>
-            <h3 className="mb-1 text-base font-semibold">Anteil geladener Fälle mit mindestens einer gespeicherten Next-Best-Action</h3>
+            <p className="mb-1 text-xs font-medium opacity-70">North Star Metric</p>
+            <h3 className="mb-1 text-base font-semibold">Share of loaded cases with at least one saved next-best action</h3>
             <p className="text-xs leading-relaxed opacity-70">
-              Das verbindet die Interpretation realer Patientensignale mit echter Verhaltensplanung und genau das soll die Demo zeigen.
+              This connects the interpretation of real patient signals with actual behavioral planning, which is exactly what the demo aims to show.
             </p>
           </div>
         </div>
       </Card>
 
       <div className="animate-fade-up delay-300">
-        <h2 className="mb-1 text-xl font-semibold text-[#0F172A]">Ausgewählte reale Fälle</h2>
-        <p className="mb-5 text-sm text-[#64748B]">Diese Karten werden jetzt aus der aktiven Supabase-Kohorte geladen.</p>
+        <h2 className="mb-1 text-xl font-semibold text-[#0F172A]">Featured Real Cases</h2>
+        <p className="mb-5 text-sm text-[#64748B]">These cards are now loaded from the active Supabase cohort.</p>
         <div className="grid gap-4 sm:grid-cols-2">
           {featuredPatients.map((patient) => (
             <Card
@@ -109,7 +109,7 @@ export default function ConceptPage() {
                       {patient.country}
                     </Badge>
                   </div>
-                  <p className="text-xs text-[#64748B]">{patient.age} Jahre</p>
+                  <p className="text-xs text-[#64748B]">{patient.age} years</p>
                 </div>
               </div>
               <p className="mb-3 text-xs leading-relaxed text-[#94A3B8]">{patient.shortSummary}</p>
@@ -121,7 +121,7 @@ export default function ConceptPage() {
                 ))}
               </div>
               <span className="flex items-center gap-0.5 text-xs font-medium text-[#0D9488] transition-all group-hover:gap-1.5">
-                Öffnen <ChevronRight className="h-3 w-3" />
+                Open <ChevronRight className="h-3 w-3" />
               </span>
             </Card>
           ))}
@@ -129,7 +129,7 @@ export default function ConceptPage() {
       </div>
 
       <div className="animate-fade-up delay-400">
-        <h2 className="mb-5 text-xl font-semibold text-[#0F172A]">Aktualisierte Journey</h2>
+        <h2 className="mb-5 text-xl font-semibold text-[#0F172A]">Updated Journey</h2>
         <div className="relative">
           <div className="absolute bottom-0 left-4 top-0 w-px bg-gradient-to-b from-[#0D9488] via-[#6366F1] to-transparent" />
           <div className="space-y-4">
@@ -149,7 +149,7 @@ export default function ConceptPage() {
       </div>
 
       <div className="animate-fade-up delay-500">
-        <h2 className="mb-5 text-xl font-semibold text-[#0F172A]">Nutzer-Storys</h2>
+        <h2 className="mb-5 text-xl font-semibold text-[#0F172A]">User Stories</h2>
         <div className="space-y-3">
           {USER_STORIES.map((story, index) => (
             <Card key={story.metric} className="rounded-2xl border border-[#E2E8F0] bg-white p-5">
@@ -173,7 +173,7 @@ export default function ConceptPage() {
           onClick={() => router.push('/')}
           className="inline-flex items-center gap-2 rounded-full bg-[#0D9488] px-6 py-3.5 text-sm font-medium text-white shadow-lg shadow-[#0D9488]/20 transition-all hover:bg-[#0F766E]"
         >
-          Zurück zur App
+          Back to App
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>

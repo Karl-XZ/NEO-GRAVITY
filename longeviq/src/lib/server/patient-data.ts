@@ -138,7 +138,7 @@ function stableHash(value: string) {
 
 function buildCaseAlias(patientId: string) {
   const numericPart = patientId.replace(/\D+/g, "").slice(-3).padStart(3, "0");
-  return `Fall ${numericPart}`;
+  return `Case ${numericPart}`;
 }
 
 function summarizeTelemetry(rows: TelemetryRow[]) {
@@ -191,11 +191,11 @@ function buildKeyRisks(
 ) {
   const risks: string[] = [];
 
-  if (row.hba1c_pct >= 6.5 || row.fasting_glucose_mmol >= 7) risks.push("Glykämische Kontrolle");
-  if (row.sbp_mmhg >= 140 || row.dbp_mmhg >= 90 || row.ldl_mmol >= 4) risks.push("Kardiovaskuläre Last");
-  if (telemetry.avgSleepHours < 6.8 || telemetry.avgSleepQuality < 65) risks.push("Schlafdefizit");
-  if (lifestyle.exercise_sessions_weekly < 3 || telemetry.avgSteps < 7000) risks.push("Bewegungsdefizit");
-  if (row.crp_mg_l >= 3) risks.push("Entzündung");
+  if (row.hba1c_pct >= 6.5 || row.fasting_glucose_mmol >= 7) risks.push("Glycemic Control");
+  if (row.sbp_mmhg >= 140 || row.dbp_mmhg >= 90 || row.ldl_mmol >= 4) risks.push("Cardiovascular Load");
+  if (telemetry.avgSleepHours < 6.8 || telemetry.avgSleepQuality < 65) risks.push("Sleep Deficit");
+  if (lifestyle.exercise_sessions_weekly < 3 || telemetry.avgSteps < 7000) risks.push("Movement Deficit");
+  if (row.crp_mg_l >= 3) risks.push("Inflammation");
 
   return risks.slice(0, 3);
 }
@@ -207,14 +207,14 @@ function buildSummary(
 ): PatientSummary {
   const chronicConditions = splitPipe(row.chronic_conditions);
   const keyRisks = buildKeyRisks(row, lifestyle, telemetry);
-  const primaryConcern = keyRisks[0] ?? "Präventionscheck";
+  const primaryConcern = keyRisks[0] ?? "Prevention Check";
 
   return {
     patientId: row.patient_id,
     displayName: buildCaseAlias(row.patient_id),
     source: "supabase",
-    sourceLabel: "Aktiver Kohortenfall",
-    tag: "De-identifizierter Fall",
+    sourceLabel: "Active Cohort Case",
+    tag: "De-identified Case",
     age: row.age,
     sex: mapSex(row.sex),
     country: row.country,
@@ -223,8 +223,8 @@ function buildSummary(
     primaryConcern,
     shortSummary:
       chronicConditions.length > 0
-        ? `Fall aus ${row.country} mit ${chronicConditions.slice(0, 2).map((item) => titleCase(item).toLowerCase()).join(", ")} und klarem präventivem Nachsteuerungsbedarf.`
-        : `Fall aus ${row.country} ohne dokumentierte chronische Erkrankung, aber mit relevanten Präventionschancen.`,
+        ? `Case from ${row.country} with ${chronicConditions.slice(0, 2).map((item) => titleCase(item).toLowerCase()).join(", ")} and a clear need for preventive follow-up.`
+        : `Case from ${row.country} with no documented chronic condition, but with relevant prevention opportunities.`,
   };
 }
 
@@ -267,17 +267,17 @@ function riskLevelFromScore(score: number): RiskLevel {
 function getDimensionLabel(dimension: string, score: number) {
   switch (dimension) {
     case "Cardiovascular":
-      return score >= 80 ? "Stabil" : score >= 60 ? "Beobachten" : "Nachfassen";
+      return score >= 80 ? "Stable" : score >= 60 ? "Monitor" : "Follow Up";
     case "Metabolic":
-      return score >= 80 ? "Stabiler Stoffwechsel" : score >= 60 ? "Frühe Drift" : "Hohe glykämische Last";
+      return score >= 80 ? "Stable Metabolism" : score >= 60 ? "Early Drift" : "High Glycemic Load";
     case "Sleep & Recovery":
-      return score >= 80 ? "Erholt sich gut" : score >= 60 ? "Teilweise erholt" : "Erholungsdefizit";
+      return score >= 80 ? "Recovering Well" : score >= 60 ? "Partially Recovered" : "Recovery Deficit";
     case "Activity":
-      return score >= 80 ? "Konstante Bewegung" : score >= 60 ? "Etwas Bewegungsdefizit" : "Zu wenig Bewegung";
+      return score >= 80 ? "Consistent Movement" : score >= 60 ? "Some Movement Deficit" : "Insufficient Movement";
     case "Stress & Wellbeing":
-      return score >= 80 ? "Resilient" : score >= 60 ? "Gemischte Resilienz" : "Stressbelastung";
+      return score >= 80 ? "Resilient" : score >= 60 ? "Mixed Resilience" : "Stress Burden";
     default:
-      return score >= 80 ? "Unterstützend" : score >= 60 ? "Gemischte Qualität" : "Verbesserung nötig";
+      return score >= 80 ? "Supportive" : score >= 60 ? "Mixed Quality" : "Improvement Needed";
   }
 }
 
@@ -431,10 +431,10 @@ function buildRisks(patient: PatientRecord, riskScores: RiskScore[]): RiskItem[]
     pushRisk(
       "cardio-load",
       "Cardiovascular",
-      "Erhöhte kardiovaskuläre Belastung",
-      `Blutdruck ${patient.systolicBp}/${patient.diastolicBp} mmHg und LDL ${patient.ldlMmol} mmol/L sprechen für eine präventive kardiovaskuläre Nachkontrolle.`,
+      "Elevated Cardiovascular Load",
+      `Blood pressure ${patient.systolicBp}/${patient.diastolicBp} mmHg and LDL ${patient.ldlMmol} mmol/L suggest a preventive cardiovascular follow-up.`,
       patient.systolicBp >= 150 || patient.ldlMmol >= 4.5 ? "critical" : "high",
-      "Lassen Sie den Trend mit einer ärztlich begleiteten Blutdruck- und Lipidkontrolle bestätigen.",
+      "Confirm the trend with a physician-guided blood pressure and lipid check.",
     );
   }
 
@@ -442,10 +442,10 @@ function buildRisks(patient: PatientRecord, riskScores: RiskScore[]): RiskItem[]
     pushRisk(
       "metabolic-drift",
       "Metabolic",
-      "Metabolische Drift erkennbar",
-      `HbA1c ${patient.hba1cPct}% und Nüchternglukose ${patient.fastingGlucoseMmol} mmol/L zeigen eine glykämische Belastung, die noch beeinflussbar sein kann.`,
+      "Metabolic Drift Detected",
+      `HbA1c ${patient.hba1cPct}% and fasting glucose ${patient.fastingGlucoseMmol} mmol/L indicate glycemic load that may still be modifiable.`,
       patient.hba1cPct >= 6.5 ? "critical" : "high",
-      "Priorisieren Sie einen strukturierten Stoffwechsel-Check und einen alltagstauglichen Mahlzeitenplan.",
+      "Prioritize a structured metabolic check and a practical meal plan.",
     );
   }
 
@@ -453,10 +453,10 @@ function buildRisks(patient: PatientRecord, riskScores: RiskScore[]): RiskItem[]
     pushRisk(
       "sleep-debt",
       "Sleep & Recovery",
-      "Erholungsdefizit bremst den Fortschritt",
-      `Der durchschnittliche Schlaf liegt bei ${patient.telemetry.avgSleepHours} h mit einer Qualität von ${patient.telemetry.avgSleepQuality}/100. Das kann Stress und geringe Adhärenz verstärken.`,
+      "Recovery Deficit Slowing Progress",
+      `Average sleep is ${patient.telemetry.avgSleepHours} h with a quality of ${patient.telemetry.avgSleepQuality}/100. This can amplify stress and reduce adherence.`,
       patient.telemetry.avgSleepHours < 6 ? "high" : "moderate",
-      "Stabilisieren Sie diese Woche die Schlafenszeit und reduzieren Sie späte Abendvariabilität.",
+      "Stabilize bedtime this week and reduce late-evening variability.",
     );
   }
 
@@ -468,10 +468,10 @@ function buildRisks(patient: PatientRecord, riskScores: RiskScore[]): RiskItem[]
     pushRisk(
       "movement-deficit",
       "Activity",
-      "Zu wenig Bewegung im Alltag",
-      `${patient.telemetry.avgSteps} Schritte pro Tag und ${patient.lifestyle.sedentaryHoursDay} Sitzstunden täglich deuten auf ein relevantes Bewegungsdefizit hin.`,
+      "Insufficient Daily Movement",
+      `${patient.telemetry.avgSteps} steps per day and ${patient.lifestyle.sedentaryHoursDay} sedentary hours daily indicate a significant movement deficit.`,
       patient.telemetry.avgSteps < 5000 ? "high" : "moderate",
-      "Verankern Sie eine realistische Aktivität im Alltag und unterbrechen Sie langes Sitzen stündlich.",
+      "Anchor a realistic activity habit into daily life and break up prolonged sitting every hour.",
     );
   }
 
@@ -479,10 +479,10 @@ function buildRisks(patient: PatientRecord, riskScores: RiskScore[]): RiskItem[]
     pushRisk(
       "stress-inflammation",
       "Stress & Wellbeing",
-      "Stress- und Entzündungsbelastung erhöht",
-      `CRP ${patient.crpMgL} mg/L zusammen mit einem Stresswert von ${patient.lifestyle.stressLevel}/10 deutet auf ein belastetes Erholungssystem hin.`,
+      "Elevated Stress and Inflammation Load",
+      `CRP ${patient.crpMgL} mg/L combined with a stress score of ${patient.lifestyle.stressLevel}/10 suggests a strained recovery system.`,
       patient.crpMgL >= 5 ? "high" : "moderate",
-      "Reduzieren Sie Überlastung und ergänzen Sie einen strukturierten Erholungs-Check-in.",
+      "Reduce overload and add a structured recovery check-in.",
     );
   }
 
@@ -499,29 +499,29 @@ function buildOpportunities(
     .map((risk, index) => {
       const baseTitle =
         risk.dimension === "Activity"
-          ? "Wöchentliche Bewegungsroutine aufbauen"
+          ? "Build a Weekly Movement Routine"
           : risk.dimension === "Sleep & Recovery"
-            ? "Erholungskonsistenz zurückgewinnen"
+            ? "Regain Recovery Consistency"
             : risk.dimension === "Cardiovascular"
-              ? "Kardiovaskuläre Basis stabilisieren"
+              ? "Stabilize Cardiovascular Baseline"
               : risk.dimension === "Metabolic"
-                ? "Glykämische Last senken"
+                ? "Lower Glycemic Load"
                 : risk.dimension === "Stress & Wellbeing"
-                  ? "Stressübertrag reduzieren"
-                  : "Ernährungs- und Hydrationsbasis verbessern";
+                  ? "Reduce Stress Spillover"
+                  : "Improve Nutrition and Hydration Baseline";
 
       const description =
         risk.dimension === "Activity"
-          ? `Aktuell liegen ${patient.lifestyle.exerciseSessionsWeekly} Trainingseinheiten pro Woche und ${patient.telemetry.avgSteps} Schritte pro Tag vor. Ein klarer Aktivitätsanker kann die Adhärenz schnell verbessern.`
+          ? `Currently at ${patient.lifestyle.exerciseSessionsWeekly} exercise sessions per week and ${patient.telemetry.avgSteps} steps per day. A clear activity anchor can quickly improve adherence.`
           : risk.dimension === "Sleep & Recovery"
-            ? `Die Schlafqualität liegt bei ${patient.telemetry.avgSleepQuality}/100. Frühe Erholungsgewinne können mehrere nachgelagerte Werte gleichzeitig verbessern.`
+            ? `Sleep quality is at ${patient.telemetry.avgSleepQuality}/100. Early recovery gains can improve multiple downstream metrics simultaneously.`
             : risk.dimension === "Cardiovascular"
-              ? "Eine Nachkontrolle von Blutdruck und Lipiden reduziert Unsicherheit und klärt den sichersten nächsten Schritt."
+              ? "A follow-up on blood pressure and lipids reduces uncertainty and clarifies the safest next step."
               : risk.dimension === "Metabolic"
-                ? "Mahlzeitenrhythmus, Bewegung und eine ärztliche Prüfung können das Stoffwechselbild noch spürbar verbessern."
+                ? "Meal timing, movement, and a medical review can still noticeably improve the metabolic picture."
                 : risk.dimension === "Stress & Wellbeing"
-                  ? "Eine geringere Stresslast kann sowohl die Adhärenz als auch die Erholungsresilienz verbessern."
-                  : `Die Ernährungsqualität liegt bei ${patient.lifestyle.dietQualityScore}/10 und ${patient.lifestyle.fruitVegServingsDaily} Portionen pro Tag. Hier besteht alltagstaugliches Verbesserungspotenzial.`;
+                  ? "A lower stress burden can improve both adherence and recovery resilience."
+                  : `Diet quality is at ${patient.lifestyle.dietQualityScore}/10 with ${patient.lifestyle.fruitVegServingsDaily} servings per day. There is practical room for improvement here.`;
 
       return {
         id: `opportunity-${index + 1}`,
@@ -562,13 +562,13 @@ function buildAssessmentResult(
     risks,
     opportunities,
     northStarMetric:
-      "Anteil geladener Fälle mit mindestens einer gespeicherten nächsten Maßnahme",
+      "Share of loaded cases with at least one saved next action",
     aiSummary:
       overallScore >= 75
-        ? "Die präventive Ausgangslage ist insgesamt stabil. Halten Sie den Plan einfach und konsequent."
+        ? "The preventive baseline is overall stable. Keep the plan simple and consistent."
         : overallScore >= 55
-          ? "Dieses Profil zeigt eine gemischte Präventionslage mit ein bis zwei besonders wirksamen Chancen."
-          : "Mehrere Präventionsdimensionen brauchen Aufmerksamkeit. Starten Sie mit dem am stärksten belasteten Signal und einer klaren nächsten Maßnahme.",
+          ? "This profile shows a mixed prevention landscape with one or two particularly impactful opportunities."
+          : "Multiple prevention dimensions need attention. Start with the most burdened signal and a clear next action.",
     timestamp: new Date().toISOString(),
   };
 }
@@ -592,61 +592,61 @@ function buildRecommendations(
       recommendations.push({
         id: "cardio-review",
         category: "checkup",
-        title: "Kardiovaskuläre Kontrolle",
+        title: "Cardiovascular Review",
         description:
-          "Bestätigen Sie Blutdruck, Lipidmuster und Kontrollrhythmus in einer ärztlich begleiteten Kontrolle.",
+          "Confirm blood pressure, lipid pattern, and follow-up schedule in a physician-guided review.",
         reason: risk.description,
         urgency: urgencyFromSeverity(risk.severity),
         price: "EUR 120",
-        provider: "Hausarztpraxis oder Kardiologie",
+        provider: "Primary Care or Cardiology",
       });
     } else if (risk.dimension === "Metabolic") {
       recommendations.push({
         id: "metabolic-diagnostics",
         category: "diagnostic",
-        title: "Stoffwechsel-Blutpanel",
+        title: "Metabolic Blood Panel",
         description:
-          "Wiederholen Sie HbA1c, Nüchternglukose und Lipide mit einem strukturierten Nachverfolgungsplan.",
+          "Repeat HbA1c, fasting glucose, and lipids with a structured follow-up plan.",
         reason: risk.description,
         urgency: urgencyFromSeverity(risk.severity),
         price: "EUR 85",
-        provider: "Stoffwechsel-Diagnostiklabor",
+        provider: "Metabolic Diagnostics Lab",
       });
     } else if (risk.dimension === "Sleep & Recovery") {
       recommendations.push({
         id: "sleep-reset",
         category: "lifestyle",
-        title: "Schlaf-Reset-Plan",
+        title: "Sleep Reset Plan",
         description:
-          "Ein alltagstaugliches Schlafprotokoll mit Erholungs-Check-ins und einer klaren Abendroutine.",
+          "A practical sleep protocol with recovery check-ins and a clear evening routine.",
         reason: risk.description,
         urgency: urgencyFromSeverity(risk.severity),
         price: "EUR 49",
-        provider: "Schlaf-Coaching-Programm",
+        provider: "Sleep Coaching Program",
       });
     } else if (risk.dimension === "Activity") {
       recommendations.push({
         id: "movement-plan",
         category: "lifestyle",
-        title: "Bewegungs-Aktivierungsplan",
+        title: "Movement Activation Plan",
         description:
-          "Unterbrechen Sie Sitzzeiten, verankern Sie wöchentliche Einheiten und bauen Sie Bewegung ohne Überforderung wieder auf.",
+          "Break up sitting time, anchor weekly sessions, and rebuild movement without overload.",
         reason: risk.description,
         urgency: urgencyFromSeverity(risk.severity),
         price: "EUR 35",
-        provider: "Präventions-Coaching",
+        provider: "Prevention Coaching",
       });
     } else if (risk.dimension === "Stress & Wellbeing") {
       recommendations.push({
         id: "recovery-review",
         category: "specialist",
-        title: "Erholungs- und Wohlbefindens-Review",
+        title: "Recovery and Wellbeing Review",
         description:
-          "Ein ärztlich begleitetes Review, um Stressübertrag und Erholungsbelastung besser einzuordnen.",
+          "A physician-guided review to better assess stress spillover and recovery burden.",
         reason: risk.description,
         urgency: urgencyFromSeverity(risk.severity),
         price: "EUR 95",
-        provider: "Präventivmedizinische Klinik",
+        provider: "Preventive Medicine Clinic",
       });
     }
   }
@@ -654,52 +654,52 @@ function buildRecommendations(
   recommendations.push({
     id: "nutrition-review",
     category: "nutrition",
-    title: "Ernährungs-Review",
+    title: "Nutrition Review",
     description:
-      "Übersetzen Sie Ernährungsqualität, Obst- und Gemüsezufuhr sowie Hydration in einen praktischen Wochenplan.",
-    reason: `Ernährungsqualität ${patient.lifestyle.dietQualityScore}/10 bei ${patient.lifestyle.fruitVegServingsDaily} Portionen pro Tag.`,
+      "Translate diet quality, fruit and vegetable intake, and hydration into a practical weekly plan.",
+    reason: `Diet quality ${patient.lifestyle.dietQualityScore}/10 with ${patient.lifestyle.fruitVegServingsDaily} servings per day.`,
     urgency: "routine",
     price: "EUR 59",
-    provider: "Ernährungsberatung",
+    provider: "Nutrition Counseling",
   });
 
   recommendations.push({
     id: "prevention-checkin",
     category: "checkup",
-    title: "Präventions-Check-in",
+    title: "Prevention Check-in",
     description:
-      "Ein kompakter ärztlicher Termin, um die wichtigsten Risikosignale zu priorisieren und den nächsten sicheren Schritt festzulegen.",
+      "A compact physician appointment to prioritize the key risk signals and determine the safest next step.",
     reason:
       result.aiSummary,
     urgency: result.overallScore < 55 ? "priority" : "suggested",
     price: "EUR 75",
-    provider: "Präventionssprechstunde",
+    provider: "Prevention Consultation",
   });
 
   recommendations.push({
     id: "lab-followup",
     category: "diagnostic",
-    title: "Kontroll-Labor in 8 bis 12 Wochen",
+    title: "Follow-up Lab in 8 to 12 Weeks",
     description:
-      "Wiederholen Sie die auffälligen Kernwerte, um zu prüfen, ob die ersten Maßnahmen bereits Wirkung zeigen.",
+      "Repeat the flagged core values to check whether the initial actions are already showing effect.",
     reason:
-      `Schwerpunkte aktuell: ${result.risks.slice(0, 2).map((risk) => risk.dimension).join(", ") || "präventive Verlaufskontrolle"}.`,
+      `Current focus areas: ${result.risks.slice(0, 2).map((risk) => risk.dimension).join(", ") || "preventive progress check"}.`,
     urgency: result.risks.some((risk) => risk.severity === "critical")
       ? "priority"
       : "suggested",
     price: "EUR 69",
-    provider: "Partnerlabor",
+    provider: "Partner Lab",
   });
 
   recommendations.push({
     id: "coach-followup",
     category: "lifestyle",
-    title: "Wöchentlicher Präventions-Coaching-Call",
+    title: "Weekly Prevention Coaching Call",
     description:
-      "Ein kurzer, wiederkehrender Termin zur Umsetzung von Schlaf-, Bewegungs- oder Stressmaßnahmen im Alltag.",
+      "A short, recurring appointment to implement sleep, movement, or stress actions in daily life.",
     reason:
       result.opportunities[0]?.description ??
-      "Regelmäßige Begleitung erhöht die Chance, dass neue Routinen wirklich eingehalten werden.",
+      "Regular guidance increases the likelihood that new routines are actually maintained.",
     urgency: "routine",
     price: "EUR 29",
     provider: "Health Coaching Team",
@@ -709,14 +709,14 @@ function buildRecommendations(
     recommendations.push({
       id: "specialist-routing",
       category: "specialist",
-      title: "Facharzt-Zuweisung vorbereiten",
+      title: "Prepare Specialist Referral",
       description:
-        "Ordnen Sie den Fall einer passenden Fachrichtung zu, damit Rückfragen, Diagnostik und Verlaufskontrolle sauber gebündelt werden.",
+        "Route the case to a suitable specialty so that follow-up questions, diagnostics, and progress monitoring are properly coordinated.",
       reason:
-        `Verlauf mit ${patient.visitCount2yr} Besuchen in 2 Jahren und ${patient.chronicConditions.length} dokumentierten Vorerkrankungen.`,
+        `History of ${patient.visitCount2yr} visits in 2 years and ${patient.chronicConditions.length} documented pre-existing conditions.`,
       urgency: patient.chronicConditions.length >= 2 ? "priority" : "suggested",
       price: "EUR 0",
-      provider: "Versorgungskoordination",
+      provider: "Care Coordination",
     });
   }
 
@@ -724,11 +724,11 @@ function buildRecommendations(
     recommendations.push({
       id: "recovery-programme",
       category: "lifestyle",
-      title: "4-Wochen-Regenerationsprogramm",
+      title: "4-Week Recovery Program",
       description:
-        "Ein strukturierter Plan für Schlaf, Belastungssteuerung und Stressreduktion mit kurzen wöchentlichen Check-ins.",
+        "A structured plan for sleep, load management, and stress reduction with short weekly check-ins.",
       reason:
-        "Erhöhte Stress- oder Entzündungssignale sprechen dafür, zuerst die Regenerationsbasis zu stabilisieren.",
+        "Elevated stress or inflammation signals suggest stabilizing the recovery baseline first.",
       urgency: "suggested",
       price: "EUR 89",
       provider: "Recovery Coaching",
@@ -830,33 +830,33 @@ function buildBodyComparison(
   return [
     {
       id: "brain",
-      label: "Gehirn & Stimmung",
-      bodyPart: "Kopf",
+      label: "Brain & Mood",
+      bodyPart: "Head",
       currentValue: `WHO-5 ${patient.lifestyle.mentalWellbeingWho5}/25`,
-      adherenceValue: `Projiziert ${Math.min(
+      adherenceValue: `Projected ${Math.min(
         25,
         patient.lifestyle.mentalWellbeingWho5 + 3,
       )}/25`,
-      nonAdherenceValue: `Projiziert ${Math.max(
+      nonAdherenceValue: `Projected ${Math.max(
         5,
         patient.lifestyle.mentalWellbeingWho5 - 2,
       )}/25`,
-      adherenceChange: "+ mehr Klarheit und stabilere Stimmung",
-      nonAdherenceChange: "Mehr Müdigkeit und geringere Umsetzung",
+      adherenceChange: "+ more clarity and more stable mood",
+      nonAdherenceChange: "More fatigue and lower follow-through",
       adherenceTrend: "improving",
       nonAdherenceTrend: "declining",
       explanation:
-        "Schlaf, Stress, Hydration und Bewegungskonstanz ergeben zusammen ein einfaches Resilienzsignal.",
+        "Sleep, stress, hydration, and movement consistency together form a simple resilience signal.",
     },
     {
       id: "heart",
-      label: "Herz & Gefäße",
-      bodyPart: "Brust",
+      label: "Heart & Vessels",
+      bodyPart: "Chest",
       currentValue: `${patient.systolicBp}/${patient.diastolicBp} mmHg`,
-      adherenceValue: `Score ${adherencePoint.cardioScore} bis Monat 12`,
-      nonAdherenceValue: `Score ${nonAdherencePoint.cardioScore} bis Monat 12`,
-      adherenceChange: "Niedrigere Drucklast und stabilere Erholung",
-      nonAdherenceChange: "Kardiovaskuläre Belastung bleibt erhöht",
+      adherenceValue: `Score ${adherencePoint.cardioScore} by month 12`,
+      nonAdherenceValue: `Score ${nonAdherencePoint.cardioScore} by month 12`,
+      adherenceChange: "Lower pressure load and more stable recovery",
+      nonAdherenceChange: "Cardiovascular load remains elevated",
       adherenceTrend: scoreDeltaDirection(
         currentCardio,
         adherencePoint.cardioScore,
@@ -866,17 +866,17 @@ function buildBodyComparison(
         nonAdherencePoint.cardioScore,
       ),
       explanation:
-        "Diese Region bildet die kombinierte Druck- und Lipidbelastung in den beiden projizierten Zukünften ab.",
+        "This region reflects the combined pressure and lipid load across both projected futures.",
     },
     {
       id: "metabolic",
-      label: "Metabolischer Kern",
-      bodyPart: "Bauch",
+      label: "Metabolic Core",
+      bodyPart: "Abdomen",
       currentValue: `HbA1c ${patient.hba1cPct}%, Glukose ${patient.fastingGlucoseMmol} mmol/L`,
-      adherenceValue: `Score ${adherencePoint.metabolicScore} bei stabilerer Routine`,
-      nonAdherenceValue: `Score ${nonAdherencePoint.metabolicScore} bei nachlassenden Gewohnheiten`,
-      adherenceChange: "Bessere Glukosekontrolle und stabilere Mahlzeitenroutine",
-      nonAdherenceChange: "Höhere glykämische Last bleibt bestehen",
+      adherenceValue: `Score ${adherencePoint.metabolicScore} with more stable routine`,
+      nonAdherenceValue: `Score ${nonAdherencePoint.metabolicScore} with declining habits`,
+      adherenceChange: "Better glucose control and more stable meal routine",
+      nonAdherenceChange: "Higher glycemic load persists",
       adherenceTrend: scoreDeltaDirection(
         currentMetabolic,
         adherencePoint.metabolicScore,
@@ -886,17 +886,17 @@ function buildBodyComparison(
         nonAdherencePoint.metabolicScore,
       ),
       explanation:
-        "Mahlzeitenqualität, Bewegung und Gewichtstrend bestimmen die wahrscheinliche Stoffwechselrichtung in den nächsten 12 Monaten.",
+        "Meal quality, movement, and weight trend determine the likely metabolic direction over the next 12 months.",
     },
     {
       id: "recovery",
-      label: "Erholungskapazität",
-      bodyPart: "Oberkörper",
-      currentValue: `${patient.telemetry.avgSteps} Schritte, HRV ${patient.telemetry.avgHrv} ms`,
-      adherenceValue: `Score ${adherencePoint.recoveryScore} mit besserem Schlaf und mehr Bewegung`,
-      nonAdherenceValue: `Score ${nonAdherencePoint.recoveryScore} bei weiterem Schlafdefizit`,
-      adherenceChange: "Höhere Bereitschaft und tiefere Erholung",
-      nonAdherenceChange: "Erholung bleibt flach und inkonsistent",
+      label: "Recovery Capacity",
+      bodyPart: "Upper Body",
+      currentValue: `${patient.telemetry.avgSteps} steps, HRV ${patient.telemetry.avgHrv} ms`,
+      adherenceValue: `Score ${adherencePoint.recoveryScore} with better sleep and more movement`,
+      nonAdherenceValue: `Score ${nonAdherencePoint.recoveryScore} with continued sleep deficit`,
+      adherenceChange: "Higher readiness and deeper recovery",
+      nonAdherenceChange: "Recovery remains flat and inconsistent",
       adherenceTrend: scoreDeltaDirection(
         currentRecovery,
         adherencePoint.recoveryScore,
@@ -906,21 +906,21 @@ function buildBodyComparison(
         nonAdherencePoint.recoveryScore,
       ),
       explanation:
-        "Die Erholungsregion zeigt, wie Schlafqualität, HRV und Bewegungsregelmäßigkeit zusammenwirken.",
+        "The recovery region shows how sleep quality, HRV, and movement regularity interact.",
     },
     {
       id: "inflammation",
-      label: "Entzündungsbelastung",
-      bodyPart: "Ganzer Körper",
+      label: "Inflammation Load",
+      bodyPart: "Whole Body",
       currentValue: `CRP ${patient.crpMgL} mg/L`,
-      adherenceValue: "Geringere systemische Belastung wird wahrscheinlicher",
-      nonAdherenceValue: "Entzündung bleibt schwerer zu beeinflussen",
-      adherenceChange: "Weniger entzündliche Grundlast",
-      nonAdherenceChange: "Anhaltender Hintergrundstress",
+      adherenceValue: "Lower systemic load becomes more likely",
+      nonAdherenceValue: "Inflammation remains harder to influence",
+      adherenceChange: "Less inflammatory baseline load",
+      nonAdherenceChange: "Persistent background stress",
       adherenceTrend: patient.crpMgL >= 3 ? "improving" : "stable",
       nonAdherenceTrend: patient.crpMgL >= 3 ? "declining" : "stable",
       explanation:
-        "Entzündung folgt dem kombinierten Effekt von Schlaf, Ernährung, Gewicht und Bewegungsadhärenz.",
+        "Inflammation follows the combined effect of sleep, nutrition, weight, and movement adherence.",
     },
   ];
 }
@@ -941,26 +941,26 @@ function buildTwin(
     currentScore: result.overallScore,
     adherencePath: {
       id: "adherence",
-      label: "Wenn der Plan befolgt wird",
+      label: "If the Plan Is Followed",
       description:
-        "Projizierter Verlauf, wenn die empfohlenen Maßnahmen in den nächsten 12 Monaten konsequent umgesetzt werden.",
+        "Projected trajectory if the recommended actions are consistently implemented over the next 12 months.",
       color: "#0F766E",
       points: adherencePath,
     },
     nonAdherencePath: {
       id: "non_adherence",
-      label: "Wenn der Plan nicht befolgt wird",
+      label: "If the Plan Is Not Followed",
       description:
-        "Projizierter Verlauf, wenn das aktuelle Muster unverändert bleibt und die Adhärenz sinkt.",
+        "Projected trajectory if the current pattern remains unchanged and adherence declines.",
       color: "#B91C1C",
       points: nonAdherencePath,
     },
     nextBestAction:
       recommendations[0]?.title ??
-      "Starten Sie den ersten ärztlich begleiteten Präventionsschritt",
+      "Start the first physician-guided prevention step",
     nextBestActionReason:
       recommendations[0]?.reason ??
-      "Diese Maßnahme hat voraussichtlich den stärksten Effekt auf die am stärksten belastete Risikodimension.",
+      "This action is expected to have the strongest effect on the most burdened risk dimension.",
     nextBestActionDays: 84,
     bodyComparison: buildBodyComparison(
       patient,
@@ -969,10 +969,10 @@ function buildTwin(
       nonAdherenceFinal,
     ),
     predictionMeta: {
-      modelType: "Feature-basiertes Szenariomodell",
+      modelType: "Feature-based scenario model",
       cohortSize: 1000,
       featureCount: 14,
-      targetWindow: "12 Monate in 4-Wochen-Schritten",
+      targetWindow: "12 months in 4-week intervals",
     },
   };
 }
@@ -1429,8 +1429,8 @@ function buildQuestionnaireBundleRecord(
   return {
     ...summary,
     source: "questionnaire",
-    sourceLabel: "Fragebogen-Basislinie",
-    tag: "Selbstberichtete Basislinie",
+    sourceLabel: "Questionnaire Baseline",
+    tag: "Self-reported Baseline",
     bmi,
     heightCm: input.heightCm,
     weightKg: input.weightKg,

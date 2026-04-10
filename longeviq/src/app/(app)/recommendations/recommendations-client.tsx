@@ -21,12 +21,12 @@ const CATEGORIES: {
   label: string;
   icon: React.ElementType;
 }[] = [
-  { id: 'all', label: 'Alle', icon: Filter },
-  { id: 'checkup', label: 'Checks', icon: Stethoscope },
-  { id: 'diagnostic', label: 'Diagnostik', icon: Activity },
-  { id: 'specialist', label: 'Fachärzte', icon: Stethoscope },
-  { id: 'nutrition', label: 'Ernährung', icon: UtensilsCrossed },
-  { id: 'lifestyle', label: 'Lebensstil', icon: Activity },
+  { id: 'all', label: 'All', icon: Filter },
+  { id: 'checkup', label: 'Checkups', icon: Stethoscope },
+  { id: 'diagnostic', label: 'Diagnostics', icon: Activity },
+  { id: 'specialist', label: 'Specialists', icon: Stethoscope },
+  { id: 'nutrition', label: 'Nutrition', icon: UtensilsCrossed },
+  { id: 'lifestyle', label: 'Lifestyle', icon: Activity },
 ];
 
 const URGENCY_COLORS: Record<string, string> = {
@@ -42,17 +42,17 @@ const URGENCY_BG: Record<string, string> = {
 };
 
 function urgencyLabel(urgency: string) {
-  if (urgency === 'priority') return 'Priorität';
-  if (urgency === 'suggested') return 'Empfohlen';
+  if (urgency === 'priority') return 'Priority';
+  if (urgency === 'suggested') return 'Suggested';
   return 'Routine';
 }
 
 function categoryLabel(category: RecommendationCategory) {
-  if (category === 'checkup') return 'Check';
-  if (category === 'diagnostic') return 'Diagnostik';
-  if (category === 'specialist') return 'Facharzt';
-  if (category === 'nutrition') return 'Ernährung';
-  return 'Lebensstil';
+  if (category === 'checkup') return 'Checkup';
+  if (category === 'diagnostic') return 'Diagnostic';
+  if (category === 'specialist') return 'Specialist';
+  if (category === 'nutrition') return 'Nutrition';
+  return 'Lifestyle';
 }
 
 export default function RecommendationsClient({ focus }: { focus?: string }) {
@@ -90,17 +90,17 @@ export default function RecommendationsClient({ focus }: { focus?: string }) {
           <Bookmark className="h-8 w-8 text-[#94A3B8]" />
         </div>
         <h2 className="mb-2 text-lg font-semibold text-[#0F172A]">
-          Kein Fall geladen
+          No case loaded
         </h2>
         <p className="mb-6 text-sm text-[#64748B]">
-          Starten Sie mit dem Fragebogen oder öffnen Sie einen realen Fall, um
-          Empfehlungen zu sehen.
+          Start with the questionnaire or open a real case to see
+          recommendations.
         </p>
         <button
           onClick={() => router.push('/assessment')}
           className="inline-flex items-center gap-2 rounded-full bg-[#0D9488] px-5 py-2.5 text-sm font-medium text-white"
         >
-          Assessment starten <ArrowRight className="h-4 w-4" />
+          Start assessment <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     );
@@ -110,33 +110,33 @@ export default function RecommendationsClient({ focus }: { focus?: string }) {
     <div className="space-y-6 pb-20">
       <div className="animate-fade-up">
         <h1 className="mb-1 text-2xl font-semibold text-[#0F172A]">
-          Empfehlungen
+          Recommendations
         </h1>
         <p className="text-sm text-[#64748B]">
-          Personalisiert für{' '}
-          {selectedPatient?.displayName || 'den aktiven Fall'} auf Basis von{' '}
+          Personalized for{' '}
+          {selectedPatient?.displayName || 'the active case'} based on{' '}
           {isQuestionnaire
-            ? 'Ihrer fragebogenbasierten Ausgangslage.'
-            : 'realen Patientendaten.'}
+            ? 'your questionnaire-based baseline.'
+            : 'real patient data.'}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr] animate-fade-up delay-75">
         <Card className="rounded-2xl border border-[#E2E8F0] bg-white p-5">
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#64748B]">
-            Nächste beste Maßnahme
+            Next best action
           </p>
           <h2 className="mt-2 text-lg font-semibold text-[#0F172A]">
-            {topRecommendation?.title ?? 'Präventiven Aktionsplan öffnen'}
+            {topRecommendation?.title ?? 'Open preventive action plan'}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-[#64748B]">
             {topRecommendation?.description ??
-              'Wählen Sie einen Schritt aus, um Ihren präventiven Plan zu konkretisieren.'}
+              'Select a step to refine your preventive plan.'}
           </p>
           {topRecommendation?.reason ? (
             <div className="mt-4 rounded-xl bg-[#F8FAFC] p-3">
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#94A3B8]">
-                Warum jetzt
+                Why now
               </p>
               <p className="mt-1 text-xs leading-relaxed text-[#475569]">
                 {topRecommendation.reason}
@@ -148,37 +148,37 @@ export default function RecommendationsClient({ focus }: { focus?: string }) {
         <div className="grid gap-4 sm:grid-cols-3 md:grid-cols-1">
           <Card className="rounded-2xl border border-[#E2E8F0] bg-white p-4">
             <p className="text-[11px] uppercase tracking-[0.14em] text-[#94A3B8]">
-              Priorität
+              Priority
             </p>
             <p className="mt-2 text-2xl font-semibold text-[#0F172A]">
               {priorityCount}
             </p>
             <p className="text-xs text-[#64748B]">
-              Maßnahmen mit zeitnahem Follow-up
+              Actions requiring timely follow-up
             </p>
           </Card>
           <Card className="rounded-2xl border border-[#E2E8F0] bg-white p-4">
             <p className="text-[11px] uppercase tracking-[0.14em] text-[#94A3B8]">
-              Geplant
+              Planned
             </p>
             <p className="mt-2 text-2xl font-semibold text-[#0F172A]">
               {addedCount}
             </p>
             <p className="text-xs text-[#64748B]">
-              Einträge bereits zu Ihrem Plan hinzugefügt
+              Items already added to your plan
             </p>
           </Card>
           <Card className="rounded-2xl border border-[#E2E8F0] bg-white p-4">
             <p className="text-[11px] uppercase tracking-[0.14em] text-[#94A3B8]">
-              Chancen
+              Opportunities
             </p>
             <p className="mt-2 text-2xl font-semibold text-[#0F172A]">
               {suggestedCount}
             </p>
             <p className="text-xs text-[#64748B]">
               {topOpportunity
-                ? `Top-Fokus: ${topOpportunity.title}`
-                : 'Mehrere alltagstaugliche Verbesserungen verfügbar'}
+                ? `Top focus: ${topOpportunity.title}`
+                : 'Multiple everyday improvements available'}
             </p>
           </Card>
         </div>
@@ -189,15 +189,15 @@ export default function RecommendationsClient({ focus }: { focus?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-[#0D9488]">
-                {addedCount} Eintrag{addedCount > 1 ? 'e' : ''} zu Ihrem Plan
-                hinzugefügt
+                {addedCount} item{addedCount > 1 ? 's' : ''} added to your
+                plan
               </p>
               <p className="text-xs text-[#0D9488]/70">
-                Ihr personalisierter Gesundheits-Aktionsplan
+                Your personalized health action plan
               </p>
             </div>
             <button className="inline-flex items-center gap-2 rounded-full bg-[#0D9488] px-4 py-2 text-xs font-medium text-white transition-all hover:bg-[#0F766E]">
-              Auswahl buchen <ArrowRight className="h-3 w-3" />
+              Book selection <ArrowRight className="h-3 w-3" />
             </button>
           </div>
         </Card>
@@ -222,7 +222,7 @@ export default function RecommendationsClient({ focus }: { focus?: string }) {
       <div className="space-y-3 animate-fade-up delay-200">
         {filtered.length === 0 ? (
           <div className="py-10 text-center text-sm text-[#94A3B8]">
-            Keine Empfehlungen in dieser Kategorie.
+            No recommendations in this category.
           </div>
         ) : null}
 
@@ -288,7 +288,7 @@ export default function RecommendationsClient({ focus }: { focus?: string }) {
                 <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto]">
                   <div className="rounded-xl bg-[#F8FAFC] p-3">
                     <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#94A3B8]">
-                      Begründung
+                      Rationale
                     </p>
                     <p className="mt-1 text-xs leading-relaxed text-[#475569]">
                       {rec.reason}
@@ -305,13 +305,13 @@ export default function RecommendationsClient({ focus }: { focus?: string }) {
                           : 'bg-[#ECFDF5] text-[#0D9488] hover:bg-[#D1FAE5]'
                       }`}
                     >
-                      {rec.added ? 'Im Plan gespeichert' : 'Zu meinem Plan'}
+                      {rec.added ? 'Saved to plan' : 'Add to my plan'}
                     </button>
                     <button
                       type="button"
                       className="rounded-full border border-[#E2E8F0] px-4 py-2 text-xs font-medium text-[#475569] transition-colors hover:border-[#0D9488]/30 hover:text-[#0D9488]"
                     >
-                      Leistung ansehen
+                      View service
                     </button>
                   </div>
                 </div>
@@ -323,11 +323,11 @@ export default function RecommendationsClient({ focus }: { focus?: string }) {
 
       <div className="rounded-xl border border-[#CCFBF1] bg-[#F0FDFA] p-4 animate-fade-up delay-300">
         <p className="text-xs leading-relaxed text-[#0D9488]">
-          <strong>Dies ist keine medizinische Diagnose.</strong> Diese
-          Empfehlungen sind priorisierte Präventionsmaßnahmen, abgeleitet aus{' '}
+          <strong>This is not a medical diagnosis.</strong> These
+          recommendations are prioritized preventive measures derived from{' '}
           {isQuestionnaire
-            ? 'Ihren Selbstauskünften und der geschätzten Ausgangslage.'
-            : 'den importierten Falldaten.'}
+            ? 'your self-reported information and estimated baseline.'
+            : 'the imported case data.'}
         </p>
       </div>
     </div>

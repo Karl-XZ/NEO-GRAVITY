@@ -44,9 +44,9 @@ function categoryBadge(markers: BiomarkerRowProps[]) {
   return warn;
 }
 
-function priorityClasses(priority: "Hoch" | "Mittel" | "Basis") {
-  if (priority === "Hoch") return "border-status-critical/30 text-status-critical";
-  if (priority === "Mittel") return "border-status-warning/30 text-status-warning";
+function priorityClasses(priority: "High" | "Medium" | "Baseline") {
+  if (priority === "High") return "border-status-critical/30 text-status-critical";
+  if (priority === "Medium") return "border-status-warning/30 text-status-warning";
   return "border-primary/20 text-primary";
 }
 
@@ -63,8 +63,8 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
 
   const cardiovascularMarkers: BiomarkerRowProps[] = [
     {
-      name: "Blutdruck",
-      subtitle: "Systolisch / Diastolisch",
+      name: "Blood Pressure",
+      subtitle: "Systolic / Diastolic",
       value: `${ehr.sbp_mmhg}/${ehr.dbp_mmhg}`,
       unit: "mmHg",
       status:
@@ -73,20 +73,20 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           : ehr.sbp_mmhg < 140 && ehr.dbp_mmhg < 90
             ? "warning"
             : "critical",
-      reference: "Ziel: < 120/80 mmHg",
+      reference: "Target: < 120/80 mmHg",
       rangePercent: Math.round((ehr.sbp_mmhg / 180) * 100),
     },
     {
-      name: "Gesamtcholesterin",
+      name: "Total Cholesterol",
       value: Number(ehr.total_cholesterol_mmol).toFixed(1),
       unit: "mmol/L",
       status:
         Number(ehr.total_cholesterol_mmol) > 5.0 ? "warning" : "normal",
-      reference: "Ziel: < 5.0 mmol/L",
+      reference: "Target: < 5.0 mmol/L",
       rangePercent: Math.round((Number(ehr.total_cholesterol_mmol) / 8) * 100),
     },
     {
-      name: "LDL-Cholesterin",
+      name: "LDL Cholesterol",
       value: Number(ehr.ldl_mmol).toFixed(1),
       unit: "mmol/L",
       status:
@@ -95,23 +95,23 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           : Number(ehr.ldl_mmol) > 2.6
             ? "warning"
             : "normal",
-      reference: "Ziel: < 2.6 mmol/L",
+      reference: "Target: < 2.6 mmol/L",
       rangePercent: Math.round((Number(ehr.ldl_mmol) / 5) * 100),
     },
     {
-      name: "HDL-Cholesterin",
+      name: "HDL Cholesterol",
       value: Number(ehr.hdl_mmol).toFixed(1),
       unit: "mmol/L",
       status: Number(ehr.hdl_mmol) >= 1.0 ? "normal" : "warning",
-      reference: "Ziel: > 1.0 mmol/L",
+      reference: "Target: > 1.0 mmol/L",
       rangePercent: Math.round((Number(ehr.hdl_mmol) / 2.5) * 100),
     },
     {
-      name: "Triglyzeride",
+      name: "Triglycerides",
       value: Number(ehr.triglycerides_mmol).toFixed(1),
       unit: "mmol/L",
       status: Number(ehr.triglycerides_mmol) < 2.0 ? "normal" : "warning",
-      reference: "Ziel: < 2.0 mmol/L",
+      reference: "Target: < 2.0 mmol/L",
       rangePercent: Math.round((Number(ehr.triglycerides_mmol) / 4) * 100),
     },
   ];
@@ -119,7 +119,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
   const metabolicMarkers: BiomarkerRowProps[] = [
     {
       name: "HbA1c",
-      subtitle: "Langzeit-Blutzucker",
+      subtitle: "Long-term Blood Sugar",
       value: Number(ehr.hba1c_pct).toFixed(1),
       unit: "%",
       status:
@@ -128,15 +128,15 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           : Number(ehr.hba1c_pct) < 6.5
             ? "warning"
             : "critical",
-      reference: "Ziel: < 5.7%",
+      reference: "Target: < 5.7%",
       rangePercent: Math.round((Number(ehr.hba1c_pct) / 10) * 100),
     },
     {
-      name: "Nuchternglukose",
+      name: "Fasting Glucose",
       value: Number(ehr.fasting_glucose_mmol).toFixed(1),
       unit: "mmol/L",
       status: Number(ehr.fasting_glucose_mmol) <= 5.5 ? "normal" : "warning",
-      reference: "Ziel: 3.9 - 5.5 mmol/L",
+      reference: "Target: 3.9 - 5.5 mmol/L",
       rangePercent: Math.round((Number(ehr.fasting_glucose_mmol) / 10) * 100),
     },
     {
@@ -148,7 +148,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
         Number(ehr.bmi) >= 18.5 && Number(ehr.bmi) <= 24.9
           ? "normal"
           : "warning",
-      reference: "Ziel: 18.5 - 24.9",
+      reference: "Target: 18.5 - 24.9",
       rangePercent: Math.round((Number(ehr.bmi) / 40) * 100),
     },
   ];
@@ -156,7 +156,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
   const renalInflammatoryMarkers: BiomarkerRowProps[] = [
     {
       name: "eGFR",
-      subtitle: "Geschatzte glomerulare Filtrationsrate",
+      subtitle: "Estimated Glomerular Filtration Rate",
       value: String(ehr.egfr_ml_min),
       unit: "mL/min",
       status:
@@ -165,12 +165,12 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           : Number(ehr.egfr_ml_min) >= 60
             ? "warning"
             : "critical",
-      reference: "Ziel: > 90 mL/min",
+      reference: "Target: > 90 mL/min",
       rangePercent: Math.round((Number(ehr.egfr_ml_min) / 120) * 100),
     },
     {
       name: "CRP",
-      subtitle: "C-reaktives Protein",
+      subtitle: "C-Reactive Protein",
       value: Number(ehr.crp_mg_l).toFixed(1),
       unit: "mg/L",
       status:
@@ -179,7 +179,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           : Number(ehr.crp_mg_l) < 3.0
             ? "warning"
             : "critical",
-      reference: "Ziel: < 1.0 mg/L",
+      reference: "Target: < 1.0 mg/L",
       rangePercent: Math.round((Number(ehr.crp_mg_l) / 5) * 100),
     },
   ];
@@ -187,30 +187,30 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
   const vitalsMarkers: BiomarkerRowProps[] = latestWearable
     ? [
         {
-          name: "Ruheherzfrequenz",
-          subtitle: `Letzter Tag: ${latestWearable.date}`,
+          name: "Resting Heart Rate",
+          subtitle: `Last day: ${latestWearable.date}`,
           value: String(latestWearable.resting_hr_bpm),
           unit: "bpm",
           status: getHrStatus(latestWearable.resting_hr_bpm),
-          reference: "Ziel: 50 - 70 bpm",
+          reference: "Target: 50 - 70 bpm",
           rangePercent: Math.round((latestWearable.resting_hr_bpm / 120) * 100),
         },
         {
-          name: "Herzratenvariabilitat",
+          name: "Heart Rate Variability",
           subtitle: "HRV (RMSSD)",
           value: String(latestWearable.hrv_rmssd_ms),
           unit: "ms",
           status: getHrvStatus(Number(latestWearable.hrv_rmssd_ms)),
-          reference: "Ziel: > 40 ms",
+          reference: "Target: > 40 ms",
           rangePercent: Math.round((Number(latestWearable.hrv_rmssd_ms) / 100) * 100),
         },
         {
-          name: "Sauerstoffsattigung",
-          subtitle: "SpO2 Durchschnitt",
+          name: "Oxygen Saturation",
+          subtitle: "SpO2 Average",
           value: String(latestWearable.spo2_avg_pct),
           unit: "%",
           status: getSpo2Status(Number(latestWearable.spo2_avg_pct)),
-          reference: "Ziel: > 96%",
+          reference: "Target: > 96%",
           rangePercent: Math.round(
             ((Number(latestWearable.spo2_avg_pct) - 88) / (100 - 88)) * 100,
           ),
@@ -234,23 +234,23 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
   const diagnostics = [
     {
       title: "ApoB + Lp(a)",
-      priority: ehr.ldl_mmol >= 2.6 ? "Hoch" : "Mittel",
+      priority: ehr.ldl_mmol >= 2.6 ? "High" : "Medium",
       reason:
         ehr.ldl_mmol >= 2.6
-          ? "LDL liegt uber dem Prevention-Ziel und sollte tiefer aufgesplittet werden."
-          : "Erganzt den Basis-Lipidcheck um Residualrisiko und Genetik.",
+          ? "LDL is above the prevention target and should be broken down further."
+          : "Supplements the basic lipid check with residual risk and genetics.",
     },
     {
-      title: "Formaler VO2max Test",
-      priority: vo2max.vo2max < 45 ? "Hoch" : "Mittel",
+      title: "Formal VO2max Test",
+      priority: vo2max.vo2max < 45 ? "High" : "Medium",
       reason:
-        "Kalibriert Trainingszonen, validiert den Proxy und macht Interventionen messbar.",
+        "Calibrates training zones, validates the proxy, and makes interventions measurable.",
     },
     {
-      title: "CGM Snapshot fur 14 Tage",
-      priority: ehr.hba1c_pct >= 5.7 ? "Hoch" : "Basis",
+      title: "CGM Snapshot for 14 Days",
+      priority: ehr.hba1c_pct >= 5.7 ? "High" : "Baseline",
       reason:
-        "Zeigt, wie Mahlzeiten, Schlaf und Training auf die Glukoseantwort einzahlen.",
+        "Shows how meals, sleep, and exercise affect the glucose response.",
     },
   ] as const;
 
@@ -258,7 +258,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
     {
       label: "Bio-Age",
       value: `${bioAge.bioAge}`,
-      note: `${bioAge.delta > 0 ? "+" : ""}${bioAge.delta} Jahre vs. chronologisch`,
+      note: `${bioAge.delta > 0 ? "+" : ""}${bioAge.delta} years vs. chronological`,
     },
     {
       label: "VO2max Proxy",
@@ -279,10 +279,10 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           Preventive Performer
         </Badge>
         <h1 className="mt-3 text-fluid-2xl font-semibold tracking-tight text-foreground">
-          Biomarker und Biological Age Breakdown
+          Biomarker and Biological Age Breakdown
         </h1>
         <p className="mt-2 max-w-3xl text-fluid-base text-muted-foreground">
-          Ein kompakter Ueberblick zuerst, die Detailwerte direkt darunter nach Kategorie sortiert.
+          A compact overview first, with detailed values sorted by category right below.
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -294,12 +294,12 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
           <Badge variant="outline" className="gap-1.5 border-status-warning/30 text-status-warning">
             <span className="inline-block size-1.5 rounded-full bg-status-warning" />
             <span className="font-data">{countByStatus.warning}</span>
-            <span>Grenzwertig</span>
+            <span>Borderline</span>
           </Badge>
           <Badge variant="outline" className="gap-1.5 border-status-critical/30 text-status-critical">
             <span className="inline-block size-1.5 rounded-full bg-status-critical" />
             <span className="font-data">{countByStatus.critical}</span>
-            <span>Erhoht</span>
+            <span>Elevated</span>
           </Badge>
         </div>
       </header>
@@ -326,7 +326,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
 
             <div className="rounded-2xl bg-surface-2/50 p-4">
               <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">
-                Haupttreiber
+                Key Drivers
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {bioAge.drivers.map((driver) => (
@@ -345,12 +345,12 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
         <Card className="border-0 bg-surface-1">
           <CardHeader>
             <CardTitle className="text-fluid-sm font-normal uppercase tracking-wide text-muted-foreground">
-              Priorisierte Diagnostik
+              Prioritized Diagnostics
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-fluid-sm leading-relaxed text-muted-foreground">
-              Nur die naechsten Tests mit dem groessten Zusatznutzen fuer Risiko, Kalibrierung und Training.
+              Only the next tests with the greatest added value for risk, calibration, and training.
             </p>
             {diagnostics.map((item) => (
               <div
@@ -382,7 +382,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
       <Tabs defaultValue="cardiovascular" className="animate-in stagger-2">
         <TabsList variant="line" className="mb-8 w-full flex-wrap gap-1">
           <TabsTrigger value="cardiovascular" className="gap-1.5">
-            Kardiovaskular
+            Cardiovascular
             {categoryBadge(cardiovascularMarkers) && (
               <span className="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-status-warning/15 text-[10px] font-data text-status-warning">
                 {categoryBadge(cardiovascularMarkers)}
@@ -390,7 +390,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
             )}
           </TabsTrigger>
           <TabsTrigger value="metabolic" className="gap-1.5">
-            Metabolisch
+            Metabolic
             {categoryBadge(metabolicMarkers) && (
               <span className="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-status-warning/15 text-[10px] font-data text-status-warning">
                 {categoryBadge(metabolicMarkers)}
@@ -398,7 +398,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
             )}
           </TabsTrigger>
           <TabsTrigger value="renal" className="gap-1.5">
-            Niere & Entzundung
+            Renal & Inflammation
             {categoryBadge(renalInflammatoryMarkers) && (
               <span className="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-status-warning/15 text-[10px] font-data text-status-warning">
                 {categoryBadge(renalInflammatoryMarkers)}
@@ -406,7 +406,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
             )}
           </TabsTrigger>
           <TabsTrigger value="vitals" className="gap-1.5">
-            Vitaldaten
+            Vitals
             {categoryBadge(vitalsMarkers) && (
               <span className="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-status-warning/15 text-[10px] font-data text-status-warning">
                 {categoryBadge(vitalsMarkers)}
@@ -417,32 +417,32 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
 
         <TabsContent value="cardiovascular">
           <BiomarkerSection
-            title="Kardiovaskulare Marker"
-            description="Blutdruck- und Lipidprofil zur Einschatzung des Herz-Kreislauf-Risikos."
+            title="Cardiovascular Markers"
+            description="Blood pressure and lipid profile for assessing cardiovascular risk."
             markers={cardiovascularMarkers}
           />
         </TabsContent>
 
         <TabsContent value="metabolic">
           <BiomarkerSection
-            title="Metabolische Marker"
-            description="Blutzucker- und Stoffwechselwerte zur Beurteilung des metabolischen Gesundheitszustands."
+            title="Metabolic Markers"
+            description="Blood sugar and metabolic values for assessing metabolic health status."
             markers={metabolicMarkers}
           />
         </TabsContent>
 
         <TabsContent value="renal">
           <BiomarkerSection
-            title="Nieren- und Entzundungsmarker"
-            description="Nierenfunktion und systemische Entzundungsparameter."
+            title="Renal & Inflammatory Markers"
+            description="Kidney function and systemic inflammation parameters."
             markers={renalInflammatoryMarkers}
           />
         </TabsContent>
 
         <TabsContent value="vitals">
           <BiomarkerSection
-            title="Vitaldaten"
-            description="Aktuelle Wearable-Messwerte vom letzten erfassten Tag."
+            title="Vitals"
+            description="Latest wearable readings from the last recorded day."
             markers={vitalsMarkers}
           />
         </TabsContent>
@@ -450,7 +450,7 @@ export function BiomarkersClient({ ehr, wearable }: BiomarkersClientProps) {
 
       <div className="mt-12 border-t border-border pt-6">
         <p className="text-fluid-xs leading-relaxed text-muted-foreground">
-          Referenzwerte dienen der Orientierung. Fuer die tatsaechliche Priorisierung sollten auffaellige Marker und empfohlene Zusatzdiagnostik zusammen betrachtet werden.
+          Reference values are for guidance only. For actual prioritization, abnormal markers and recommended additional diagnostics should be considered together.
         </p>
       </div>
     </div>

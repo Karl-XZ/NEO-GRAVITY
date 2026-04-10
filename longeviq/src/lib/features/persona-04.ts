@@ -32,10 +32,10 @@ export function bpControlStatus(
     label = "Optimal";
   } else if (sbp < THRESHOLDS.bp.hypertension_sbp && dbp < THRESHOLDS.bp.hypertension_dbp) {
     status = "yellow";
-    label = "Grenzwertig";
+    label = "Borderline";
   } else {
     status = "red";
-    label = "Zu hoch — arztliche Kontrolle empfohlen";
+    label = "Too high — medical check-up recommended";
   }
 
   return { sbp, dbp, status, label };
@@ -65,16 +65,16 @@ export function prediabetesTrajectory(
   // Activity moderation: high activity can buffer borderline HbA1c
   const isActive = avgSteps >= THRESHOLDS.activity.steps_optimal;
   const activityModifier = isActive
-    ? "Ihre Aktivitat wirkt schützend"
-    : "Mehr Bewegung konnte den Wert verbessern";
+    ? "Your activity level is protective"
+    : "More exercise could improve this value";
 
   let recommendation: string;
   if (baseStatus === "red")
-    recommendation = "Bitte besprechen Sie Ihren HbA1c-Wert mit Ihrem Arzt";
+    recommendation = "Please discuss your HbA1c level with your doctor";
   else if (baseStatus === "yellow")
-    recommendation = "Wert beobachten — regelmassige Bewegung und ausgewogene Ernahrung helfen";
+    recommendation = "Monitor this value — regular exercise and a balanced diet help";
   else
-    recommendation = "Ihr Blutzucker ist im Normalbereich";
+    recommendation = "Your blood sugar is within normal range";
 
   return { hba1c, status: baseStatus, activityModifier, recommendation };
 }
@@ -98,10 +98,10 @@ export function medicationBurdenScore(ehr: EhrRecord): {
   const score = round(clamp(((5 - count) / 5) * 100, 0, 100), 0);
 
   let interpretation: string;
-  if (count === 0) interpretation = "Keine Medikamente";
-  else if (count <= 2) interpretation = "Geringe Medikamentenlast";
-  else if (count <= 4) interpretation = "Moderate Medikamentenlast — Polypharmazie beachten";
-  else interpretation = "Hohe Medikamentenlast — Medikationsreview empfohlen";
+  if (count === 0) interpretation = "No medications";
+  else if (count <= 2) interpretation = "Low medication burden";
+  else if (count <= 4) interpretation = "Moderate medication burden — watch for polypharmacy";
+  else interpretation = "High medication burden — medication review recommended";
 
   return { count, score, interpretation };
 }
@@ -117,10 +117,10 @@ export function walkStreakDays(wearable: WearableTelemetry[]): {
   const days = streak(steps, (s) => s >= THRESHOLDS.activity.steps_daily_target);
 
   let interpretation: string;
-  if (days >= 14) interpretation = "Ausgezeichnete Serie — weiter so!";
-  else if (days >= 7) interpretation = "Gute Woche — bleiben Sie dran";
-  else if (days >= 3) interpretation = "Guter Anfang — versuchen Sie 7 Tage am Stuck";
-  else interpretation = "Tipp: Ein taglicher 20-Minuten-Spaziergang reicht fur 5.000 Schritte";
+  if (days >= 14) interpretation = "Excellent streak — keep it up!";
+  else if (days >= 7) interpretation = "Good week — stay on track";
+  else if (days >= 3) interpretation = "Good start — try for 7 days in a row";
+  else interpretation = "Tip: A daily 20-minute walk is enough for 5,000 steps";
 
   return { days, interpretation };
 }
@@ -141,22 +141,22 @@ export function fallRiskProxy(
   let riskPoints = 0;
 
   // Age factor
-  if (ehr.age >= 75) { riskPoints += 3; factors.push("Alter >= 75"); }
-  else if (ehr.age >= 65) { riskPoints += 2; factors.push("Alter >= 65"); }
+  if (ehr.age >= 75) { riskPoints += 3; factors.push("Age >= 75"); }
+  else if (ehr.age >= 65) { riskPoints += 2; factors.push("Age >= 65"); }
   else if (ehr.age >= 55) { riskPoints += 1; }
 
   // Activity: low steps
   const avgSteps = mean(wearable.slice(-14).map((d) => d.steps));
-  if (avgSteps < 3000) { riskPoints += 2; factors.push("Sehr geringe Aktivitat"); }
-  else if (avgSteps < 5000) { riskPoints += 1; factors.push("Geringe Aktivitat"); }
+  if (avgSteps < 3000) { riskPoints += 2; factors.push("Very low activity"); }
+  else if (avgSteps < 5000) { riskPoints += 1; factors.push("Low activity"); }
 
   // HRV: low autonomic function
   const avgHrv = mean(wearable.slice(-14).map((d) => d.hrv_rmssd_ms));
-  if (avgHrv < 20) { riskPoints += 2; factors.push("Sehr niedrige HRV"); }
-  else if (avgHrv < 30) { riskPoints += 1; factors.push("Niedrige HRV"); }
+  if (avgHrv < 20) { riskPoints += 2; factors.push("Very low HRV"); }
+  else if (avgHrv < 30) { riskPoints += 1; factors.push("Low HRV"); }
 
   // Multiple chronic conditions
-  if (ehr.n_chronic_conditions >= 3) { riskPoints += 1; factors.push("Multimorbiditat"); }
+  if (ehr.n_chronic_conditions >= 3) { riskPoints += 1; factors.push("Multimorbidity"); }
 
   const score = round(clamp((riskPoints / 8) * 100, 0, 100), 0);
   const level: TrafficLight = score >= 50 ? "red" : score >= 25 ? "yellow" : "green";
@@ -180,9 +180,9 @@ export function clinicEngagementScore(ehr: EhrRecord): {
   const score = round(clamp((visitsPerYear / 3) * 100, 0, 100), 0);
 
   let interpretation: string;
-  if (visitsPerYear >= 2) interpretation = "Regelmasige Arztbesuche — gute Vorsorge";
-  else if (visitsPerYear >= 1) interpretation = "Jahrliche Kontrolle vorhanden";
-  else interpretation = "Seltene Arztbesuche — regelmasige Vorsorge empfohlen";
+  if (visitsPerYear >= 2) interpretation = "Regular doctor visits — good preventive care";
+  else if (visitsPerYear >= 1) interpretation = "Annual check-up present";
+  else interpretation = "Infrequent doctor visits — regular preventive care recommended";
 
   return { score, visitsPerYear, interpretation };
 }
