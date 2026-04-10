@@ -111,7 +111,7 @@ function RegionBox({ region }: { region: BodyComparisonRegion }) {
             {region.label}
           </div>
           <div style={{ fontSize: "12px", color: "#64748B", lineHeight: 1.3 }}>
-            Aktuell: {region.currentValue}
+            Current: {region.currentValue}
           </div>
 
           <div
@@ -135,7 +135,7 @@ function RegionBox({ region }: { region: BodyComparisonRegion }) {
                 lineHeight: 1.34,
               }}
             >
-              Bei Adhärenz: {region.adherenceChange}
+              With adherence: {region.adherenceChange}
             </div>
             <div
               style={{
@@ -145,7 +145,7 @@ function RegionBox({ region }: { region: BodyComparisonRegion }) {
                 lineHeight: 1.34,
               }}
             >
-              Ohne Adhärenz: {region.nonAdherenceChange}
+              Without adherence: {region.nonAdherenceChange}
             </div>
             <div
               style={{
@@ -277,7 +277,7 @@ export function BodyComparisonMap({ regions }: { regions: BodyComparisonRegion[]
           fontSize="24"
           fontWeight="700"
         >
-          Körperzonen-Vergleich
+          Body Zone Comparison
         </text>
         <text
           x="480"
@@ -286,7 +286,7 @@ export function BodyComparisonMap({ regions }: { regions: BodyComparisonRegion[]
           fill="#64748B"
           fontSize="13"
         >
-          Pfeile markieren die Bereiche, die sich bei Adhärenz oder Nicht-Adhärenz am stärksten verändern.
+          Arrows indicate the regions most likely to change under plan adherence or non-adherence.
         </text>
 
         <BodyIllustration />
