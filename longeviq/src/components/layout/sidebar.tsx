@@ -6,14 +6,11 @@ import {
   LayoutDashboard,
   Activity,
   ClipboardList,
-  FlaskConical,
   Orbit,
-  Route,
   MessageCircle,
   Settings,
   ChevronLeft,
   ChevronRight,
-  Lightbulb,
   Sparkles,
   BookOpen,
 } from "lucide-react";
@@ -23,9 +20,7 @@ import { useState } from "react";
 export const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/assessment", label: "Assessment", icon: ClipboardList },
-  { href: "/biomarkers", label: "Biomarker", icon: FlaskConical },
-  { href: "/insights", label: "Insights", icon: Lightbulb },
-  { href: "/journey", label: "Journey", icon: Route },
+
   { href: "/health-twin", label: "Health Twin", icon: Orbit },
   { href: "/recommendations", label: "Recommendations", icon: Sparkles },
   { href: "/coach", label: "Coach", icon: MessageCircle },
