@@ -9,7 +9,7 @@ import {
   inferSuggestionPriorityDomain,
 } from "@/lib/coach/decision-engine";
 import { generateCoachSuggestions } from "@/lib/coach/generate-suggestions";
-import { getStoredAlertMode } from "@/lib/profile";
+import { getStoredAlertMode, subscribeToAlertMode } from "@/lib/profile";
 import type {
   CoachSuggestion,
   EhrRecord,
@@ -134,10 +134,6 @@ interface DashboardClientProps {
   ehr: EhrRecord;
   wearable: WearableTelemetry[];
   lifestyle: LifestyleSurvey;
-}
-
-function subscribeToAlertMode() {
-  return () => {};
 }
 
 export function DashboardClient({

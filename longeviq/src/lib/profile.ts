@@ -1,6 +1,7 @@
 import type { AlertMode, PersonaHint, UserProfile } from "./types";
 
 export const ALERT_MODE_STORAGE_KEY = "longeviq-alert-mode";
+const ALERT_MODE_CHANGE_EVENT = "longeviq-alert-mode-change";
 
 export interface RegionalHealthAlert {
   title: string;
@@ -19,6 +20,35 @@ export function getStoredAlertMode(defaultMode: AlertMode): AlertMode {
 
   const storedMode = window.localStorage.getItem(ALERT_MODE_STORAGE_KEY);
   return storedMode && isAlertMode(storedMode) ? storedMode : defaultMode;
+}
+
+export function setStoredAlertMode(alertMode: AlertMode) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(ALERT_MODE_STORAGE_KEY, alertMode);
+  window.dispatchEvent(new Event(ALERT_MODE_CHANGE_EVENT));
+}
+
+export function subscribeToAlertMode(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === ALERT_MODE_STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+
+  window.addEventListener(ALERT_MODE_CHANGE_EVENT, onStoreChange);
+  window.addEventListener("storage", handleStorage);
+
+  return () => {
+    window.removeEventListener(ALERT_MODE_CHANGE_EVENT, onStoreChange);
+    window.removeEventListener("storage", handleStorage);
+  };
 }
 
 export const PERSONA_LABELS: Record<PersonaHint, string> = {

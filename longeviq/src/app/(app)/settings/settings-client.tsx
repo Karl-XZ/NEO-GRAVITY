@@ -16,10 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-  ALERT_MODE_STORAGE_KEY,
   getStoredAlertMode,
   getPersonaLabel,
   getProfileInitials,
+  setStoredAlertMode,
+  subscribeToAlertMode,
 } from "@/lib/profile";
 import type { AlertMode, UserProfile } from "@/lib/types";
 
@@ -55,10 +56,6 @@ function createEditableState(profile: UserProfile): EditableProfileState {
     city: profile.city,
     timezone: profile.timezone,
   };
-}
-
-function subscribeToAlertMode() {
-  return () => {};
 }
 
 const alertModeOptions: Array<{
@@ -101,7 +98,7 @@ export function SettingsClient({
   const currentAlertMode = selectedAlertMode ?? storedAlertMode;
   const isDirty =
     JSON.stringify(form) !== JSON.stringify(createEditableState(initialProfile)) ||
-    currentAlertMode !== initialProfile.alert_mode;
+    currentAlertMode !== storedAlertMode;
   const profileCompletion = Math.round(
     ([form.displayName, form.email, form.city, form.timezone, currentAlertMode].filter(Boolean)
       .length /
@@ -120,9 +117,8 @@ export function SettingsClient({
   }
 
   async function handleSave() {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(ALERT_MODE_STORAGE_KEY, currentAlertMode);
-    }
+    setStoredAlertMode(currentAlertMode);
+    setSelectedAlertMode(null);
 
     if (currentAlertMode === "notification" && typeof window !== "undefined" && "Notification" in window) {
       const permission = await window.Notification.requestPermission();
