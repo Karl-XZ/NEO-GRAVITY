@@ -22,16 +22,16 @@ export function generateCoachSuggestions(
   if (features.cardioRisk.status === "red") {
     suggestions.push({
       severity: "red",
-      title: "Kardiovaskulares Risiko erhoht",
-      rationale: `Mehrere Risikofaktoren zusammen: ${features.cardioRisk.reasons.join(", ")}.`,
-      action: "Dringend arztliche Abklarung empfohlen. Lebensstilanpassungen bei Ernahrung und Bewegung konnen das Risiko senken.",
+      title: "Cardiovascular risk elevated",
+      rationale: `Multiple risk factors combined: ${features.cardioRisk.reasons.join(", ")}.`,
+      action: "Urgent medical evaluation recommended. Lifestyle changes in diet and exercise can reduce the risk.",
     });
   } else if (features.cardioRisk.status === "yellow") {
     suggestions.push({
       severity: "yellow",
-      title: "Kardiovaskulares Risiko beobachten",
-      rationale: `Einzelne Werte im Grenzbereich: ${features.cardioRisk.reasons.join(", ")}.`,
-      action: "Regelmasige Kontrollen beibehalten. Natriumzufuhr reduzieren und aerobe Aktivitat steigern.",
+      title: "Monitor cardiovascular risk",
+      rationale: `Some values in the borderline range: ${features.cardioRisk.reasons.join(", ")}.`,
+      action: "Continue regular check-ups. Reduce sodium intake and increase aerobic activity.",
     });
   }
 
@@ -39,9 +39,9 @@ export function generateCoachSuggestions(
   if (ehr.ldl_mmol >= 2.6) {
     suggestions.push({
       severity: ehr.ldl_mmol >= 4.1 ? "red" : "yellow",
-      title: "LDL-Cholesterin erhoht",
-      rationale: `Ihr LDL-Wert von ${ehr.ldl_mmol} mmol/L liegt uber dem Zielbereich von <2.6 mmol/L.`,
-      action: "Besprechen Sie mit Ihrem Arzt die aktuelle Medikation. Erhohen Sie den Anteil an Omega-3-Fettsauren in Ihrer Ernahrung.",
+      title: "LDL cholesterol elevated",
+      rationale: `Your LDL value of ${ehr.ldl_mmol} mmol/L is above the target range of <2.6 mmol/L.`,
+      action: "Discuss your current medication with your doctor. Increase omega-3 fatty acids in your diet.",
     });
   }
 
@@ -49,9 +49,9 @@ export function generateCoachSuggestions(
   if (features.bpControl.status !== "green") {
     suggestions.push({
       severity: features.bpControl.status,
-      title: `Blutdruck ${features.bpControl.label}`,
-      rationale: `Ihr Blutdruck liegt bei ${features.bpControl.sbp}/${features.bpControl.dbp} mmHg.`,
-      action: "Natriumzufuhr reduzieren und mindestens 150 Minuten aerobe Aktivitat pro Woche anstreben.",
+      title: `Blood pressure ${features.bpControl.label}`,
+      rationale: `Your blood pressure is ${features.bpControl.sbp}/${features.bpControl.dbp} mmHg.`,
+      action: "Reduce sodium intake and aim for at least 150 minutes of aerobic activity per week.",
     });
   }
 
@@ -59,16 +59,16 @@ export function generateCoachSuggestions(
   if (features.metabolicHealth.criteriaCount >= 3) {
     suggestions.push({
       severity: "red",
-      title: "Metabolisches Syndrom — Kriterien erfullt",
-      rationale: `${features.metabolicHealth.criteriaCount} von 5 MetS-Kriterien sind erfullt: ${features.metabolicHealth.criteria.join(", ")}.`,
-      action: "Arztliche Beratung empfohlen. Gewichtsreduktion, Bewegung und Ernahrungsumstellung sind die wichtigsten Massnahmen.",
+      title: "Metabolic syndrome — criteria met",
+      rationale: `${features.metabolicHealth.criteriaCount} of 5 MetS criteria are met: ${features.metabolicHealth.criteria.join(", ")}.`,
+      action: "Medical consultation recommended. Weight loss, exercise, and dietary changes are the most important measures.",
     });
   } else if (features.metabolicHealth.criteriaCount >= 2) {
     suggestions.push({
       severity: "yellow",
-      title: "Metabolische Gesundheit beobachten",
-      rationale: `${features.metabolicHealth.criteriaCount} MetS-Kriterien im Grenzbereich: ${features.metabolicHealth.criteria.join(", ")}.`,
-      action: "Regelmasige Kontrollen. Fokus auf ausgewogene Ernahrung und tagliche Bewegung.",
+      title: "Monitor metabolic health",
+      rationale: `${features.metabolicHealth.criteriaCount} MetS criteria in the borderline range: ${features.metabolicHealth.criteria.join(", ")}.`,
+      action: "Regular check-ups. Focus on a balanced diet and daily exercise.",
     });
   }
 
@@ -76,9 +76,9 @@ export function generateCoachSuggestions(
   if (features.hrv30dTrend.slope < -0.3) {
     suggestions.push({
       severity: "yellow",
-      title: "HRV-Trend rucklaufig",
-      rationale: `Ihre Herzratenvariabilitat zeigt einen Abwartstrend uber die letzten 30 Tage. ${features.hrv30dTrend.interpretation}.`,
-      action: "Heute Zone-2-Training statt Intervalle. Auf ausreichend Schlaf und Erholung achten.",
+      title: "HRV trend declining",
+      rationale: `Your heart rate variability shows a downward trend over the last 30 days. ${features.hrv30dTrend.interpretation}.`,
+      action: "Do zone-2 training today instead of intervals. Ensure adequate sleep and recovery.",
     });
   }
 
@@ -86,9 +86,9 @@ export function generateCoachSuggestions(
   if (features.rhrZscore.flag) {
     suggestions.push({
       severity: "yellow",
-      title: "Ruhepuls akut erhoht",
+      title: "Resting heart rate acutely elevated",
       rationale: features.rhrZscore.interpretation,
-      action: "Intensitat reduzieren und Erholung priorisieren. Bei anhaltender Erhohung arztliche Abklarung.",
+      action: "Reduce intensity and prioritize recovery. Seek medical evaluation if the elevation persists.",
     });
   }
 
@@ -96,16 +96,16 @@ export function generateCoachSuggestions(
   if (features.stressInflammation.level === "red") {
     suggestions.push({
       severity: "red",
-      title: "Stress-Entzundungs-Achse aktiviert",
-      rationale: `Hoher Stress (${features.stressInflammation.score}/100) in Kombination mit erhohten Entzundungswerten.`,
-      action: "Stressreduktion priorisieren: Atemubungen, Schlafhygiene, und arztliche Abklarung der CRP-Werte.",
+      title: "Stress-inflammation axis activated",
+      rationale: `High stress (${features.stressInflammation.score}/100) combined with elevated inflammation markers.`,
+      action: "Prioritize stress reduction: breathing exercises, sleep hygiene, and medical evaluation of CRP levels.",
     });
   } else if (features.stressInflammation.level === "yellow") {
     suggestions.push({
       severity: "yellow",
-      title: "Stress-Entzundungs-Signal beobachten",
-      rationale: `Moderates Signal (${features.stressInflammation.score}/100). Stress und Entzundungswerte sollten im Auge behalten werden.`,
-      action: "Regelmasige Entspannung und anti-entzundliche Ernahrung (Omega-3, Gemuse, wenig Alkohol).",
+      title: "Monitor stress-inflammation signal",
+      rationale: `Moderate signal (${features.stressInflammation.score}/100). Stress and inflammation levels should be monitored.`,
+      action: "Regular relaxation and anti-inflammatory diet (omega-3, vegetables, low alcohol).",
     });
   }
 
@@ -113,16 +113,16 @@ export function generateCoachSuggestions(
   if (features.sleepComposite.score < 50) {
     suggestions.push({
       severity: "red",
-      title: "Schlafqualitat unzureichend",
-      rationale: `Ihr Schlaf-Score liegt bei ${features.sleepComposite.score}/100.`,
-      action: "Schlafhygiene verbessern: feste Schlafzeiten, kein Bildschirm 1h vor dem Schlafen, kuhlere Raumtemperatur.",
+      title: "Sleep quality insufficient",
+      rationale: `Your sleep score is ${features.sleepComposite.score}/100.`,
+      action: "Improve sleep hygiene: consistent bedtimes, no screens 1 hour before bed, cooler room temperature.",
     });
   } else if (features.sleepComposite.score < 70) {
     suggestions.push({
       severity: "yellow",
-      title: "Schlaf optimierbar",
-      rationale: `Schlaf-Score ${features.sleepComposite.score}/100 — Tiefschlafanteil und Dauer haben Verbesserungspotenzial.`,
-      action: "Konsistente Schlafzeiten einhalten. Koffein nach 14 Uhr vermeiden.",
+      title: "Sleep can be optimized",
+      rationale: `Sleep score ${features.sleepComposite.score}/100 — deep sleep proportion and duration have room for improvement.`,
+      action: "Maintain consistent sleep times. Avoid caffeine after 2 PM.",
     });
   }
 
@@ -130,9 +130,9 @@ export function generateCoachSuggestions(
   if (features.activityAdherence < 50) {
     suggestions.push({
       severity: "yellow",
-      title: "Bewegungsziel nicht erreicht",
-      rationale: `Nur an ${features.activityAdherence}% der Tage wurden 5.000 Schritte erreicht.`,
-      action: "Tipp: Ein 20-Minuten-Spaziergang morgens und abends genugt fur 5.000+ Schritte.",
+      title: "Activity goal not reached",
+      rationale: `Only ${features.activityAdherence}% of days reached 5,000 steps.`,
+      action: "Tip: A 20-minute walk in the morning and evening is enough for 5,000+ steps.",
     });
   }
 
@@ -140,9 +140,9 @@ export function generateCoachSuggestions(
   if (features.strainRecovery.flag) {
     suggestions.push({
       severity: "yellow",
-      title: "Uberbelastung erkannt",
+      title: "Overtraining detected",
       rationale: features.strainRecovery.interpretation,
-      action: "Heute leichtes Zone-2-Training oder aktive Erholung. Schlaf und Ernahrung priorisieren.",
+      action: "Do light zone-2 training or active recovery today. Prioritize sleep and nutrition.",
     });
   }
 
@@ -150,9 +150,9 @@ export function generateCoachSuggestions(
   if (features.inflammation.level === "red") {
     suggestions.push({
       severity: "red",
-      title: "Entzundungsindex erhoht",
-      rationale: `Ihr Entzundungs-Score liegt bei ${features.inflammation.score}/100.`,
-      action: "Alkohol reduzieren, anti-entzundliche Ernahrung, Stressmanagement. Bei CRP > 3 mg/L arztliche Abklarung.",
+      title: "Inflammation index elevated",
+      rationale: `Your inflammation score is ${features.inflammation.score}/100.`,
+      action: "Reduce alcohol, adopt an anti-inflammatory diet, manage stress. Seek medical evaluation if CRP > 3 mg/L.",
     });
   }
 
@@ -160,9 +160,9 @@ export function generateCoachSuggestions(
   if (features.bioAge.delta < 0) {
     suggestions.push({
       severity: "green",
-      title: "Bio-Age unter chronologischem Alter",
-      rationale: `Ihr biologisches Alter wird auf ${features.bioAge.bioAge} Jahre geschatzt — ${Math.abs(features.bioAge.delta)} Jahre unter Ihrem chronologischen Alter.`,
-      action: "Weiter so. Fokussieren Sie sich auf die Verbesserung der gelben und roten Bereiche.",
+      title: "Bio-age below chronological age",
+      rationale: `Your biological age is estimated at ${features.bioAge.bioAge} years — ${Math.abs(features.bioAge.delta)} years below your chronological age.`,
+      action: "Keep it up. Focus on improving the yellow and red areas.",
     });
   }
 
@@ -170,9 +170,9 @@ export function generateCoachSuggestions(
   if (features.sleepComposite.score >= 75) {
     suggestions.push({
       severity: "green",
-      title: "Hervorragende Schlafqualitat",
-      rationale: `Ihr Schlaf-Score liegt bei ${features.sleepComposite.score}/100 — uberdurchschnittlich gut.`,
-      action: "Beibehalten! Konsistente Schlafzeiten sind einer der starksten Longevity-Faktoren.",
+      title: "Excellent sleep quality",
+      rationale: `Your sleep score is ${features.sleepComposite.score}/100 — above average.`,
+      action: "Keep it up! Consistent sleep times are one of the strongest longevity factors.",
     });
   }
 
@@ -180,9 +180,9 @@ export function generateCoachSuggestions(
   if (features.activityAdherence >= 80) {
     suggestions.push({
       severity: "green",
-      title: "Vorbildliche Bewegungsroutine",
-      rationale: `An ${features.activityAdherence}% der Tage wurde das Bewegungsziel erreicht.`,
-      action: "Exzellent. Variieren Sie die Intensitat — Zone 2 als Basis, 1–2x/Woche hohere Intensitat.",
+      title: "Exemplary activity routine",
+      rationale: `The activity goal was reached on ${features.activityAdherence}% of days.`,
+      action: "Excellent. Vary the intensity — zone 2 as a baseline, higher intensity 1-2x per week.",
     });
   }
 
@@ -190,16 +190,16 @@ export function generateCoachSuggestions(
   if (features.insights.hydration.status === "red") {
     suggestions.push({
       severity: "red",
-      title: "Hydration unzureichend",
+      title: "Hydration insufficient",
       rationale: features.insights.hydration.interpretation,
-      action: "Wasserzufuhr auf mindestens 8 Glaeser/Tag erhoehen. Bei Sport zusaetzlich 1-2 Glaeser.",
+      action: "Increase water intake to at least 8 glasses per day. Add 1-2 extra glasses when exercising.",
     });
   } else if (features.insights.hydration.status === "yellow") {
     suggestions.push({
       severity: "yellow",
-      title: "Hydration verbessern",
+      title: "Improve hydration",
       rationale: features.insights.hydration.interpretation,
-      action: "Versuchen Sie, ueber den Tag verteilt regelmaessig zu trinken.",
+      action: "Try to drink regularly throughout the day.",
     });
   }
 
@@ -207,16 +207,16 @@ export function generateCoachSuggestions(
   if (features.insights.spo2Profile.status === "red") {
     suggestions.push({
       severity: "red",
-      title: "SpO2-Werte auffaellig",
+      title: "SpO2 values abnormal",
       rationale: features.insights.spo2Profile.interpretation,
-      action: "Aerztliche Abklaerung empfohlen — Schlafapnoe-Screening in Betracht ziehen.",
+      action: "Medical evaluation recommended — consider sleep apnea screening.",
     });
   } else if (features.insights.spo2Profile.status === "yellow") {
     suggestions.push({
       severity: "yellow",
-      title: "SpO2-Werte beobachten",
+      title: "Monitor SpO2 values",
       rationale: features.insights.spo2Profile.interpretation,
-      action: "SpO2-Trend weiter verfolgen. Bei Verschlechterung aerztlich abklaeren.",
+      action: "Continue tracking SpO2 trend. Seek medical evaluation if it worsens.",
     });
   }
 
@@ -224,16 +224,16 @@ export function generateCoachSuggestions(
   if (features.insights.sedentaryScore.status === "red") {
     suggestions.push({
       severity: "red",
-      title: "Zu viel Sitzzeit",
+      title: "Too much sedentary time",
       rationale: features.insights.sedentaryScore.interpretation,
-      action: "Alle 45 Minuten 3-5 Minuten aufstehen und bewegen. Stehschreibtisch in Betracht ziehen.",
+      action: "Stand up and move for 3-5 minutes every 45 minutes. Consider a standing desk.",
     });
   } else if (features.insights.sedentaryScore.status === "yellow") {
     suggestions.push({
       severity: "yellow",
-      title: "Sitzzeit reduzieren",
+      title: "Reduce sedentary time",
       rationale: features.insights.sedentaryScore.interpretation,
-      action: "Regelmaessige Bewegungspausen einplanen. Walking-Meetings nutzen.",
+      action: "Schedule regular movement breaks. Use walking meetings.",
     });
   }
 
@@ -241,9 +241,9 @@ export function generateCoachSuggestions(
   if (features.insights.energyBalance.flag) {
     suggestions.push({
       severity: "yellow",
-      title: "Energiebilanz beachten",
+      title: "Mind your energy balance",
       rationale: features.insights.energyBalance.interpretation,
-      action: "Portionsgroessen bewusst waehlen. Ernaehrungsberatung kann helfen.",
+      action: "Be mindful of portion sizes. Nutritional counseling can help.",
     });
   }
 
@@ -251,9 +251,9 @@ export function generateCoachSuggestions(
   if (features.insights.circadianWeekday.socialJetLagFlag) {
     suggestions.push({
       severity: "yellow",
-      title: "Social Jet Lag erkannt",
+      title: "Social jet lag detected",
       rationale: features.insights.circadianWeekday.interpretation,
-      action: "Versuchen Sie, auch am Wochenende aehnliche Schlafzeiten einzuhalten.",
+      action: "Try to maintain similar sleep times on weekends as well.",
     });
   }
 
@@ -261,9 +261,9 @@ export function generateCoachSuggestions(
   if (features.insights.visitHistory.preventiveOverdue) {
     suggestions.push({
       severity: "yellow",
-      title: "Vorsorgeuntersuchung ueberfaellig",
+      title: "Preventive check-up overdue",
       rationale: features.insights.visitHistory.interpretation,
-      action: "Vereinbaren Sie einen Termin fuer eine Vorsorgeuntersuchung.",
+      action: "Schedule an appointment for a preventive check-up.",
     });
   }
 
@@ -271,9 +271,9 @@ export function generateCoachSuggestions(
   if (features.insights.longevityTrend.trendDirection === "improving") {
     suggestions.push({
       severity: "green",
-      title: "Positiver Gesundheitstrend",
+      title: "Positive health trend",
       rationale: features.insights.longevityTrend.interpretation,
-      action: "Ausgezeichnete Entwicklung. Aktuelle Gewohnheiten beibehalten.",
+      action: "Excellent progress. Keep up your current habits.",
     });
   }
 

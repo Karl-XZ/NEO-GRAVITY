@@ -11,11 +11,10 @@ export default function ForgotPasswordPage() {
       {/* Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Passwort zurücksetzen
+          Reset password
         </h1>
         <p className="text-sm text-muted-foreground">
-          Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum
-          Zurücksetzen.
+          Enter your email address. We will send you a reset link.
         </p>
       </div>
 
@@ -25,11 +24,11 @@ export default function ForgotPasswordPage() {
         onSubmit={(e) => e.preventDefault()}
       >
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-Mail</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
-            placeholder="name@beispiel.de"
+            placeholder="name@example.com"
             autoComplete="email"
             required
             className="h-10"
@@ -37,7 +36,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <Button type="submit" size="lg" className="mt-1 h-10 w-full">
-          Link senden
+          Send link
         </Button>
       </form>
 
@@ -47,7 +46,7 @@ export default function ForgotPasswordPage() {
           href="/login"
           className="font-medium text-primary transition-colors hover:text-primary/80"
         >
-          Zurück zur Anmeldung
+          Back to sign in
         </Link>
       </p>
     </div>

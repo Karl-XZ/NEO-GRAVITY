@@ -12,10 +12,10 @@ export default function LoginPage() {
       {/* Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Willkommen zurück
+          Welcome back
         </h1>
         <p className="text-sm text-muted-foreground">
-          Melden Sie sich an, um Ihre Gesundheitsdaten einzusehen.
+          Sign in to view your health data.
         </p>
       </div>
 
@@ -25,11 +25,11 @@ export default function LoginPage() {
         onSubmit={(e) => e.preventDefault()}
       >
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-Mail</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
-            placeholder="name@beispiel.de"
+            placeholder="name@example.com"
             autoComplete="email"
             required
             className="h-10"
@@ -37,7 +37,7 @@ export default function LoginPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Passwort</Label>
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
             type="password"
@@ -49,7 +49,7 @@ export default function LoginPage() {
         </div>
 
         <Button type="submit" size="lg" className="mt-1 h-10 w-full">
-          Anmelden
+          Sign in
         </Button>
       </form>
 
@@ -59,14 +59,14 @@ export default function LoginPage() {
           href="/forgot-password"
           className="text-sm text-muted-foreground transition-colors hover:text-primary"
         >
-          Passwort vergessen?
+          Forgot password?
         </Link>
       </div>
 
       {/* Separator */}
       <div className="relative flex items-center gap-4">
         <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">oder</span>
+        <span className="text-xs text-muted-foreground">or</span>
         <Separator className="flex-1" />
       </div>
 
@@ -75,7 +75,7 @@ export default function LoginPage() {
         href="/signup"
         className="flex h-10 w-full items-center justify-center rounded-lg text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
       >
-        Konto erstellen
+        Create account
       </Link>
     </div>
   );

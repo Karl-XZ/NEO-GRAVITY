@@ -53,7 +53,7 @@ function vo2maxPercentile(vo2max: number, age: number, sex: string): string {
   if (vo2max >= p90) return "Top 10%";
   if (vo2max >= p75) return "Top 25%";
   if (vo2max >= p50) return "Top 50%";
-  return "Unter 50%";
+  return "Below 50%";
 }
 
 // ------------------------------------------------------------------
@@ -69,9 +69,9 @@ export function hrv30dTrend(wearable: WearableTelemetry[]): {
   const sRounded = round(s, 2);
 
   let interpretation: string;
-  if (s > 0.3) interpretation = "Aufwartstrend — gute Erholung";
-  else if (s < -0.3) interpretation = "Abwartstrend — mogliches Ubertraining";
-  else interpretation = "Stabil";
+  if (s > 0.3) interpretation = "Upward trend — good recovery";
+  else if (s < -0.3) interpretation = "Downward trend — possible overtraining";
+  else interpretation = "Stable";
 
   return { slope: sRounded, interpretation };
 }
@@ -98,9 +98,9 @@ export function rhr7dVs90dZscore(wearable: WearableTelemetry[]): {
   const flag = z > 1.5;
 
   let interpretation: string;
-  if (z > 2) interpretation = "Deutlich erhoht — Infektion oder akuter Stress moglich";
-  else if (z > 1.5) interpretation = "Leicht erhoht — Erholung beobachten";
-  else interpretation = "Im Normbereich";
+  if (z > 2) interpretation = "Significantly elevated — infection or acute stress possible";
+  else if (z > 1.5) interpretation = "Slightly elevated — monitor recovery";
+  else interpretation = "Within normal range";
 
   return { zscore: z, flag, interpretation };
 }

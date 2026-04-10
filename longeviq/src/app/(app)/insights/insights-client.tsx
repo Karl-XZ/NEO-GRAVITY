@@ -105,18 +105,18 @@ function LongevityTrendSection({ data }: { data: ComputedInsights["longevityTren
     <div className="rounded-2xl bg-surface-1 p-6 ring-1 ring-foreground/10">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-fluid-xs uppercase tracking-wider text-muted-foreground">Langlebigkeits-Trend</p>
+          <p className="text-fluid-xs uppercase tracking-wider text-muted-foreground">Longevity Trend</p>
           <div className={cn("mt-2 flex items-center gap-3", trendColor)}>
             {trendIcon}
             <span className="font-data text-fluid-2xl leading-none">
               {data.momentum > 0 ? "+" : ""}{data.momentum}
             </span>
-            <span className="text-fluid-sm text-muted-foreground">Momentum</span>
+            <span className="text-fluid-sm text-muted-foreground">momentum</span>
           </div>
         </div>
         <StatusBadge
           status={data.trendDirection === "improving" ? "green" : data.trendDirection === "declining" ? "red" : "yellow"}
-          label={data.trendDirection === "improving" ? "Aufwaerts" : data.trendDirection === "declining" ? "Abwaerts" : "Stabil"}
+          label={data.trendDirection === "improving" ? "Upward" : data.trendDirection === "declining" ? "Downward" : "Stable"}
         />
       </div>
 
@@ -141,9 +141,9 @@ function LongevityTrendSection({ data }: { data: ComputedInsights["longevityTren
 
 function WeekOverWeekSection({ data }: { data: ComputedInsights["weekOverWeek"] }) {
   return (
-    <InsightCard title="Woche-ueber-Woche" icon={<BarChart3 className="size-4" />}>
+    <InsightCard title="Week over Week" icon={<BarChart3 className="size-4" />}>
       {data.metrics.length === 0 ? (
-        <p className="text-fluid-xs text-muted-foreground">Nicht genug Daten.</p>
+        <p className="text-fluid-xs text-muted-foreground">Not enough data.</p>
       ) : (
         <div className="space-y-2">
           {data.metrics.map((m) => (
@@ -162,25 +162,25 @@ function WeekOverWeekSection({ data }: { data: ComputedInsights["weekOverWeek"] 
 }
 
 function SleepHrvSection({ data }: { data: ComputedInsights["sleepHrvCorrelation"] }) {
-  const sensitivityLabel = data.sensitivity === "high" ? "Stark" : data.sensitivity === "moderate" ? "Moderat" : "Gering";
+  const sensitivityLabel = data.sensitivity === "high" ? "Strong" : data.sensitivity === "moderate" ? "Moderate" : "Low";
   const sensitivityStatus: TrafficLight = data.sensitivity === "high" ? "green" : data.sensitivity === "moderate" ? "yellow" : "red";
 
   return (
-    <InsightCard title="Schlaf-HRV-Korrelation" icon={<Moon className="size-4" />}>
+    <InsightCard title="Sleep-HRV Correlation" icon={<Moon className="size-4" />}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-fluid-xs text-muted-foreground">Korrelation</p>
+          <p className="text-fluid-xs text-muted-foreground">Correlation</p>
           <span className="font-data text-fluid-xl text-foreground">{data.correlation}</span>
         </div>
         <StatusBadge status={sensitivityStatus} label={sensitivityLabel} />
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
-          <p className="text-fluid-xs text-muted-foreground">HRV nach gutem Schlaf</p>
+          <p className="text-fluid-xs text-muted-foreground">HRV after good sleep</p>
           <span className="font-data text-fluid-base text-status-normal">{data.hrvAfterGoodSleep} ms</span>
         </div>
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
-          <p className="text-fluid-xs text-muted-foreground">HRV nach schlechtem Schlaf</p>
+          <p className="text-fluid-xs text-muted-foreground">HRV after poor sleep</p>
           <span className="font-data text-fluid-base text-status-critical">{data.hrvAfterPoorSleep} ms</span>
         </div>
       </div>
@@ -194,14 +194,14 @@ function RecoveryPredictionSection({ data }: { data: ComputedInsights["recoveryP
   const pct = Math.min(data.predictedRecovery, 100);
 
   return (
-    <InsightCard title="Erholungs-Vorhersage" icon={<Zap className="size-4" />}>
+    <InsightCard title="Recovery Prediction" icon={<Zap className="size-4" />}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-fluid-xs text-muted-foreground">Morgen voraussichtlich</p>
+          <p className="text-fluid-xs text-muted-foreground">Tomorrow predicted</p>
           <span className="font-data text-fluid-2xl text-foreground">{data.predictedRecovery}</span>
           <span className="text-fluid-sm text-muted-foreground"> /100</span>
         </div>
-        <StatusBadge status={confidenceStatus} label={data.confidence === "high" ? "Sicher" : data.confidence === "moderate" ? "Mittel" : "Unsicher"} />
+        <StatusBadge status={confidenceStatus} label={data.confidence === "high" ? "Confident" : data.confidence === "moderate" ? "Moderate" : "Uncertain"} />
       </div>
       <div className="mt-3 h-1.5 w-full rounded-full bg-surface-2 overflow-hidden">
         <div
@@ -220,22 +220,22 @@ function RecoveryPredictionSection({ data }: { data: ComputedInsights["recoveryP
 }
 
 function EnergyBalanceSection({ data }: { data: ComputedInsights["energyBalance"] }) {
-  const directionLabel = data.direction === "surplus" ? "Ueberschuss" : data.direction === "deficit" ? "Defizit" : "Ausgeglichen";
+  const directionLabel = data.direction === "surplus" ? "Surplus" : data.direction === "deficit" ? "Deficit" : "Balanced";
   const directionStatus: TrafficLight = data.flag ? "red" : data.direction === "balanced" ? "green" : "yellow";
 
   return (
-    <InsightCard title="Energiebilanz" icon={<Flame className="size-4" />}>
+    <InsightCard title="Energy Balance" icon={<Flame className="size-4" />}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-fluid-xs text-muted-foreground">Verbrauch (7-Tage-Ø)</p>
+          <p className="text-fluid-xs text-muted-foreground">Burn (7-day avg)</p>
           <span className="font-data text-fluid-xl text-foreground">{data.avgCaloriesBurned}</span>
-          <span className="text-fluid-xs text-muted-foreground"> kcal/Tag</span>
+          <span className="text-fluid-xs text-muted-foreground"> kcal/day</span>
         </div>
         <StatusBadge status={directionStatus} label={directionLabel} />
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
-          <p className="text-fluid-xs text-muted-foreground">Gesch. Aufnahme</p>
+          <p className="text-fluid-xs text-muted-foreground">Est. Intake</p>
           <span className="font-data text-fluid-base text-foreground">{data.estimatedIntakeProxy} kcal</span>
         </div>
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
@@ -253,17 +253,17 @@ function HydrationSection({ data }: { data: ComputedInsights["hydration"] }) {
     <InsightCard title="Hydration" icon={<Droplets className="size-4" />}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-fluid-xs text-muted-foreground">Glaeser pro Tag</p>
+          <p className="text-fluid-xs text-muted-foreground">Glasses per day</p>
           <div className="flex items-baseline gap-1">
             <span className="font-data text-fluid-xl text-foreground">{data.waterGlasses}</span>
             <span className="text-fluid-sm text-muted-foreground">/ {data.adjustedNeed}</span>
           </div>
         </div>
-        <StatusBadge status={data.status} label={data.status === "green" ? "Gut" : data.status === "yellow" ? "Knapp" : "Niedrig"} />
+        <StatusBadge status={data.status} label={data.status === "green" ? "Good" : data.status === "yellow" ? "Low" : "Very Low"} />
       </div>
       {data.rhrElevationFlag && (
         <div className="mt-3 rounded-lg bg-status-warning/10 px-3 py-2 text-fluid-xs text-status-warning">
-          Ruhepuls erhoeht — moegliches Dehydrations-Signal
+          Resting heart rate elevated — possible dehydration signal
         </div>
       )}
       <p className="mt-3 text-fluid-xs text-muted-foreground leading-relaxed">{data.interpretation}</p>
@@ -273,13 +273,13 @@ function HydrationSection({ data }: { data: ComputedInsights["hydration"] }) {
 
 function Spo2Section({ data }: { data: ComputedInsights["spo2Profile"] }) {
   return (
-    <InsightCard title="SpO2-Nachtprofil" icon={<Wind className="size-4" />}>
+    <InsightCard title="SpO2 Night Profile" icon={<Wind className="size-4" />}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-fluid-xs text-muted-foreground">Durchschnitt (14 Tage)</p>
+          <p className="text-fluid-xs text-muted-foreground">Average (14 days)</p>
           <span className="font-data text-fluid-xl text-foreground">{data.avgSpo2}%</span>
         </div>
-        <StatusBadge status={data.status} label={data.status === "green" ? "Normal" : data.status === "yellow" ? "Beobachten" : "Auffaellig"} />
+        <StatusBadge status={data.status} label={data.status === "green" ? "Normal" : data.status === "yellow" ? "Monitor" : "Abnormal"} />
       </div>
       <div className="mt-4 grid grid-cols-3 gap-3">
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
@@ -287,7 +287,7 @@ function Spo2Section({ data }: { data: ComputedInsights["spo2Profile"] }) {
           <span className="font-data text-fluid-base text-foreground">{data.minSpo2}%</span>
         </div>
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
-          <p className="text-fluid-xs text-muted-foreground">Niedrige Naechte</p>
+          <p className="text-fluid-xs text-muted-foreground">Low Nights</p>
           <span className="font-data text-fluid-base text-foreground">{data.lowNights}</span>
         </div>
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
@@ -297,7 +297,7 @@ function Spo2Section({ data }: { data: ComputedInsights["spo2Profile"] }) {
       </div>
       {data.apneaRiskFlag && (
         <div className={cn("mt-3 rounded-lg px-3 py-2 text-fluid-xs", data.compoundFlag ? "bg-status-critical/10 text-status-critical" : "bg-status-warning/10 text-status-warning")}>
-          {data.compoundFlag ? "Schlafapnoe-Screening dringend empfohlen" : "Erhoehtes Apnoe-Risiko — Werte weiter beobachten"}
+          {data.compoundFlag ? "Sleep apnea screening urgently recommended" : "Elevated apnea risk — continue monitoring values"}
         </div>
       )}
       <p className="mt-3 text-fluid-xs text-muted-foreground leading-relaxed">{data.interpretation}</p>
@@ -309,25 +309,25 @@ function SedentarySection({ data }: { data: ComputedInsights["sedentaryScore"] }
   const pct = Math.min(data.score, 100);
 
   return (
-    <InsightCard title="Sedentarismus-Score" icon={<Armchair className="size-4" />}>
+    <InsightCard title="Sedentary Score" icon={<Armchair className="size-4" />}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-fluid-xs text-muted-foreground">Bewegungsprofil</p>
+          <p className="text-fluid-xs text-muted-foreground">Activity Profile</p>
           <span className="font-data text-fluid-xl text-foreground">{data.score}</span>
           <span className="text-fluid-sm text-muted-foreground"> /100</span>
         </div>
-        <StatusBadge status={data.status} label={data.status === "green" ? "Gut" : data.status === "yellow" ? "Verbesserbar" : "Kritisch"} />
+        <StatusBadge status={data.status} label={data.status === "green" ? "Good" : data.status === "yellow" ? "Improvable" : "Critical"} />
       </div>
       <div className="mt-3 h-1.5 w-full rounded-full bg-surface-2 overflow-hidden">
         <div className={cn("h-full rounded-full", data.status === "green" ? "bg-status-normal" : data.status === "yellow" ? "bg-status-warning" : "bg-status-critical")} style={{ width: `${pct}%` }} />
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
-          <p className="text-fluid-xs text-muted-foreground">Sitzzeit</p>
-          <span className="font-data text-fluid-base text-foreground">{data.sedentaryHrs}h/Tag</span>
+          <p className="text-fluid-xs text-muted-foreground">Sitting Time</p>
+          <span className="font-data text-fluid-base text-foreground">{data.sedentaryHrs}h/day</span>
         </div>
         <div className="rounded-lg bg-surface-2 px-3 py-2.5">
-          <p className="text-fluid-xs text-muted-foreground">Aktive Minuten</p>
+          <p className="text-fluid-xs text-muted-foreground">Active Minutes</p>
           <span className="font-data text-fluid-base text-foreground">{data.activeMinAvg} min</span>
         </div>
       </div>
@@ -338,7 +338,7 @@ function SedentarySection({ data }: { data: ComputedInsights["sedentaryScore"] }
 
 function CircadianSection({ data }: { data: ComputedInsights["circadianWeekday"] }) {
   return (
-    <InsightCard title="Woechentliches Erholungs-Muster" icon={<CalendarClock className="size-4" />}>
+    <InsightCard title="Weekly Recovery Pattern" icon={<CalendarClock className="size-4" />}>
       <div className="flex items-center gap-1.5">
         {data.dayProfiles.map((d) => {
           const maxHrv = Math.max(...data.dayProfiles.map((p) => p.avgHRV), 1);
@@ -363,7 +363,7 @@ function CircadianSection({ data }: { data: ComputedInsights["circadianWeekday"]
       </div>
       {data.socialJetLagFlag && (
         <div className="mt-3 rounded-lg bg-status-warning/10 px-3 py-2 text-fluid-xs text-status-warning">
-          Social Jet Lag: Wochenend-Schlaf ({data.weekendSleep}) deutlich anders als unter der Woche ({data.weekdaySleep})
+          Social Jet Lag: Weekend sleep ({data.weekendSleep}) significantly different from weekday sleep ({data.weekdaySleep})
         </div>
       )}
       <p className="mt-3 text-fluid-xs text-muted-foreground leading-relaxed">{data.interpretation}</p>
@@ -375,10 +375,10 @@ function LifestyleImpactSection({ data }: { data: ComputedInsights["lifestyleImp
   const maxGap = Math.max(...data.factors.map((f) => f.gap), 1);
 
   return (
-    <InsightCard title="Lebensstil-Wirkungsanalyse" icon={<Brain className="size-4" />}>
+    <InsightCard title="Lifestyle Impact Analysis" icon={<Brain className="size-4" />}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-fluid-xs text-muted-foreground">Lifestyle-Score</p>
+          <p className="text-fluid-xs text-muted-foreground">Lifestyle Score</p>
           <span className="font-data text-fluid-2xl text-foreground">{data.overallScore}</span>
           <span className="text-fluid-sm text-muted-foreground"> /100</span>
         </div>
@@ -406,21 +406,21 @@ function LifestyleImpactSection({ data }: { data: ComputedInsights["lifestyleImp
 
 function VisitHistorySection({ data }: { data: ComputedInsights["visitHistory"] }) {
   return (
-    <InsightCard title="Besuchshistorie" icon={<Stethoscope className="size-4" />}>
+    <InsightCard title="Visit History" icon={<Stethoscope className="size-4" />}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-fluid-xs text-muted-foreground">Arztbesuche gesamt</p>
+          <p className="text-fluid-xs text-muted-foreground">Total doctor visits</p>
           <span className="font-data text-fluid-xl text-foreground">{data.totalVisits}</span>
         </div>
         {data.preventiveOverdue && (
-          <StatusBadge status="yellow" label="Vorsorge faellig" />
+          <StatusBadge status="yellow" label="Preventive care due" />
         )}
       </div>
       {data.visitReasons.length > 0 && (
         <div className="mt-4 space-y-1.5">
           {data.visitReasons.slice(-5).map((v, i) => (
             <div key={`${v.date}-${i}`} className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2">
-              <span className="text-fluid-xs text-muted-foreground">{new Date(v.date).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+              <span className="text-fluid-xs text-muted-foreground">{new Date(v.date).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
               <span className="text-fluid-xs text-foreground">{v.category}</span>
             </div>
           ))}
@@ -433,19 +433,19 @@ function VisitHistorySection({ data }: { data: ComputedInsights["visitHistory"] 
 
 function MedicationSection({ data }: { data: ComputedInsights["medicationMapping"] }) {
   return (
-    <InsightCard title="Medikamenten-Zustandsbild" icon={<Pill className="size-4" />}>
+    <InsightCard title="Medication Overview" icon={<Pill className="size-4" />}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div>
-            <p className="text-fluid-xs text-muted-foreground">Medikamente</p>
+            <p className="text-fluid-xs text-muted-foreground">Medications</p>
             <span className="font-data text-fluid-xl text-foreground">{data.medicationCount}</span>
           </div>
           <div>
-            <p className="text-fluid-xs text-muted-foreground">Diagnosen</p>
+            <p className="text-fluid-xs text-muted-foreground">Diagnoses</p>
             <span className="font-data text-fluid-xl text-foreground">{data.conditionCount}</span>
           </div>
         </div>
-        {data.polypharmacyFlag && <StatusBadge status="yellow" label="Polypharmazie" />}
+        {data.polypharmacyFlag && <StatusBadge status="yellow" label="Polypharmacy" />}
       </div>
       {data.mappings.length > 0 && (
         <div className="mt-4 space-y-1.5">
@@ -485,7 +485,7 @@ export function InsightsClient({ ehr, wearable, lifestyle }: InsightsClientProps
       <div>
         <h1 className="text-fluid-xl font-semibold text-foreground font-heading">Insights</h1>
         <p className="mt-1 text-fluid-sm text-muted-foreground">
-          Tiefenanalyse Ihrer Gesundheitsdaten — Muster, Zusammenhaenge und Handlungsempfehlungen.
+          Deep analysis of your health data — patterns, correlations, and actionable recommendations.
         </p>
       </div>
 
@@ -500,18 +500,18 @@ export function InsightsClient({ ehr, wearable, lifestyle }: InsightsClientProps
         <WeekOverWeekSection data={insights.weekOverWeek} />
       </section>
 
-      {/* Section: Schlaf & Erholung */}
+      {/* Section: Sleep & Recovery */}
       <section className="animate-in stagger-2">
-        <h2 className="mb-4 text-fluid-base font-medium text-foreground">Schlaf & Erholung</h2>
+        <h2 className="mb-4 text-fluid-base font-medium text-foreground">Sleep & Recovery</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <SleepHrvSection data={insights.sleepHrvCorrelation} />
           <CircadianSection data={insights.circadianWeekday} />
         </div>
       </section>
 
-      {/* Section: Koerper & Aktivitaet */}
+      {/* Section: Body & Activity */}
       <section className="animate-in stagger-2">
-        <h2 className="mb-4 text-fluid-base font-medium text-foreground">Koerper & Aktivitaet</h2>
+        <h2 className="mb-4 text-fluid-base font-medium text-foreground">Body & Activity</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <EnergyBalanceSection data={insights.energyBalance} />
           <HydrationSection data={insights.hydration} />
@@ -519,18 +519,18 @@ export function InsightsClient({ ehr, wearable, lifestyle }: InsightsClientProps
         </div>
       </section>
 
-      {/* Section: Vitalzeichen */}
+      {/* Section: Vital Signs */}
       <section className="animate-in stagger-2">
-        <h2 className="mb-4 text-fluid-base font-medium text-foreground">Vitalzeichen</h2>
+        <h2 className="mb-4 text-fluid-base font-medium text-foreground">Vital Signs</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Spo2Section data={insights.spo2Profile} />
           <LifestyleImpactSection data={insights.lifestyleImpact} />
         </div>
       </section>
 
-      {/* Section: Klinischer Kontext */}
+      {/* Section: Clinical Context */}
       <section className="animate-in stagger-2">
-        <h2 className="mb-4 text-fluid-base font-medium text-foreground">Klinischer Kontext</h2>
+        <h2 className="mb-4 text-fluid-base font-medium text-foreground">Clinical Context</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <MedicationSection data={insights.medicationMapping} />
           <VisitHistorySection data={insights.visitHistory} />

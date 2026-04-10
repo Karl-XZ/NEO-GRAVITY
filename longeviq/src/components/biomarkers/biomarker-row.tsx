@@ -48,8 +48,8 @@ const statusBarBg: Record<BiomarkerStatus, string> = {
 
 const statusLabel: Record<BiomarkerStatus, string> = {
   normal: "Normal",
-  warning: "Grenzwertig",
-  critical: "Erhoht",
+  warning: "Borderline",
+  critical: "Elevated",
 };
 
 export function BiomarkerRow({

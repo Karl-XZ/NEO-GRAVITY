@@ -30,7 +30,7 @@ export function sleepHrvCorrelation(
   wearable: WearableTelemetry[],
 ): ComputedInsights["sleepHrvCorrelation"] {
   if (wearable.length < 3) {
-    return { correlation: 0, hrvAfterGoodSleep: 0, hrvAfterPoorSleep: 0, deltaMa: 0, sensitivity: "low", interpretation: "Nicht genug Daten" };
+    return { correlation: 0, hrvAfterGoodSleep: 0, hrvAfterPoorSleep: 0, deltaMa: 0, sensitivity: "low", interpretation: "Not enough data" };
   }
 
   const sleepScores: number[] = [];
@@ -53,10 +53,10 @@ export function sleepHrvCorrelation(
 
   const interpretation =
     sensitivity === "high"
-      ? `Ihre HRV ist im Schnitt ${deltaMa} ms hoeher nach guten Schlafnaechten. Schlaf ist Ihr staerkster Erholungshebel.`
+      ? `Your HRV is on average ${deltaMa} ms higher after good nights of sleep. Sleep is your strongest recovery lever.`
       : sensitivity === "moderate"
-        ? `Moderater Zusammenhang: HRV-Delta von ${deltaMa} ms zwischen guten und schlechten Naechten.`
-        : `Geringer Zusammenhang zwischen Schlafqualitaet und naechster-Tag-HRV.`;
+        ? `Moderate correlation: HRV delta of ${deltaMa} ms between good and poor nights.`
+        : `Low correlation between sleep quality and next-day HRV.`;
 
   return { correlation: round(r, 2), hrvAfterGoodSleep, hrvAfterPoorSleep, deltaMa, sensitivity, interpretation };
 }
@@ -104,10 +104,10 @@ export function energyBalanceProxy(
 
   const interpretation =
     flag
-      ? `Ihr Verbrauch (~${avgCaloriesBurned} kcal/Tag) liegt unter der geschaetzten Aufnahme (~${estimatedIntakeProxy} kcal). Bei erhoehtem BMI sollte die Portionsgroesse beachtet werden.`
+      ? `Your expenditure (~${avgCaloriesBurned} kcal/day) is below the estimated intake (~${estimatedIntakeProxy} kcal). With an elevated BMI, portion sizes should be monitored.`
       : direction === "deficit"
-        ? `Ihr Verbrauch (~${avgCaloriesBurned} kcal/Tag) uebersteigt die geschaetzte Aufnahme. Achten Sie auf ausreichende Naehrstoffzufuhr.`
-        : `Ihre Energiebilanz erscheint ausgeglichen (~${avgCaloriesBurned} kcal Verbrauch/Tag).`;
+        ? `Your expenditure (~${avgCaloriesBurned} kcal/day) exceeds the estimated intake. Ensure adequate nutrient supply.`
+        : `Your energy balance appears balanced (~${avgCaloriesBurned} kcal expenditure/day).`;
 
   return { avgCaloriesBurned, estimatedIntakeProxy, balanceRatio, direction, flag, interpretation };
 }
@@ -146,10 +146,10 @@ export function hydrationAssessment(
 
   const interpretation =
     status === "red"
-      ? `Sie trinken ${waterGlasses} Glaeser/Tag, benoetigen aber ca. ${adjustedNeed} bei Ihrem Aktivitaetsniveau.${rhrElevationFlag ? " Ihr erhoehter Ruhepuls koennte auf Dehydration hinweisen." : ""}`
+      ? `You are drinking ${waterGlasses} glasses/day but need approximately ${adjustedNeed} given your activity level.${rhrElevationFlag ? " Your elevated resting heart rate may indicate dehydration." : ""}`
       : status === "yellow"
-        ? `Hydration knapp ausreichend (${waterGlasses}/${adjustedNeed} Glaeser).${rhrElevationFlag ? " Ruhepuls leicht erhoeht." : ""}`
-        : `Gute Hydration (${waterGlasses}/${adjustedNeed} Glaeser).`;
+        ? `Hydration barely adequate (${waterGlasses}/${adjustedNeed} glasses).${rhrElevationFlag ? " Resting heart rate slightly elevated." : ""}`
+        : `Good hydration (${waterGlasses}/${adjustedNeed} glasses).`;
 
   return { waterGlasses, adjustedNeed, hydrationRatio, rhrElevationFlag, status, interpretation };
 }
@@ -183,10 +183,10 @@ export function spo2NightProfile(
 
   const interpretation =
     status === "red"
-      ? `SpO2 an ${lowNights} von ${recent.length} Naechten unter 95%. Min: ${minSpo2}%. Aerztliche Abklaerung empfohlen (Schlafapnoe-Screening).`
+      ? `SpO2 below 95% on ${lowNights} of ${recent.length} nights. Min: ${minSpo2}%. Medical evaluation recommended (sleep apnea screening).`
       : status === "yellow"
-        ? `SpO2 gelegentlich unter 95% (${lowNights} Naechte). Trend beobachten.`
-        : `SpO2-Werte im Normalbereich (Ø ${avgSpo2}%).`;
+        ? `SpO2 occasionally below 95% (${lowNights} nights). Monitor the trend.`
+        : `SpO2 values within normal range (avg ${avgSpo2}%).`;
 
   return { avgSpo2, minSpo2, lowNights, trend: spo2Slope, apneaRiskFlag, compoundFlag, status, interpretation };
 }
@@ -222,10 +222,10 @@ export function sedentaryBehaviorScore(
 
   const interpretation =
     status === "red"
-      ? `${sedentaryHrs}h Sitzzeit/Tag bei nur ${activeMinAvg} Min Aktivitaet. Deutlich erhoehtes Gesundheitsrisiko.`
+      ? `${sedentaryHrs}h sitting time/day with only ${activeMinAvg} min of activity. Significantly elevated health risk.`
       : status === "yellow"
-        ? `${sedentaryHrs}h Sitzzeit/Tag. ${offsetsRisk ? "WHO-Aktivitaetsziel erreicht, dennoch" : "WHO-Aktivitaetsziel nicht erreicht,"} Pausen empfohlen.`
-        : `Gutes Bewegungsprofil: ${activeMinAvg} Min aktiv bei ${sedentaryHrs}h Sitzzeit.`;
+        ? `${sedentaryHrs}h sitting time/day. ${offsetsRisk ? "WHO activity target met, but" : "WHO activity target not met,"} breaks recommended.`
+        : `Good activity profile: ${activeMinAvg} min active with ${sedentaryHrs}h sitting time.`;
 
   return { sedentaryHrs, activeMinAvg, ratio, offsetsRisk, score, status, interpretation };
 }
@@ -233,7 +233,7 @@ export function sedentaryBehaviorScore(
 // ------------------------------------------------------------------
 // 6. Circadian / Day-of-Week Pattern
 // ------------------------------------------------------------------
-const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function circadianWeekdayPattern(
   wearable: WearableTelemetry[],
@@ -264,8 +264,8 @@ export function circadianWeekdayPattern(
     weekdaySleep > 0 && weekendSleep > 0 && (weekendSleep - weekdaySleep) / weekdaySleep > 0.15;
 
   const interpretation = socialJetLagFlag
-    ? `Social Jet Lag erkannt: Wochenend-Schlafqualitaet ${weekendSleep} vs. Werktag ${weekdaySleep}. Konsistentere Schlafzeiten empfohlen.`
-    : `Beste Erholung: ${bestDay.dayName} (HRV ${bestDay.avgHRV} ms). Schlechteste: ${worstDay.dayName} (HRV ${worstDay.avgHRV} ms).`;
+    ? `Social jet lag detected: weekend sleep quality ${weekendSleep} vs. weekday ${weekdaySleep}. More consistent sleep times recommended.`
+    : `Best recovery: ${bestDay.dayName} (HRV ${bestDay.avgHRV} ms). Worst: ${worstDay.dayName} (HRV ${worstDay.avgHRV} ms).`;
 
   return {
     dayProfiles,
@@ -288,14 +288,14 @@ interface MetricDef {
 }
 
 const WOW_METRICS: MetricDef[] = [
-  { key: "steps", name: "Schritte" },
-  { key: "active_minutes", name: "Aktive Minuten" },
-  { key: "calories_burned_kcal", name: "Kalorienverbrauch" },
-  { key: "resting_hr_bpm", name: "Ruhepuls", invertPolarity: true },
+  { key: "steps", name: "Steps" },
+  { key: "active_minutes", name: "Active Minutes" },
+  { key: "calories_burned_kcal", name: "Calories Burned" },
+  { key: "resting_hr_bpm", name: "Resting Heart Rate", invertPolarity: true },
   { key: "hrv_rmssd_ms", name: "HRV" },
-  { key: "sleep_duration_hrs", name: "Schlafdauer" },
-  { key: "sleep_quality_score", name: "Schlafqualitaet" },
-  { key: "deep_sleep_pct", name: "Tiefschlaf" },
+  { key: "sleep_duration_hrs", name: "Sleep Duration" },
+  { key: "sleep_quality_score", name: "Sleep Quality" },
+  { key: "deep_sleep_pct", name: "Deep Sleep" },
   { key: "spo2_avg_pct", name: "SpO2" },
 ];
 
@@ -361,31 +361,31 @@ export function lifestyleImpactAnalysis(
 ): ComputedInsights["lifestyleImpact"] {
   const factors = [
     {
-      name: "Ernaehrungsqualitaet",
+      name: "Diet Quality",
       value: lifestyle.diet_quality_score,
       weight: 0.2,
       score: normalize(lifestyle.diet_quality_score, 0, 100),
     },
     {
-      name: "Obst & Gemuese",
+      name: "Fruits & Vegetables",
       value: lifestyle.fruit_veg_servings_daily,
       weight: 0.15,
       score: normalize(lifestyle.fruit_veg_servings_daily, 0, 7),
     },
     {
-      name: "Bewegung",
+      name: "Exercise",
       value: lifestyle.exercise_sessions_weekly,
       weight: 0.2,
       score: normalize(lifestyle.exercise_sessions_weekly, 0, 7),
     },
     {
-      name: "Sitzzeit",
+      name: "Sitting Time",
       value: lifestyle.sedentary_hrs_day,
       weight: 0.15,
       score: normalize(14 - lifestyle.sedentary_hrs_day, 0, 14),
     },
     {
-      name: "Stresslevel",
+      name: "Stress Level",
       value: lifestyle.stress_level,
       weight: 0.15,
       score: normalize(100 - lifestyle.stress_level, 0, 100),
@@ -397,7 +397,7 @@ export function lifestyleImpactAnalysis(
       score: normalize(lifestyle.water_glasses_daily, 0, 12),
     },
     {
-      name: "Alkohol",
+      name: "Alcohol",
       value: lifestyle.alcohol_units_weekly,
       weight: 0.05,
       score: normalize(14 - lifestyle.alcohol_units_weekly, 0, 14),
@@ -417,7 +417,7 @@ export function lifestyleImpactAnalysis(
   const topOpportunity = factors[0]?.name ?? "-";
   const topStrength = factors[factors.length - 1]?.name ?? "-";
 
-  const interpretation = `Lifestyle-Score: ${overallScore}/100. Groesster Hebel: ${topOpportunity}. Staerkste Gewohnheit: ${topStrength}.`;
+  const interpretation = `Lifestyle score: ${overallScore}/100. Biggest lever: ${topOpportunity}. Strongest habit: ${topStrength}.`;
 
   return { overallScore, factors, topOpportunity, topStrength, interpretation };
 }
@@ -429,7 +429,7 @@ export function recoveryPrediction(
   wearable: WearableTelemetry[],
 ): ComputedInsights["recoveryPrediction"] {
   if (wearable.length < 2) {
-    return { predictedRecovery: 50, confidence: "low", topDrivers: [], recommendation: "Nicht genug Daten." };
+    return { predictedRecovery: 50, confidence: "low", topDrivers: [], recommendation: "Not enough data." };
   }
 
   const latest = wearable[wearable.length - 1];
@@ -458,11 +458,11 @@ export function recoveryPrediction(
 
   // Identify top drivers
   const driverScores = [
-    { name: "Schlafqualitaet", contribution: sleepQNorm * 0.3 },
-    { name: "Tiefschlaf", contribution: deepNorm * 0.25 },
-    { name: "Schlafdauer", contribution: durNorm * 0.15 },
-    { name: "Ruhepuls", contribution: rhrNorm * 0.15 },
-    { name: "Aktivitaet", contribution: activeNorm * 0.15 },
+    { name: "Sleep Quality", contribution: sleepQNorm * 0.3 },
+    { name: "Deep Sleep", contribution: deepNorm * 0.25 },
+    { name: "Sleep Duration", contribution: durNorm * 0.15 },
+    { name: "Resting Heart Rate", contribution: rhrNorm * 0.15 },
+    { name: "Activity", contribution: activeNorm * 0.15 },
   ].sort((a, b) => b.contribution - a.contribution);
 
   const topDrivers = driverScores.slice(0, 2).map((d) => d.name);
@@ -472,15 +472,15 @@ export function recoveryPrediction(
 
   const lowestDriver = driverScores[driverScores.length - 1];
   const recommendation =
-    lowestDriver.name === "Schlafqualitaet"
-      ? "Schlafhygiene verbessern koennte Ihre Erholung morgen steigern."
-      : lowestDriver.name === "Tiefschlaf"
-        ? "Frueheres Zubettgehen koennte den Tiefschlafanteil erhoehen."
-        : lowestDriver.name === "Schlafdauer"
-          ? "30 Minuten frueheres Zubettgehen empfohlen."
-          : lowestDriver.name === "Ruhepuls"
-            ? "Erhoehter Ruhepuls — Stress reduzieren und gut hydrieren."
-            : "Training heute moderat halten fuer bessere Erholung morgen.";
+    lowestDriver.name === "Sleep Quality"
+      ? "Improving sleep hygiene could boost your recovery tomorrow."
+      : lowestDriver.name === "Deep Sleep"
+        ? "Going to bed earlier could increase the deep sleep percentage."
+        : lowestDriver.name === "Sleep Duration"
+          ? "Going to bed 30 minutes earlier is recommended."
+          : lowestDriver.name === "Resting Heart Rate"
+            ? "Elevated resting heart rate — reduce stress and stay well hydrated."
+            : "Keep training moderate today for better recovery tomorrow.";
 
   return { predictedRecovery: predicted, confidence, topDrivers, recommendation };
 }
@@ -501,7 +501,7 @@ export function longevityTrendIndex(
       overallChange: 0,
       trendDirection: "stable",
       momentum: 0,
-      interpretation: "Nicht genug Daten fuer Trendanalyse.",
+      interpretation: "Not enough data for trend analysis.",
     };
   }
 
@@ -523,22 +523,22 @@ export function longevityTrendIndex(
   }
 
   const dimensions = [
-    computeDim("Kardio-Fitness", (days) => {
+    computeDim("Cardio Fitness", (days) => {
       const rhr = mean(days.map((d) => d.resting_hr_bpm));
       const hrv = mean(days.map((d) => d.hrv_rmssd_ms));
       return normalize(hrv, 15, 80) * 0.6 + normalize(80 - rhr, 0, 30) * 0.4;
     }),
-    computeDim("Schlafgesundheit", (days) => {
+    computeDim("Sleep Health", (days) => {
       const quality = mean(days.map((d) => d.sleep_quality_score));
       const deep = mean(days.map((d) => d.deep_sleep_pct));
       return quality * 0.6 + normalize(deep, 10, 25) * 0.4;
     }),
-    computeDim("Bewegung", (days) => {
+    computeDim("Activity", (days) => {
       const steps = mean(days.map((d) => d.steps));
       const active = mean(days.map((d) => d.active_minutes));
       return normalize(steps, 2000, 10000) * 0.5 + normalize(active, 0, 60) * 0.5;
     }),
-    computeDim("Autonome Gesundheit", (days) => {
+    computeDim("Autonomic Health", (days) => {
       const spo2 = mean(days.map((d) => d.spo2_avg_pct));
       const hrv = mean(days.map((d) => d.hrv_rmssd_ms));
       return normalize(spo2, 90, 100) * 0.4 + normalize(hrv, 15, 80) * 0.6;
@@ -559,10 +559,10 @@ export function longevityTrendIndex(
 
   const interpretation =
     trendDirection === "improving"
-      ? `Positiver Trend${improving.length > 0 ? ` in ${improving.join(", ")}` : ""}. Weiter so!`
+      ? `Positive trend${improving.length > 0 ? ` in ${improving.join(", ")}` : ""}. Keep it up!`
       : trendDirection === "declining"
-        ? `Ruecklaeufiger Trend${declining.length > 0 ? ` bei ${declining.join(", ")}` : ""}. Aufmerksamkeit erforderlich.`
-        : "Stabile Werte ueber die letzten 30 Tage.";
+        ? `Declining trend${declining.length > 0 ? ` in ${declining.join(", ")}` : ""}. Attention needed.`
+        : "Stable values over the last 30 days.";
 
   return { dimensions, overallChange, trendDirection, momentum, interpretation };
 }
@@ -571,17 +571,17 @@ export function longevityTrendIndex(
 // 11. Visit History Analysis
 // ------------------------------------------------------------------
 const ICD_CATEGORIES: Record<string, string> = {
-  Z00: "Allgemeinuntersuchung",
-  Z12: "Krebsvorsorge",
-  E11: "Diabetes-Kontrolle",
-  E13: "Diabetes-Kontrolle",
-  E78: "Cholesterin-Kontrolle",
-  I10: "Blutdruck-Kontrolle",
-  I20: "Herz-Kontrolle",
-  I25: "Herz-Kontrolle",
-  K21: "Magen-Kontrolle",
-  J45: "Asthma-Kontrolle",
-  M54: "Rueckenschmerzen",
+  Z00: "General Examination",
+  Z12: "Cancer Screening",
+  E11: "Diabetes Management",
+  E13: "Diabetes Management",
+  E78: "Cholesterol Management",
+  I10: "Blood Pressure Management",
+  I20: "Cardiac Management",
+  I25: "Cardiac Management",
+  K21: "Gastric Management",
+  J45: "Asthma Management",
+  M54: "Back Pain",
 };
 
 export function visitHistoryAnalysis(
@@ -595,7 +595,7 @@ export function visitHistoryAnalysis(
       visitReasons: [],
       frequencyTrend: "stable",
       preventiveOverdue: true,
-      interpretation: "Keine Besuchshistorie vorhanden.",
+      interpretation: "No visit history available.",
     };
   }
 
@@ -616,7 +616,7 @@ export function visitHistoryAnalysis(
       visitReasons: [],
       frequencyTrend: "stable",
       preventiveOverdue: true,
-      interpretation: "Keine Besuchshistorie vorhanden.",
+      interpretation: "No visit history available.",
     };
   }
 
@@ -652,7 +652,7 @@ export function visitHistoryAnalysis(
         : "stable";
 
   const interpretation =
-    `${visits.length} Arztbesuche erfasst. Letzter Besuch vor ${daysSinceLastVisit} Tagen.${preventiveOverdue ? " Vorsorgeuntersuchung ueberfaellig." : ""}`;
+    `${visits.length} doctor visits recorded. Last visit ${daysSinceLastVisit} days ago.${preventiveOverdue ? " Preventive check-up overdue." : ""}`;
 
   return {
     totalVisits: visits.length,
@@ -702,7 +702,7 @@ export function medicationConditionMapping(
       );
     const conditionLabel = expectedConditions.length > 0
       ? (ICD_CATEGORIES[expectedConditions[0]?.substring(0, 3)] ?? expectedConditions[0])
-      : "Unbekannt";
+      : "Unknown";
     return { medication: med, condition: conditionLabel, matched };
   });
 
@@ -716,7 +716,7 @@ export function medicationConditionMapping(
   const polypharmacyFlag = medications.length >= 5;
 
   const interpretation =
-    `${medications.length} Medikament${medications.length !== 1 ? "e" : ""}, ${conditions.length} Diagnose${conditions.length !== 1 ? "n" : ""}.${polypharmacyFlag ? " Polypharmazie-Hinweis." : ""} Kohaerenz: ${coherenceScore}%.`;
+    `${medications.length} medication${medications.length !== 1 ? "s" : ""}, ${conditions.length} diagnosis${conditions.length !== 1 ? "es" : ""}.${polypharmacyFlag ? " Polypharmacy alert." : ""} Coherence: ${coherenceScore}%.`;
 
   return {
     mappings,

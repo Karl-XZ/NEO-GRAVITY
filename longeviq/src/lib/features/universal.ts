@@ -37,7 +37,7 @@ export function bioAgeEstimate(
       contribution: w.resting_hr_bpm.weight * zscore(rhr30, w.resting_hr_bpm.ref_mean, w.resting_hr_bpm.ref_sd),
     },
     {
-      label: "Blutdruck (sys)",
+      label: "Blood pressure (sys)",
       contribution: w.sbp_mmhg.weight * zscore(ehr.sbp_mmhg, w.sbp_mmhg.ref_mean, w.sbp_mmhg.ref_sd),
     },
     {
@@ -57,7 +57,7 @@ export function bioAgeEstimate(
   // Top 3 drivers sorted by absolute contribution
   const sorted = [...deviations].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
   const drivers = sorted.slice(0, 3).map((d) => {
-    const direction = d.contribution > 0 ? "erhoht Bio-Age" : "senkt Bio-Age";
+    const direction = d.contribution > 0 ? "increases bio-age" : "decreases bio-age";
     return `${d.label} ${direction}`;
   });
 
@@ -78,19 +78,19 @@ export function cardioRiskAmpel(ehr: EhrRecord): {
   // SBP
   if (ehr.sbp_mmhg >= THRESHOLDS.bp.hypertension_sbp) {
     score += 2;
-    reasons.push(`Blutdruck ${ehr.sbp_mmhg} mmHg >= ${THRESHOLDS.bp.hypertension_sbp}`);
+    reasons.push(`Blood pressure ${ehr.sbp_mmhg} mmHg >= ${THRESHOLDS.bp.hypertension_sbp}`);
   } else if (ehr.sbp_mmhg >= THRESHOLDS.bp.high_normal_sbp) {
     score += 1;
-    reasons.push(`Blutdruck ${ehr.sbp_mmhg} mmHg im hochnormalen Bereich`);
+    reasons.push(`Blood pressure ${ehr.sbp_mmhg} mmHg in high-normal range`);
   }
 
   // LDL
   if (ehr.ldl_mmol >= THRESHOLDS.ldl.high) {
     score += 2;
-    reasons.push(`LDL ${ehr.ldl_mmol} mmol/L deutlich erhoht`);
+    reasons.push(`LDL ${ehr.ldl_mmol} mmol/L significantly elevated`);
   } else if (ehr.ldl_mmol >= THRESHOLDS.ldl.moderate_risk_target) {
     score += 1;
-    reasons.push(`LDL ${ehr.ldl_mmol} mmol/L uber Zielwert`);
+    reasons.push(`LDL ${ehr.ldl_mmol} mmol/L above target`);
   }
 
   // HDL (low is bad)
@@ -98,7 +98,7 @@ export function cardioRiskAmpel(ehr: EhrRecord): {
     ehr.sex.toLowerCase() === "female" ? THRESHOLDS.hdl.low_female : THRESHOLDS.hdl.low_male;
   if (ehr.hdl_mmol < hdlThreshold) {
     score += 1;
-    reasons.push(`HDL ${ehr.hdl_mmol} mmol/L zu niedrig`);
+    reasons.push(`HDL ${ehr.hdl_mmol} mmol/L too low`);
   }
 
   const status: TrafficLight = score >= 3 ? "red" : score >= 1 ? "yellow" : "green";
@@ -119,17 +119,17 @@ export function metabolicHealthScore(ehr: EhrRecord): {
 
   if (ehr.bmi >= THRESHOLDS.mets.bmi_proxy) met.push("BMI >= 25");
   if (ehr.triglycerides_mmol >= THRESHOLDS.mets.triglycerides)
-    met.push(`Triglyceride ${ehr.triglycerides_mmol} mmol/L`);
+    met.push(`Triglycerides ${ehr.triglycerides_mmol} mmol/L`);
 
   const hdlThreshold =
     ehr.sex.toLowerCase() === "female" ? THRESHOLDS.mets.hdl_low_female : THRESHOLDS.mets.hdl_low_male;
   if (ehr.hdl_mmol < hdlThreshold) met.push(`HDL < ${hdlThreshold} mmol/L`);
 
   if (ehr.sbp_mmhg >= THRESHOLDS.mets.sbp || ehr.dbp_mmhg >= THRESHOLDS.mets.dbp)
-    met.push("Blutdruck erhoht");
+    met.push("Blood pressure elevated");
 
   if (ehr.fasting_glucose_mmol >= THRESHOLDS.mets.fasting_glucose)
-    met.push(`Nuchternglukose ${ehr.fasting_glucose_mmol} mmol/L`);
+    met.push(`Fasting glucose ${ehr.fasting_glucose_mmol} mmol/L`);
 
   const criteriaCount = met.length;
   // 0 criteria = 100, 5 criteria = 0

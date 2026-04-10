@@ -46,7 +46,7 @@ export function getProfileInitials(displayName: UserProfile["display_name"]) {
 
 export function getPersonaLabel(personaHint: UserProfile["persona_hint"]) {
   if (!personaHint) {
-    return "Profil wird kalibriert";
+    return "Profile is being calibrated";
   }
 
   return PERSONA_LABELS[personaHint];

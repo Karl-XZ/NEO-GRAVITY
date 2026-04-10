@@ -26,9 +26,9 @@ export function boneLoadProxy(wearable: WearableTelemetry[]): {
   const score = round(clamp((weightBearingMinutes / 150) * 100, 0, 100), 0);
 
   let interpretation: string;
-  if (score >= 80) interpretation = "Sehr gut — ausreichend Belastungsreize fur die Knochen";
-  else if (score >= 50) interpretation = "Moderat — mehr Gehen oder Treppensteigen empfohlen";
-  else interpretation = "Zu wenig — tagliche Spaziergange sind wichtig fur Ihre Knochengesundheit";
+  if (score >= 80) interpretation = "Very good — sufficient loading stimulus for bones";
+  else if (score >= 50) interpretation = "Moderate — more walking or stair climbing recommended";
+  else interpretation = "Too little — daily walks are important for your bone health";
 
   return { weeklyMinutes: round(weightBearingMinutes, 0), score, interpretation };
 }
@@ -104,8 +104,8 @@ export function sleepFragmentationFlag(wearable: WearableTelemetry[]): {
   const flagged = shortNights > 3 || (qualityVariance > 200 && avgQuality < 65);
 
   let interpretation: string;
-  if (flagged) interpretation = "Schlaf zeigt Anzeichen von Fragmentierung — arztliche Abklarung empfohlen";
-  else interpretation = "Schlafmuster im akzeptablen Bereich";
+  if (flagged) interpretation = "Sleep shows signs of fragmentation — medical evaluation recommended";
+  else interpretation = "Sleep pattern within acceptable range";
 
   return { flagged, shortNights, avgQuality, interpretation };
 }
@@ -128,11 +128,11 @@ export function wellbeingTrajectory(lifestyle: LifestyleSurvey): {
 
   let recommendation: string;
   if (depressionFlag)
-    recommendation = "Ihr Wohlbefinden liegt unter dem Grenzwert — bitte vereinbaren Sie einen Termin in Ihrer Praxis";
+    recommendation = "Your wellbeing is below the threshold — please schedule an appointment with your doctor";
   else if (who5 < 60)
-    recommendation = "Wohlbefinden leicht eingeschrankt — auf Stressfaktoren achten";
+    recommendation = "Wellbeing slightly limited — watch for stress factors";
   else
-    recommendation = "Gutes psychisches Wohlbefinden";
+    recommendation = "Good mental wellbeing";
 
   return { who5, depressionFlag, level, recommendation };
 }

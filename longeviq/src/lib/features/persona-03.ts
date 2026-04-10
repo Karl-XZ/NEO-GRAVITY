@@ -56,7 +56,7 @@ export function strainVsRecoveryRatio(wearable: WearableTelemetry[]): {
   interpretation: string;
 } {
   const recent7 = wearable.slice(-7);
-  if (recent7.length === 0) return { ratio: 0, flag: false, interpretation: "Keine Daten" };
+  if (recent7.length === 0) return { ratio: 0, flag: false, interpretation: "No data" };
 
   // Strain: active minutes normalized (target ~60/day)
   const avgActiveMin = mean(recent7.map((d) => d.active_minutes));
@@ -71,10 +71,10 @@ export function strainVsRecoveryRatio(wearable: WearableTelemetry[]): {
   const flag = ratio > 1.5;
 
   let interpretation: string;
-  if (ratio > 2.0) interpretation = "Hohe Uberbelastung — Regenerationstag empfohlen";
-  else if (ratio > 1.5) interpretation = "Leichte Uberbelastung — Intensitat reduzieren";
-  else if (ratio > 0.8) interpretation = "Gutes Gleichgewicht zwischen Belastung und Erholung";
-  else interpretation = "Geringe Belastung — Intensitat kann gesteigert werden";
+  if (ratio > 2.0) interpretation = "High overload — recovery day recommended";
+  else if (ratio > 1.5) interpretation = "Slight overload — reduce intensity";
+  else if (ratio > 0.8) interpretation = "Good balance between strain and recovery";
+  else interpretation = "Low strain — intensity can be increased";
 
   return { ratio, flag, interpretation };
 }
@@ -98,9 +98,9 @@ export function circadianConsistency(wearable: WearableTelemetry[]): {
   const score = round(clamp((1 - sd / 2) * 100, 0, 100), 0);
 
   let interpretation: string;
-  if (score >= 80) interpretation = "Sehr konsistenter Schlafrhythmus";
-  else if (score >= 50) interpretation = "Leichte Schwankungen — regelmasigere Schlafzeiten empfohlen";
-  else interpretation = "Unregelmassiger Schlafrhythmus — zirkadiane Routine aufbauen";
+  if (score >= 80) interpretation = "Very consistent sleep rhythm";
+  else if (score >= 50) interpretation = "Slight variations — more regular sleep times recommended";
+  else interpretation = "Irregular sleep rhythm — establish a circadian routine";
 
   return { stddevHrs: sd, score, interpretation };
 }
@@ -114,20 +114,20 @@ export function metabolicFlexibility(ehr: EhrRecord): {
   level: TrafficLight;
   interpretation: string;
 } {
-  if (ehr.hdl_mmol === 0) return { ratio: 0, level: "red", interpretation: "HDL-Daten fehlen" };
+  if (ehr.hdl_mmol === 0) return { ratio: 0, level: "red", interpretation: "HDL data missing" };
   const ratio = round(ehr.triglycerides_mmol / ehr.hdl_mmol, 2);
 
   let level: TrafficLight;
   let interpretation: string;
   if (ratio < 1.0) {
     level = "green";
-    interpretation = "Exzellente metabolische Flexibilitat";
+    interpretation = "Excellent metabolic flexibility";
   } else if (ratio < 1.7) {
     level = "yellow";
-    interpretation = "Moderate metabolische Flexibilitat — Optimierungspotenzial";
+    interpretation = "Moderate metabolic flexibility — room for optimization";
   } else {
     level = "red";
-    interpretation = "Eingeschrankte metabolische Flexibilitat — Ernahrung und Bewegung anpassen";
+    interpretation = "Limited metabolic flexibility — adjust diet and exercise";
   }
 
   return { ratio, level, interpretation };

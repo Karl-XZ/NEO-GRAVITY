@@ -159,7 +159,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
           const response = await fetch("/api/patients", { cache: "no-store" });
-          if (!response.ok) throw new Error("Patientenliste konnte nicht geladen werden");
+          if (!response.ok) throw new Error("Failed to load patient list");
 
           const data = (await response.json()) as { patients: PatientSummary[] };
           if (!cancelled) {
@@ -173,7 +173,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           lastError =
             fetchError instanceof Error
               ? fetchError
-              : new Error("Patientenliste konnte nicht geladen werden");
+              : new Error("Failed to load patient list");
 
           if (attempt === 1 || cancelled) break;
           await sleep(700);
@@ -181,7 +181,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!cancelled) {
-        setError(lastError?.message ?? "Patientenliste konnte nicht geladen werden");
+        setError(lastError?.message ?? "Failed to load patient list");
       }
     };
 
@@ -256,7 +256,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch(`/api/patients/${patientId}`, {
         cache: "no-store",
       });
-      if (!response.ok) throw new Error("Patientenfall konnte nicht geladen werden");
+      if (!response.ok) throw new Error("Failed to load patient case");
       const bundle = (await response.json()) as PatientBundleResponse;
       const nextBundle = applySavedBundle(bundle, savedRecommendationIds);
 
@@ -269,11 +269,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           {
             id: "intro",
             role: "assistant",
-            content: `${nextBundle.patient.displayName} wurde geladen. ${
+            content: `${nextBundle.patient.displayName} has been loaded. ${
               nextBundle.patient.source === "supabase"
-                ? "Dieser Fall nutzt echte EHR-, Lifestyle- und Wearable-Daten aus Supabase."
-                : "Diese Einschätzung nutzt Ihre Fragebogenantworten, um eine präventive Ausgangslage zu schätzen."
-            } Fragen Sie nach dem wichtigsten Risikobereich oder öffnen Sie den Gesundheitszwilling für den Szenarienvergleich.`,
+                ? "This case uses real EHR, lifestyle, and wearable data from Supabase."
+                : "This assessment uses your questionnaire responses to estimate a preventive baseline."
+            } Ask about the most important risk area or open the Health Twin for scenario comparison.`,
             timestamp: new Date().toISOString(),
           },
         ]);
@@ -283,7 +283,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setError(
         fetchError instanceof Error
           ? fetchError.message
-          : "Patientenfall konnte nicht geladen werden",
+          : "Failed to load patient case",
       );
       return false;
     } finally {
@@ -305,7 +305,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         cache: "no-store",
       });
       if (!response.ok)
-        throw new Error("Fragebogen-Auswertung konnte nicht erstellt werden");
+        throw new Error("Failed to generate questionnaire assessment");
 
       const bundle = (await response.json()) as PatientBundleResponse;
       const nextBundle = applySavedBundle(bundle, savedRecommendationIds);
@@ -319,7 +319,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           id: "intro",
           role: "assistant",
           content:
-            "Ihre fragebogenbasierte Ausgangslage wurde geladen. Diese Werte werden aus den Selbstauskünften geschätzt und anschließend im Präventionsmodell sowie im Gesundheitszwilling weiterverarbeitet.",
+            "Your questionnaire-based baseline has been loaded. These values are estimated from your self-reported responses and then processed in the prevention model and Health Twin.",
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -329,7 +329,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setError(
         fetchError instanceof Error
           ? fetchError.message
-          : "Fragebogen-Auswertung konnte nicht erstellt werden",
+          : "Failed to generate questionnaire assessment",
       );
       return false;
     } finally {

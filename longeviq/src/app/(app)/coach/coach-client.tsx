@@ -123,26 +123,26 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
       title: "VO2max Goal Sprint",
       status:
         features.vo2max.vo2max < vo2Target - 1 ? "Run" : "Monitor",
-      duration: "4 Wochen",
+      duration: "4 weeks",
       hypothesis:
-        "Mehr aerobe Zeit im richtigen Pulsbereich sollte Ihre VO2max naher an den nachsten Benchmark bringen.",
-      success: `Ziel ${vo2Target} statt aktuell ${features.vo2max.vo2max}`,
+        "More aerobic time in the right heart-rate zone should bring your VO2max closer to the next benchmark.",
+      success: `Target ${vo2Target} vs. current ${features.vo2max.vo2max}`,
     },
     {
       title: "Readiness Calibration",
       status: features.strainRecovery.flag ? "Priority" : "Run",
-      duration: "14 Tage",
+      duration: "14 days",
       hypothesis:
-        "Trainingsintensitat nur an hohen Readiness-Tagen sollte HRV stabilisieren und Uberbelastung fruher bremsen.",
+        "Limiting training intensity to high-readiness days should stabilize HRV and catch overload earlier.",
       success: `Readiness ${features.recoveryScore.score}/100, Strain Ratio ${features.strainRecovery.ratio}`,
     },
     {
       title: "Diagnostics Upgrade",
       status: ehr.ldl_mmol >= 2.6 || ehr.hba1c_pct >= 5.7 ? "Priority" : "Monitor",
-      duration: "Diesen Monat",
+      duration: "This month",
       hypothesis:
-        "Premium-Diagnostics schaffen die Grundlage fur die nachste hochpreisige, datengetriebene Intervention.",
-      success: "ApoB/Lp(a), VO2max Lab und CGM in einen Zyklus bringen",
+        "Premium diagnostics lay the groundwork for the next high-value, data-driven intervention.",
+      success: "Consolidate ApoB/Lp(a), VO2max lab, and CGM into one cycle",
     },
   ] as const;
 
@@ -155,13 +155,13 @@ export function CoachClient({ ehr, wearable, lifestyle }: CoachClientProps) {
         <div className="flex items-center gap-2.5">
           <Activity className="size-5 text-primary" />
           <h1 className="text-fluid-xl font-semibold tracking-tight">
-            KI-Gesundheitscoach fur Preventive Performer
+            AI Health Coach for Preventive Performers
           </h1>
         </div>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          Diese Seite verbindet Ihre Coaching-Empfehlungen mit einem
-          interventionstauglichen Performance Lab: Hypothese, Test, Signal,
-          Entscheidung.
+          This page connects your coaching recommendations with an
+          intervention-ready Performance Lab: hypothesis, test, signal,
+          decision.
         </p>
       </div>
 

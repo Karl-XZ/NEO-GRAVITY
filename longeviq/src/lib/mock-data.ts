@@ -28,11 +28,11 @@ export const mockUserProfile: UserProfile = {
   country_code: "DE",
   timezone: "Europe/Berlin",
   alert_mode: "simple",
-  primary_goal: "Mehr Energie im Alltag und bessere Erholung nach intensiven Wochen.",
+  primary_goal: "More energy in daily life and better recovery after intense weeks.",
   focus_areas: [
-    "Schlafoptimierung",
-    "Kardiometabolische Prävention",
-    "Stressregulation",
+    "Sleep optimization",
+    "Cardiometabolic prevention",
+    "Stress regulation",
   ],
 };
 
@@ -120,33 +120,33 @@ export const mockDailyScores: DailyScore[] = Array.from({ length: 30 }, (_, i) =
 export const mockCoachSuggestions: CoachSuggestion[] = [
   {
     severity: "red",
-    title: "LDL-Cholesterin erhöht",
+    title: "LDL cholesterol elevated",
     rationale:
-      "Ihr LDL-Wert von 3.2 mmol/L liegt über dem Zielbereich von <2.6 mmol/L. In Kombination mit der bestehenden Dyslipidämie sollte dies beobachtet werden.",
+      "Your LDL level of 3.2 mmol/L is above the target range of <2.6 mmol/L. Combined with existing dyslipidaemia, this should be monitored.",
     action:
-      "Besprechen Sie mit Ihrem Arzt, ob die Atorvastatin-Dosis angepasst werden sollte. Erhöhen Sie den Anteil an Omega-3-Fettsäuren in Ihrer Ernährung.",
+      "Discuss with your doctor whether the atorvastatin dose should be adjusted. Increase the proportion of omega-3 fatty acids in your diet.",
   },
   {
     severity: "yellow",
-    title: "Blutdruck im Grenzbereich",
+    title: "Blood pressure borderline",
     rationale:
-      "Ihr systolischer Blutdruck von 128 mmHg liegt im hochnormalen Bereich. Bei regelmäßiger Erhöhung steigt das kardiovaskuläre Risiko.",
+      "Your systolic blood pressure of 128 mmHg is in the high-normal range. With regular elevation, cardiovascular risk increases.",
     action:
-      "Reduzieren Sie die Natriumzufuhr und steigern Sie die aerobe Aktivität auf mindestens 150 Minuten pro Woche.",
+      "Reduce your sodium intake and increase aerobic activity to at least 150 minutes per week.",
   },
   {
     severity: "green",
-    title: "Hervorragende Schlafkonsistenz",
+    title: "Excellent sleep consistency",
     rationale:
-      "Ihre Schlafdauer liegt konsistent bei 7+ Stunden mit einer Qualität von durchschnittlich 74/100. Das unterstützt Ihre Erholungswerte.",
-    action: "Beibehalten! Konsistente Schlafzeiten sind einer der stärksten Longevity-Faktoren.",
+      "Your sleep duration is consistently 7+ hours with an average quality of 74/100. This supports your recovery scores.",
+    action: "Keep it up! Consistent sleep schedules are one of the strongest longevity factors.",
   },
   {
     severity: "green",
-    title: "Bio-Age unter chronologischem Alter",
+    title: "Bio-age below chronological age",
     rationale:
-      "Ihr biologisches Alter wird auf 44.2 Jahre geschätzt — 2.8 Jahre unter Ihrem chronologischen Alter von 47.",
+      "Your biological age is estimated at 44.2 years — 2.8 years below your chronological age of 47.",
     action:
-      "Weiter so. Fokussieren Sie sich auf die Verbesserung der gelben und roten Bereiche, um den Vorsprung auszubauen.",
+      "Keep going. Focus on improving the yellow and red areas to extend your advantage.",
   },
 ];

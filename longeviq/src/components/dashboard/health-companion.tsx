@@ -390,7 +390,7 @@ export function HealthCompanion() {
           {isParsingFile && (
             <div className="mb-2 flex items-center gap-2 text-[11px] text-muted-foreground">
               <Loader2 className="size-3 animate-spin" />
-              PDF wird verarbeitet...
+              Processing PDF...
             </div>
           )}
           <div className="mb-3 flex flex-wrap gap-2">

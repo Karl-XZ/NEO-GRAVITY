@@ -11,10 +11,10 @@ export default function SignupPage() {
       {/* Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Konto erstellen
+          Create account
         </h1>
         <p className="text-sm text-muted-foreground">
-          Starten Sie Ihre personalisierte Longevity-Analyse.
+          Start your personalized longevity analysis.
         </p>
       </div>
 
@@ -24,11 +24,11 @@ export default function SignupPage() {
         onSubmit={(e) => e.preventDefault()}
       >
         <div className="flex flex-col gap-2">
-          <Label htmlFor="display-name">Anzeigename</Label>
+          <Label htmlFor="display-name">Display name</Label>
           <Input
             id="display-name"
             type="text"
-            placeholder="Max Mustermann"
+            placeholder="John Doe"
             autoComplete="name"
             required
             className="h-10"
@@ -36,11 +36,11 @@ export default function SignupPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-Mail</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
-            placeholder="name@beispiel.de"
+            placeholder="name@example.com"
             autoComplete="email"
             required
             className="h-10"
@@ -48,7 +48,7 @@ export default function SignupPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Passwort</Label>
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
             type="password"
@@ -60,7 +60,7 @@ export default function SignupPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password-confirm">Passwort bestätigen</Label>
+          <Label htmlFor="password-confirm">Confirm password</Label>
           <Input
             id="password-confirm"
             type="password"
@@ -72,18 +72,18 @@ export default function SignupPage() {
         </div>
 
         <Button type="submit" size="lg" className="mt-1 h-10 w-full">
-          Konto erstellen
+          Create account
         </Button>
       </form>
 
       {/* Already registered */}
       <p className="text-center text-sm text-muted-foreground">
-        Bereits registriert?{" "}
+        Already registered?{" "}
         <Link
           href="/login"
           className="font-medium text-primary transition-colors hover:text-primary/80"
         >
-          Anmelden
+          Sign in
         </Link>
       </p>
     </div>

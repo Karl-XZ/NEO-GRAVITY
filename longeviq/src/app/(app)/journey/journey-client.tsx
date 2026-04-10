@@ -38,7 +38,7 @@ import type {
 // ---------------------------------------------------------------------------
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString("de-DE", {
+  return new Date(date).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "2-digit",
   });
@@ -64,8 +64,8 @@ const trafficDot: Record<TrafficLight, string> = {
 
 const trafficLabel: Record<TrafficLight, string> = {
   green: "Normal",
-  yellow: "Beobachten",
-  red: "Kritisch",
+  yellow: "Monitor",
+  red: "Critical",
 };
 
 function SimpleTooltip({
@@ -122,12 +122,12 @@ function nextVo2Target(current: number) {
 }
 
 const trendTabs = [
-  { value: "readiness", label: "Bereitschaft" },
-  { value: "recovery", label: "Erholung" },
+  { value: "readiness", label: "Readiness" },
+  { value: "recovery", label: "Recovery" },
   { value: "hrv", label: "HRV" },
-  { value: "steps", label: "Schritte" },
-  { value: "sleep", label: "Schlaf" },
-  { value: "activity", label: "Aktive Minuten" },
+  { value: "steps", label: "Steps" },
+  { value: "sleep", label: "Sleep" },
+  { value: "activity", label: "Active Minutes" },
 ] as const;
 
 function TrendKpi({
@@ -164,7 +164,7 @@ function generateMilestones(
   if (features.walkStreak.days >= 3) {
     milestones.push({
       date: wearable[wearable.length - 1]?.date ?? "",
-      label: `${features.walkStreak.days}-Tage Schritt-Streak (≥5.000/Tag)`,
+      label: `${features.walkStreak.days}-day step streak (≥5,000/day)`,
       type: "activity",
     });
   }
@@ -172,7 +172,7 @@ function generateMilestones(
   if (features.hrv30dTrend.slope > 0.1) {
     milestones.push({
       date: wearable[Math.floor(wearable.length * 0.6)]?.date ?? "",
-      label: `HRV-Trend positiv: +${(features.hrv30dTrend.slope * 30).toFixed(1)} ms uber 30 Tage`,
+      label: `HRV trend positive: +${(features.hrv30dTrend.slope * 30).toFixed(1)} ms over 30 days`,
       type: "health",
     });
   }
@@ -180,7 +180,7 @@ function generateMilestones(
   if (features.circadianConsistency.score >= 70) {
     milestones.push({
       date: wearable[Math.floor(wearable.length * 0.5)]?.date ?? "",
-      label: `Schlafkonsistenz ${Math.round(features.circadianConsistency.score)}% — stabiler Rhythmus`,
+      label: `Sleep consistency ${Math.round(features.circadianConsistency.score)}% — stable rhythm`,
       type: "sleep",
     });
   }
@@ -188,7 +188,7 @@ function generateMilestones(
   if (features.activityAdherence >= 70) {
     milestones.push({
       date: wearable[Math.floor(wearable.length * 0.4)]?.date ?? "",
-      label: `Bewegungsziel an ${Math.round(features.activityAdherence)}% der Tage erreicht`,
+      label: `Activity goal met on ${Math.round(features.activityAdherence)}% of days`,
       type: "activity",
     });
   }
@@ -198,7 +198,7 @@ function generateMilestones(
   );
   milestones.push({
     date: bestHrvDay.date,
-    label: `Bester HRV-Wert: ${bestHrvDay.hrv_rmssd_ms} ms`,
+    label: `Best HRV reading: ${bestHrvDay.hrv_rmssd_ms} ms`,
     type: "health",
   });
 
@@ -207,7 +207,7 @@ function generateMilestones(
   );
   milestones.push({
     date: bestStepsDay.date,
-    label: `Schritt-Rekord: ${bestStepsDay.steps.toLocaleString("de")} Schritte`,
+    label: `Step record: ${bestStepsDay.steps.toLocaleString("en")} steps`,
     type: "activity",
   });
 
@@ -222,7 +222,7 @@ function generateMilestones(
   if (wearable.length > 0) {
     milestones.push({
       date: wearable[0].date,
-      label: "Erste Datenerfassung abgeschlossen",
+      label: "First data collection completed",
       type: "data",
     });
   }
@@ -293,31 +293,31 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
   const programPhases = [
     {
       status: "Now" as const,
-      window: "Woche 0-2",
-      title: "Baseline und Diagnostics",
-      body: "Bio-Age, Lipide, VO2max Proxy und aktuelle Recovery-Signale sauber erfassen.",
-      outcomes: ["Advanced Lipids und CRP priorisieren", "Readiness-Regeln fur Training definieren"],
+      window: "Week 0-2",
+      title: "Baseline and Diagnostics",
+      body: "Accurately capture bio-age, lipids, VO2max proxy, and current recovery signals.",
+      outcomes: ["Prioritize advanced lipids and CRP", "Define readiness rules for training"],
     },
     {
       status: "Next" as const,
-      window: "Woche 3-6",
+      window: "Week 3-6",
       title: "Aerobic Build Block",
-      body: "Zwei Zone-2-Einheiten plus ein qualitativ hochwertiger Reiz pro Woche fur VO2max und Cardio Load.",
-      outcomes: [`VO2max von ${features.vo2max.vo2max} auf ${vo2Target} anheben`, "Ruhepuls und HRV parallel monitoren"],
+      body: "Two Zone 2 sessions plus one high-quality stimulus per week for VO2max and cardio load.",
+      outcomes: [`Raise VO2max from ${features.vo2max.vo2max} to ${vo2Target}`, "Monitor resting heart rate and HRV in parallel"],
     },
     {
       status: "Next" as const,
-      window: "Woche 7-10",
+      window: "Week 7-10",
       title: "Recovery Calibration",
-      body: "Schlafkonsistenz, Intensitatssteuerung und Belastungsmanagement glatten die Tagesform.",
-      outcomes: [`Readiness-Schnitt uber ${Math.max(readinessAverage, 75)}`, "Low-readiness Tage fruher erkennen"],
+      body: "Sleep consistency, intensity control, and load management smooth out daily form.",
+      outcomes: [`Readiness average above ${Math.max(readinessAverage, 75)}`, "Detect low-readiness days earlier"],
     },
     {
       status: "Later" as const,
-      window: "Woche 11-12",
-      title: "Retest und Expert Review",
-      body: "Die Intervention wird mit Diagnostics und Experteninterpretation auf Wirksamkeit gepruft.",
-      outcomes: ["Re-Test von Biomarkern und Performance", "Nachsten Premium-Zyklus planen"],
+      window: "Week 11-12",
+      title: "Retest and Expert Review",
+      body: "The intervention is evaluated for effectiveness through diagnostics and expert interpretation.",
+      outcomes: ["Re-test biomarkers and performance", "Plan next premium cycle"],
     },
   ];
 
@@ -330,11 +330,11 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
         </Badge>
         <div className="space-y-3">
           <h1 className="text-fluid-3xl font-semibold leading-tight tracking-tight">
-            Ihre Prevention-to-Performance Roadmap
+            Your Prevention-to-Performance Roadmap
           </h1>
           <p className="max-w-3xl text-fluid-sm leading-relaxed text-muted-foreground">
-            Biomarker, Wearable-Signale, Lifestyle-Daten und Premium-Diagnostics
-            in einem 12-Wochen-Programm — mit allen verfugbaren Datenquellen.
+            Biomarkers, wearable signals, lifestyle data, and premium diagnostics
+            in a 12-week program — leveraging all available data sources.
           </p>
         </div>
       </header>
@@ -343,46 +343,46 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
         <Card className="border-0 bg-surface-1">
           <CardHeader>
             <CardTitle className="text-fluid-sm font-normal uppercase tracking-wide text-muted-foreground">
-              Aktuelles Bild
+              Current Snapshot
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl bg-surface-2/60 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-fluid-sm font-medium text-foreground">Kardio-Risiko</p>
+                <p className="text-fluid-sm font-medium text-foreground">Cardio Risk</p>
                 <StatusBadge status={features.cardioRisk.status} />
               </div>
               <p className="mt-3 text-fluid-xs leading-relaxed text-muted-foreground">
-                {features.cardioRisk.reasons[0] ?? "Aktuell ohne dominante Auffalligkeit."}
+                {features.cardioRisk.reasons[0] ?? "Currently no dominant abnormality."}
               </p>
             </div>
             <div className="rounded-xl bg-surface-2/60 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-fluid-sm font-medium text-foreground">Schlaf</p>
+                <p className="text-fluid-sm font-medium text-foreground">Sleep</p>
                 <span className="font-data text-fluid-lg text-foreground">
                   {Math.round(features.sleepComposite.score)}/100
                 </span>
               </div>
               <p className="mt-3 text-fluid-xs leading-relaxed text-muted-foreground">
-                Konsistenz {Math.round(features.circadianConsistency.score)}% und Schnitt von {avgSleep.toFixed(1)} Std.
+                Consistency {Math.round(features.circadianConsistency.score)}% and average of {avgSleep.toFixed(1)} hrs.
               </p>
             </div>
             <div className="rounded-xl bg-surface-2/60 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-fluid-sm font-medium text-foreground">Stress & Erholung</p>
+                <p className="text-fluid-sm font-medium text-foreground">Stress & Recovery</p>
                 <StatusBadge status={features.stressInflammation.level} />
               </div>
               <p className="mt-3 text-fluid-xs leading-relaxed text-muted-foreground">
-                Recovery {Math.round(features.recoveryScore.score)}/100 bei Belastungsquote {features.strainRecovery.ratio.toFixed(2)}.
+                Recovery {Math.round(features.recoveryScore.score)}/100 with strain ratio {features.strainRecovery.ratio.toFixed(2)}.
               </p>
             </div>
             <div className="rounded-xl bg-surface-2/60 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-fluid-sm font-medium text-foreground">Wohlbefinden</p>
+                <p className="text-fluid-sm font-medium text-foreground">Well-being</p>
                 <StatusBadge status={features.wellbeing.level} />
               </div>
               <p className="mt-3 text-fluid-xs leading-relaxed text-muted-foreground">
-                WHO-5 {features.wellbeing.who5}/100, kognitive Reserve {Math.round(features.cognitiveReserve.score)}/100.
+                WHO-5 {features.wellbeing.who5}/100, cognitive reserve {Math.round(features.cognitiveReserve.score)}/100.
               </p>
             </div>
           </CardContent>
@@ -400,12 +400,12 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
           <CardContent className="space-y-5">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-surface-2/60 p-4">
-                <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">Aktuell</p>
+                <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">Current</p>
                 <p className="mt-2 font-data text-3xl text-foreground">{features.vo2max.vo2max}</p>
                 <p className="mt-1 text-fluid-xs text-muted-foreground">{features.vo2max.percentile}</p>
               </div>
               <div className="rounded-2xl bg-surface-2/60 p-4">
-                <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">Ziel in 12 Wochen</p>
+                <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">Goal in 12 Weeks</p>
                 <p className="mt-2 font-data text-3xl text-primary">{vo2Target}</p>
                 <p className="mt-1 text-fluid-xs text-muted-foreground">Gap {(vo2Target - features.vo2max.vo2max).toFixed(1)}</p>
               </div>
@@ -413,9 +413,9 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
             <div className="rounded-2xl bg-surface-2/50 p-4">
               <p className="text-fluid-xs uppercase tracking-wide text-muted-foreground">Intervention Stack</p>
               <ul className="mt-3 space-y-2 text-fluid-sm leading-relaxed text-foreground/85">
-                <li>Zone 2 als Basis fur Volumen und Mitochondrienarbeit</li>
-                <li>1 qualitativer Reiz pro Woche nur an hohen Readiness-Tagen</li>
-                <li>Re-Test nach Woche 6 und Woche 12</li>
+                <li>Zone 2 as the foundation for volume and mitochondrial work</li>
+                <li>1 high-quality stimulus per week only on high-readiness days</li>
+                <li>Re-test after week 6 and week 12</li>
               </ul>
             </div>
           </CardContent>
@@ -427,13 +427,13 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <h2 className="text-fluid-xs uppercase tracking-widest text-muted-foreground">
-              12-Wochen-Programm
+              12-Week Program
             </h2>
             <p className="mt-2 max-w-2xl text-fluid-sm text-muted-foreground">
-              Messen, intervenieren, validieren, hochskalieren.
+              Measure, intervene, validate, scale up.
             </p>
           </div>
-          <Button variant="outline" size="sm">Diagnostics buchen</Button>
+          <Button variant="outline" size="sm">Book Diagnostics</Button>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -464,7 +464,7 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
       {/* ── 6. Meilensteine (real data) ── */}
       <section className="animate-in stagger-6 mb-12">
         <h2 className="text-fluid-xs uppercase tracking-widest text-muted-foreground">
-          Meilensteine
+          Milestones
         </h2>
 
         <div className="relative mt-8 pl-8">
@@ -481,7 +481,7 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                     <span className={`h-2 w-2 rounded-full ${colors.dot}`} />
                   </span>
                   <p className="font-data text-fluid-xs text-muted-foreground">
-                    {new Date(m.date).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" })}
+                    {new Date(m.date).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
                   </p>
                   <p className="mt-0.5 text-fluid-base font-medium text-foreground">{m.label}</p>
                 </li>
@@ -497,7 +497,7 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
           <Tabs defaultValue="readiness" className="gap-4">
             <TabsList
               className="h-auto w-full flex-wrap justify-start gap-2 rounded-2xl bg-surface-1 p-2"
-              aria-label="Trend-Auswahl"
+              aria-label="Trend selection"
             >
               {trendTabs.map((tab) => (
                 <TabsTrigger
@@ -515,15 +515,15 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                 <TabsContent value="readiness" className="mt-0 space-y-6">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="max-w-2xl">
-                      <h3 className="text-fluid-lg font-medium text-foreground">Bereitschafts-Score</h3>
+                      <h3 className="text-fluid-lg font-medium text-foreground">Readiness Score</h3>
                       <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
-                        Kombiniert HRV, Schlafqualitat, Ruhepuls und Tiefschlaf zu einem
-                        Tageswert fur Trainings- und Belastungssteuerung.
+                        Combines HRV, sleep quality, resting heart rate, and deep sleep into a
+                        daily score for training and load management.
                       </p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
-                      <TrendKpi label="30-Tage-Schnitt" value={`${readinessAverage}/100`} />
-                      <TrendKpi label="Zielbereich" value="75+/100" />
+                      <TrendKpi label="30-day average" value={`${readinessAverage}/100`} />
+                      <TrendKpi label="Target range" value="75+/100" />
                     </div>
                   </div>
                   <div className="h-[320px] w-full">
@@ -548,15 +548,15 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                 <TabsContent value="recovery" className="mt-0 space-y-6">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="max-w-2xl">
-                      <h3 className="text-fluid-lg font-medium text-foreground">Erholungs-Score</h3>
+                      <h3 className="text-fluid-lg font-medium text-foreground">Recovery Score</h3>
                       <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
-                        Zeigt, wie gut sich Ihr System uber Nacht regeneriert hat. Ein stabiler
-                        Verlauf hilft bei der Planung von Intensitat und Pausen.
+                        Shows how well your system recovered overnight. A stable trend
+                        helps with planning intensity and rest periods.
                       </p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
-                      <TrendKpi label="30-Tage-Schnitt" value={`${avgRecovery}/100`} />
-                      <TrendKpi label="Orientierung" value="Hoher ist besser" />
+                      <TrendKpi label="30-day average" value={`${avgRecovery}/100`} />
+                      <TrendKpi label="Guidance" value="Higher is better" />
                     </div>
                   </div>
                   <div className="h-[320px] w-full">
@@ -583,12 +583,12 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                     <div className="max-w-2xl">
                       <h3 className="text-fluid-lg font-medium text-foreground">HRV (RMSSD)</h3>
                       <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
-                        HRV bildet die autonome Regulationsfahigkeit ab. Ein positiver Trend ist
-                        oft ein gutes Zeichen fur Anpassung und Belastungsvertraglichkeit.
+                        HRV reflects autonomic regulation capacity. A positive trend is
+                        often a good sign of adaptation and load tolerance.
                       </p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
-                      <TrendKpi label="30-Tage-Schnitt" value={`${avgHrv.toFixed(1)} ms`} />
+                      <TrendKpi label="30-day average" value={`${avgHrv.toFixed(1)} ms`} />
                       <TrendKpi label="Trend" value={features.hrv30dTrend.interpretation} />
                     </div>
                   </div>
@@ -614,15 +614,15 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                 <TabsContent value="steps" className="mt-0 space-y-6">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="max-w-2xl">
-                      <h3 className="text-fluid-lg font-medium text-foreground">Schritte</h3>
+                      <h3 className="text-fluid-lg font-medium text-foreground">Steps</h3>
                       <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
-                        Ihr Alltagsvolumen auf einen Blick. Die Referenzlinie zeigt die
-                        Mindestschwelle fur eine robuste Bewegungsroutine.
+                        Your daily volume at a glance. The reference line shows the
+                        minimum threshold for a robust movement routine.
                       </p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
-                      <TrendKpi label="30-Tage-Schnitt" value={Math.round(avgSteps).toLocaleString("de")} />
-                      <TrendKpi label="Referenz" value="5.000 Schritte" />
+                      <TrendKpi label="30-day average" value={Math.round(avgSteps).toLocaleString("en")} />
+                      <TrendKpi label="Reference" value="5,000 steps" />
                     </div>
                   </div>
                   <div className="h-[320px] w-full">
@@ -631,7 +631,7 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                         <CartesianGrid stroke="#E5E8EB" strokeDasharray="3 3" vertical={false} />
                         <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} interval={4} />
                         <YAxis tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} />
-                        <Tooltip content={<SimpleTooltip unit="Schritte" />} />
+                        <Tooltip content={<SimpleTooltip unit="steps" />} />
                         <ReferenceLine y={5000} stroke="#059669" strokeDasharray="4 4" strokeWidth={1} />
                         <Bar dataKey="value" fill="#059669" opacity={0.7} radius={[4, 4, 0, 0]} />
                       </BarChart>
@@ -642,25 +642,25 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                 <TabsContent value="sleep" className="mt-0 space-y-6">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="max-w-2xl">
-                      <h3 className="text-fluid-lg font-medium text-foreground">Schlaf</h3>
+                      <h3 className="text-fluid-lg font-medium text-foreground">Sleep</h3>
                       <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
-                        Kombiniert Schlafdauer und Schlafqualitat. So sehen Sie schnell, ob genug
-                        Zeit im Bett auch wirklich in erholsamen Schlaf ubersetzt wird.
+                        Combines sleep duration and sleep quality. This lets you quickly see whether
+                        enough time in bed actually translates into restorative sleep.
                       </p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
-                      <TrendKpi label="Durchschnittsdauer" value={`${avgSleep.toFixed(1)} Std.`} />
-                      <TrendKpi label="Referenz" value="7+ Std. pro Nacht" />
+                      <TrendKpi label="Average duration" value={`${avgSleep.toFixed(1)} hrs`} />
+                      <TrendKpi label="Reference" value="7+ hrs per night" />
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-3 text-fluid-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-2 rounded-full bg-surface-2/60 px-3 py-1.5">
                       <span className="h-2 w-2 rounded-full bg-[#2563EB]" />
-                      Dauer (Std.)
+                      Duration (hrs)
                     </span>
                     <span className="inline-flex items-center gap-2 rounded-full bg-surface-2/60 px-3 py-1.5">
                       <span className="h-2 w-2 rounded-full bg-[#8B5CF6]" />
-                      Qualitat
+                      Quality
                     </span>
                   </div>
                   <div className="h-[320px] w-full">
@@ -672,8 +672,8 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                         <YAxis yAxisId="quality" orientation="right" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} axisLine={false} domain={[40, 100]} />
                         <Tooltip content={<SimpleTooltip unit="" />} />
                         <ReferenceLine yAxisId="duration" y={7} stroke="#9CA3AF" strokeDasharray="4 4" strokeWidth={1} />
-                        <Line yAxisId="duration" type="monotone" dataKey="duration" stroke="#2563EB" strokeWidth={2} dot={false} activeDot={{ r: 4 }} name="Dauer (Std.)" />
-                        <Line yAxisId="quality" type="monotone" dataKey="quality" stroke="#8B5CF6" strokeWidth={2} dot={false} activeDot={{ r: 4 }} name="Qualitat" />
+                        <Line yAxisId="duration" type="monotone" dataKey="duration" stroke="#2563EB" strokeWidth={2} dot={false} activeDot={{ r: 4 }} name="Duration (hrs)" />
+                        <Line yAxisId="quality" type="monotone" dataKey="quality" stroke="#8B5CF6" strokeWidth={2} dot={false} activeDot={{ r: 4 }} name="Quality" />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -682,15 +682,15 @@ export function JourneyClient({ ehr, wearable, lifestyle }: JourneyClientProps) 
                 <TabsContent value="activity" className="mt-0 space-y-6">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="max-w-2xl">
-                      <h3 className="text-fluid-lg font-medium text-foreground">Aktive Minuten</h3>
+                      <h3 className="text-fluid-lg font-medium text-foreground">Active Minutes</h3>
                       <p className="mt-2 text-fluid-sm leading-relaxed text-muted-foreground">
-                        Macht sichtbar, wie viel bewusste Aktivitat Sie taglich sammeln. Besonders
-                        hilfreich, um Trainings- und Alltagsbewegung gemeinsam zu bewerten.
+                        Shows how much intentional activity you accumulate daily. Especially
+                        helpful for evaluating training and everyday movement together.
                       </p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
-                      <TrendKpi label="30-Tage-Schnitt" value={`${avgActiveMinutes} min`} />
-                      <TrendKpi label="Fokus" value="Konstanz uber Peaks" />
+                      <TrendKpi label="30-day average" value={`${avgActiveMinutes} min`} />
+                      <TrendKpi label="Focus" value="Consistency over peaks" />
                     </div>
                   </div>
                   <div className="h-[320px] w-full">
