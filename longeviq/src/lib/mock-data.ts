@@ -17,7 +17,7 @@ export const MOCK_PATIENT_ID = "PAT-2024-0042";
 export const mockUserProfile: UserProfile = {
   id: "00000000-0000-4000-8000-000000000042",
   patient_id: MOCK_PATIENT_ID,
-  display_name: "Thomas M.",
+  display_name: "Sabine K.",
   ui_mode: "standard",
   persona_hint: "digital-optimizer",
   created_at: "2026-01-14T09:00:00.000Z",

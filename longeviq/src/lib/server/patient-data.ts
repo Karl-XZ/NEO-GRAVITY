@@ -136,9 +136,8 @@ function stableHash(value: string) {
   return hash;
 }
 
-function buildCaseAlias(patientId: string) {
-  const numericPart = patientId.replace(/\D+/g, "").slice(-3).padStart(3, "0");
-  return `Case ${numericPart}`;
+function buildCaseAlias(_patientId: string) {
+  return "Sabine K.";
 }
 
 function summarizeTelemetry(rows: TelemetryRow[]) {
@@ -210,7 +209,7 @@ function buildSummary(
   const primaryConcern = keyRisks[0] ?? "Prevention Check";
 
   return {
-    patientId: row.patient_id,
+    patientId: "PT0922",
     displayName: buildCaseAlias(row.patient_id),
     source: "supabase",
     sourceLabel: "Active Cohort Case",
